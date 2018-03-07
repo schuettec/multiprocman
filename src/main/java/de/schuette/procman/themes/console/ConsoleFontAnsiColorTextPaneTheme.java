@@ -1,22 +1,22 @@
-package shelltest.themes.console;
+package de.schuette.procman.themes.console;
 
 import java.awt.Color;
+import java.awt.Font;
 
 import javax.swing.UIManager;
 
-import shelltest.console.AnsiColorTextPane;
+import de.schuette.procman.console.AnsiColorTextPane;
 
-public class BlackBackgroundAnsiColorTextPaneTheme extends ConsoleFontAnsiColorTextPaneTheme {
+public class ConsoleFontAnsiColorTextPaneTheme implements AnsiColorTextPaneTheme {
 
   @Override
   public void apply(AnsiColorTextPane ansiColorTextPane) {
-    super.apply(ansiColorTextPane);
-    ansiColorTextPane.setBackground(Color.BLACK);
+    Font font = new Font(Font.MONOSPACED, Font.PLAIN, 16);
+    ansiColorTextPane.setFont(font);
   }
 
   @Override
   public void reset(AnsiColorTextPane ansiColorTextPane) {
-    super.reset(ansiColorTextPane);
     Color color = UIManager.getColor("EditorPane.background");
     ansiColorTextPane.setBackground(color);
   }

@@ -1,4 +1,4 @@
-package shelltest.console;
+package de.schuette.procman.console;
 
 public interface AutoScrollToBottomListener {
 

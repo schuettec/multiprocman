@@ -1,4 +1,4 @@
-package shelltest.themes;
+package de.schuette.procman.themes;
 
 import javax.swing.JComponent;
 

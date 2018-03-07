@@ -1,8 +1,8 @@
-package shelltest.console;
+package de.schuette.procman.console;
 
+import static de.schuette.procman.AnsiColors.getANSIColor;
 import static java.util.Objects.isNull;
 import static java.util.Objects.nonNull;
-import static shelltest.AnsiColors.getANSIColor;
 
 import java.awt.Color;
 import java.awt.Font;
@@ -17,8 +17,8 @@ import javax.swing.text.StyledDocument;
 
 import org.apache.commons.lang3.event.EventListenerSupport;
 
-import shelltest.AppendListener;
-import shelltest.Appendable;
+import de.schuette.procman.AppendListener;
+import de.schuette.procman.Appendable;
 
 public class AnsiColorTextPane extends JTextPane implements Appendable {
   /**

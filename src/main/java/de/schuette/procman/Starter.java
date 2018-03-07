@@ -1,4 +1,4 @@
-package shelltest;
+package de.schuette.procman;
 
 import java.io.File;
 import java.io.InputStream;

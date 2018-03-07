@@ -1,4 +1,4 @@
-package shelltest;
+package de.schuette.procman;
 
 import java.awt.Color;
 
