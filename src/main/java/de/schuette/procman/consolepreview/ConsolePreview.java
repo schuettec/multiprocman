@@ -37,7 +37,6 @@ public class ConsolePreview extends JPanel implements AppendListener {
 
 	private BufferedImage bufferedImage;
 
-	private int curY = INITIAL_Y;
 	private int curX = INITIAL_X;
 
 	public ConsolePreview() {
@@ -69,11 +68,7 @@ public class ConsolePreview extends JPanel implements AppendListener {
 
 		Iterator<String> it = lines.iterator();
 		while (it.hasNext()) {
-			int localCurY = curY;
-			if (curY >= HEIGHT) {
-				bufferedImage = cropImage(bufferedImage);
-				localCurY = HEIGHT - Y_INC;
-			}
+			int localCurY = HEIGHT - Y_INC;
 
 			String line = it.next();
 			int length = line.length();
@@ -83,16 +78,14 @@ public class ConsolePreview extends JPanel implements AppendListener {
 			g.setColor(c);
 			g.setStroke(new BasicStroke(Y_INC - 1));
 			g.drawLine(curX, localCurY, curX + endX, localCurY);
-			if (curY < HEIGHT) {
-				curX += endX;
-				if (it.hasNext()) {
-					curY += Y_INC;
+			curX += endX;
+			if (it.hasNext()) {
+				bufferedImage = cropImage(bufferedImage);
+				curX = INITIAL_X;
+			} else {
+				if (s.endsWith("\n") || s.endsWith("\r\n")) {
+					bufferedImage = cropImage(bufferedImage);
 					curX = INITIAL_X;
-				} else {
-					if (s.endsWith("\n") || s.endsWith("\r\n")) {
-						curY += Y_INC;
-						curX = INITIAL_X;
-					}
 				}
 			}
 		}
