@@ -8,6 +8,9 @@ import java.awt.Component;
 import java.awt.Dimension;
 import java.awt.EventQueue;
 import java.awt.FlowLayout;
+import java.awt.datatransfer.DataFlavor;
+import java.awt.datatransfer.StringSelection;
+import java.awt.datatransfer.Transferable;
 import java.awt.event.ActionEvent;
 import java.util.Iterator;
 import java.util.Random;
@@ -16,6 +19,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 
 import javax.swing.AbstractAction;
 import javax.swing.DefaultListModel;
+import javax.swing.DropMode;
 import javax.swing.JComponent;
 import javax.swing.JFrame;
 import javax.swing.JList;
@@ -25,6 +29,7 @@ import javax.swing.JSeparator;
 import javax.swing.JToggleButton;
 import javax.swing.ListSelectionModel;
 import javax.swing.SwingConstants;
+import javax.swing.TransferHandler;
 import javax.swing.border.EmptyBorder;
 import javax.swing.event.ListSelectionEvent;
 import javax.swing.event.ListSelectionListener;
@@ -230,16 +235,68 @@ public class MainFrame extends JFrame implements Appendable {
 		this.processList = new JList<>(processes);
 		processList.setVisibleRowCount(1);
 		processList.setLayoutOrientation(JList.HORIZONTAL_WRAP);
-		processList.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
 		this.processList.setCellRenderer(new ConsolePreviewCellRenderer());
 		this.processList.addListSelectionListener(new ListSelectionListener() {
 
 			@Override
 			public void valueChanged(ListSelectionEvent e) {
-				selectConsole(processList.getSelectedValue());
+				ProcessController selectedValue = processList.getSelectedValue();
+				if (selectedValue != null) {
+					selectConsole(selectedValue);
+				}
 			}
 
 		});
+		processList.setDragEnabled(true);
+		processList.setDropMode(DropMode.INSERT);
+		processList.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
+		processList.setTransferHandler(new TransferHandler() {
+			private int index;
+			private boolean beforeIndex = false; // Start with `false` therefore if it is removed from or added to the
+													// list it still works
+
+			@Override
+			public int getSourceActions(JComponent comp) {
+				return MOVE;
+			}
+
+			@Override
+			public Transferable createTransferable(JComponent comp) {
+				index = processList.getSelectedIndex();
+				return new StringSelection(String.valueOf(index));
+			}
+
+			@Override
+			public void exportDone(JComponent comp, Transferable trans, int action) {
+				if (action == MOVE) {
+					if (beforeIndex)
+						processes.remove(index + 1);
+					else
+						processes.remove(index);
+				}
+			}
+
+			@Override
+			public boolean canImport(TransferHandler.TransferSupport support) {
+				return support.isDataFlavorSupported(DataFlavor.stringFlavor);
+			}
+
+			@Override
+			public boolean importData(TransferHandler.TransferSupport support) {
+				try {
+					String s = (String) support.getTransferable().getTransferData(DataFlavor.stringFlavor);
+					JList.DropLocation dl = (JList.DropLocation) support.getDropLocation();
+					ProcessController processController = processes.get(Integer.parseInt(s));
+					processes.add(dl.getIndex(), processController);
+					processList.setSelectedIndex(dl.getIndex());
+					beforeIndex = dl.getIndex() < index ? true : false;
+					return true;
+				} catch (Exception e) {
+				}
+				return false;
+			}
+		});
+
 		contentPane.add(new JScrollPane(processList, JScrollPane.VERTICAL_SCROLLBAR_NEVER,
 				JScrollPane.HORIZONTAL_SCROLLBAR_AS_NEEDED), BorderLayout.NORTH);
 
