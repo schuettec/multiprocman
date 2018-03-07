@@ -1,5 +1,6 @@
 package de.schuette.procman.consolepreview;
 
+import java.awt.AlphaComposite;
 import java.awt.BasicStroke;
 import java.awt.Color;
 import java.awt.Dimension;
@@ -32,12 +33,14 @@ public class ConsolePreview extends JPanel implements AppendListener {
 		Color color;
 	}
 
-	private static final int WIDTH = 110;
-	private static final int HEIGHT = 140;
+	public static final int WIDTH = 110;
+	public static final int HEIGHT = 140;
 
 	private BufferedImage bufferedImage;
 
 	private int curX = INITIAL_X;
+
+	private boolean selected = false;
 
 	public ConsolePreview() {
 		super();
@@ -46,7 +49,7 @@ public class ConsolePreview extends JPanel implements AppendListener {
 
 	private void initialize() {
 		this.setBorder(BorderUIResource.getRaisedBevelBorderUIResource());
-		this.setPreferredSize(new Dimension(WIDTH, HEIGHT));
+		this.setPreferredSize(new Dimension(WIDTH, HEIGHT + 20));
 		this.bufferedImage = new BufferedImage(WIDTH, HEIGHT, BufferedImage.TYPE_INT_RGB);
 		Graphics2D g = (Graphics2D) bufferedImage.getGraphics();
 		g.setColor(Color.BLACK);
@@ -58,6 +61,9 @@ public class ConsolePreview extends JPanel implements AppendListener {
 		super.paintComponent(g);
 		Graphics2D g2d = (Graphics2D) g;
 		Insets insets = this.getInsets();
+		if (!selected) {
+			g2d.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_OVER, 0.6f));
+		}
 		g2d.drawImage(bufferedImage, insets.left, insets.top, this);
 	}
 
@@ -101,6 +107,10 @@ public class ConsolePreview extends JPanel implements AppendListener {
 		g.fillRect(0, 0, WIDTH, HEIGHT);
 		g.drawImage(img, 0, 0, null);
 		return newImage;
+	}
+
+	public void setIsSelected(boolean isSelected) {
+		this.selected = isSelected;
 	}
 
 }

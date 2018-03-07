@@ -4,6 +4,7 @@ import static java.util.Objects.requireNonNull;
 
 import java.awt.BorderLayout;
 import java.awt.Color;
+import java.awt.Component;
 import java.awt.Dimension;
 import java.awt.EventQueue;
 import java.awt.FlowLayout;
@@ -14,18 +15,23 @@ import java.util.ServiceLoader;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import javax.swing.AbstractAction;
+import javax.swing.DefaultListModel;
 import javax.swing.JComponent;
 import javax.swing.JFrame;
+import javax.swing.JList;
 import javax.swing.JPanel;
+import javax.swing.JScrollPane;
 import javax.swing.JSeparator;
 import javax.swing.JToggleButton;
+import javax.swing.ListSelectionModel;
 import javax.swing.SwingConstants;
 import javax.swing.border.EmptyBorder;
+import javax.swing.event.ListSelectionEvent;
+import javax.swing.event.ListSelectionListener;
 
 import de.schuette.procman.console.AnsiColorTextPane;
 import de.schuette.procman.console.AutoScrollToBottomListener;
 import de.schuette.procman.console.ScrollableAnsiColorTextPaneContainer;
-import de.schuette.procman.consolepreview.ConsolePreview;
 import de.schuette.procman.themes.Theme;
 import de.schuette.procman.themes.console.AnsiColorTextPaneTheme;
 
@@ -41,6 +47,7 @@ public class MainFrame extends JFrame implements Appendable {
 		@Override
 		public void actionPerformed(ActionEvent e) {
 			JToggleButton source = (JToggleButton) e.getSource();
+			ScrollableAnsiColorTextPaneContainer consoleScroller = currentProcess.getConsoleScroller();
 			consoleScroller.setAutoScrollToBottom(source.isSelected());
 			consoleScroller.scrollToBottom();
 		}
@@ -65,11 +72,13 @@ public class MainFrame extends JFrame implements Appendable {
 	private JSeparator separator;
 	private JPanel footer;
 	private JToggleButton tglScrollToBottom;
-	private ScrollableAnsiColorTextPaneContainer consoleScroller;
 
-	private AnsiColorTextPane console;
+	private JList<ProcessController> processList;
+	private DefaultListModel<ProcessController> processes;
 
-	private ConsolePreview consolePreview;
+	private ProcessController currentProcess;
+
+	private ListeningToggleButtonModel autoScrollToBottomToggleModel;
 
 	/**
 	 * Launch the application.
@@ -81,6 +90,68 @@ public class MainFrame extends JFrame implements Appendable {
 				try {
 					final MainFrame frame = new MainFrame();
 					frame.setExtendedState(JFrame.MAXIMIZED_BOTH);
+					frame.addConsole(new AnsiColorTextPane());
+					frame.addConsole(new AnsiColorTextPane());
+					frame.addConsole(new AnsiColorTextPane());
+					frame.addConsole(new AnsiColorTextPane());
+					frame.addConsole(new AnsiColorTextPane());
+					frame.addConsole(new AnsiColorTextPane());
+					frame.addConsole(new AnsiColorTextPane());
+					frame.addConsole(new AnsiColorTextPane());
+					frame.addConsole(new AnsiColorTextPane());
+					frame.addConsole(new AnsiColorTextPane());
+					frame.addConsole(new AnsiColorTextPane());
+					frame.addConsole(new AnsiColorTextPane());
+					frame.addConsole(new AnsiColorTextPane());
+					frame.addConsole(new AnsiColorTextPane());
+					frame.addConsole(new AnsiColorTextPane());
+					frame.addConsole(new AnsiColorTextPane());
+					frame.addConsole(new AnsiColorTextPane());
+					frame.addConsole(new AnsiColorTextPane());
+					frame.addConsole(new AnsiColorTextPane());
+					frame.addConsole(new AnsiColorTextPane());
+					frame.addConsole(new AnsiColorTextPane());
+					frame.addConsole(new AnsiColorTextPane());
+					frame.addConsole(new AnsiColorTextPane());
+					frame.addConsole(new AnsiColorTextPane());
+					frame.addConsole(new AnsiColorTextPane());
+					frame.addConsole(new AnsiColorTextPane());
+					frame.addConsole(new AnsiColorTextPane());
+					frame.addConsole(new AnsiColorTextPane());
+					frame.addConsole(new AnsiColorTextPane());
+					frame.addConsole(new AnsiColorTextPane());
+					frame.addConsole(new AnsiColorTextPane());
+					frame.addConsole(new AnsiColorTextPane());
+					frame.addConsole(new AnsiColorTextPane());
+					frame.addConsole(new AnsiColorTextPane());
+					frame.addConsole(new AnsiColorTextPane());
+					frame.addConsole(new AnsiColorTextPane());
+					frame.addConsole(new AnsiColorTextPane());
+					frame.addConsole(new AnsiColorTextPane());
+					frame.addConsole(new AnsiColorTextPane());
+					frame.addConsole(new AnsiColorTextPane());
+					frame.addConsole(new AnsiColorTextPane());
+					frame.addConsole(new AnsiColorTextPane());
+					frame.addConsole(new AnsiColorTextPane());
+					frame.addConsole(new AnsiColorTextPane());
+					frame.addConsole(new AnsiColorTextPane());
+					frame.addConsole(new AnsiColorTextPane());
+					frame.addConsole(new AnsiColorTextPane());
+					frame.addConsole(new AnsiColorTextPane());
+					frame.addConsole(new AnsiColorTextPane());
+					frame.addConsole(new AnsiColorTextPane());
+					frame.addConsole(new AnsiColorTextPane());
+					frame.addConsole(new AnsiColorTextPane());
+					frame.addConsole(new AnsiColorTextPane());
+					frame.addConsole(new AnsiColorTextPane());
+					frame.addConsole(new AnsiColorTextPane());
+					frame.addConsole(new AnsiColorTextPane());
+					frame.addConsole(new AnsiColorTextPane());
+					frame.addConsole(new AnsiColorTextPane());
+					frame.addConsole(new AnsiColorTextPane());
+					frame.addConsole(new AnsiColorTextPane());
+					frame.addConsole(new AnsiColorTextPane());
+					frame.addConsole(new AnsiColorTextPane());
 					frame.setVisible(true);
 
 					Thread t = new Thread(new Runnable() {
@@ -136,16 +207,6 @@ public class MainFrame extends JFrame implements Appendable {
 		contentPane.setLayout(new BorderLayout(0, 0));
 		setContentPane(contentPane);
 
-		this.console = new AnsiColorTextPane();
-		theme(console);
-
-		this.consoleScroller = new ScrollableAnsiColorTextPaneContainer(console);
-		contentPane.add(consoleScroller, BorderLayout.CENTER);
-
-		this.consolePreview = new ConsolePreview();
-		contentPane.add(consolePreview, BorderLayout.NORTH);
-		this.console.addAppendListener(consolePreview);
-
 		footerContainer = new JPanel();
 		footerContainer.setBorder(null);
 		contentPane.add(footerContainer, BorderLayout.SOUTH);
@@ -161,11 +222,59 @@ public class MainFrame extends JFrame implements Appendable {
 		footer.setLayout(new FlowLayout(FlowLayout.RIGHT, 0, 0));
 
 		tglScrollToBottom = new JToggleButton(scrollToBottomAction);
-		ListeningToggleButtonModel toggleModel = new ListeningToggleButtonModel();
-		consoleScroller.addAutoScrollToBottomListener(toggleModel);
-		tglScrollToBottom.setModel(toggleModel);
+		this.autoScrollToBottomToggleModel = new ListeningToggleButtonModel();
+		tglScrollToBottom.setModel(autoScrollToBottomToggleModel);
 		footer.add(tglScrollToBottom);
 
+		this.processes = new DefaultListModel<ProcessController>();
+		this.processList = new JList<>(processes);
+		processList.setVisibleRowCount(1);
+		processList.setLayoutOrientation(JList.HORIZONTAL_WRAP);
+		processList.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
+		this.processList.setCellRenderer(new ConsolePreviewCellRenderer());
+		this.processList.addListSelectionListener(new ListSelectionListener() {
+
+			@Override
+			public void valueChanged(ListSelectionEvent e) {
+				selectConsole(processList.getSelectedValue());
+			}
+
+		});
+		contentPane.add(new JScrollPane(processList, JScrollPane.VERTICAL_SCROLLBAR_NEVER,
+				JScrollPane.HORIZONTAL_SCROLLBAR_AS_NEEDED), BorderLayout.NORTH);
+
+	}
+
+	private void selectConsole(ProcessController selectedValue) {
+		if (this.currentProcess != null) {
+			// Deregister everything
+			currentProcess.getConsoleScroller().removeAutoScrollToBottomListener(autoScrollToBottomToggleModel);
+		}
+
+		BorderLayout layout = (BorderLayout) contentPane.getLayout();
+		Component centerComponent = layout.getLayoutComponent(BorderLayout.CENTER);
+		if (centerComponent != null) {
+			contentPane.remove(centerComponent);
+		}
+
+		ScrollableAnsiColorTextPaneContainer consoleScroller = selectedValue.getConsoleScroller();
+		contentPane.add(consoleScroller, BorderLayout.CENTER);
+		consoleScroller.addAutoScrollToBottomListener(autoScrollToBottomToggleModel);
+
+		this.currentProcess = selectedValue;
+
+		this.revalidate();
+		this.repaint();
+	}
+
+	public void addConsole(AnsiColorTextPane textPane) {
+		boolean activateFirst = this.processes.isEmpty();
+		theme(textPane);
+		ProcessController processController = new ProcessController(textPane);
+		this.processes.addElement(processController);
+		if (activateFirst) {
+			this.processList.setSelectedIndex(0);
+		}
 	}
 
 	private void theme(AnsiColorTextPane console) {
@@ -185,12 +294,14 @@ public class MainFrame extends JFrame implements Appendable {
 
 	@Override
 	public void append(Color c, String s) {
-		this.consoleScroller.append(c, s);
+		currentProcess.getConsoleScroller().append(c, s);
+		this.processList.repaint();
 	}
 
 	@Override
 	public void appendANSI(String s) {
-		this.consoleScroller.appendANSI(s);
+		currentProcess.getConsoleScroller().appendANSI(s);
+		this.processList.repaint();
 	}
 
 }
