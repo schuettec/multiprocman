@@ -1,7 +1,5 @@
 package de.schuette.procman;
 
-import static java.util.Objects.requireNonNull;
-
 import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Component;
@@ -12,9 +10,7 @@ import java.awt.datatransfer.DataFlavor;
 import java.awt.datatransfer.StringSelection;
 import java.awt.datatransfer.Transferable;
 import java.awt.event.ActionEvent;
-import java.util.Iterator;
 import java.util.Random;
-import java.util.ServiceLoader;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import javax.swing.AbstractAction;
@@ -34,11 +30,8 @@ import javax.swing.border.EmptyBorder;
 import javax.swing.event.ListSelectionEvent;
 import javax.swing.event.ListSelectionListener;
 
-import de.schuette.procman.console.AnsiColorTextPane;
 import de.schuette.procman.console.AutoScrollToBottomListener;
 import de.schuette.procman.console.ScrollableAnsiColorTextPaneContainer;
-import de.schuette.procman.themes.Theme;
-import de.schuette.procman.themes.console.AnsiColorTextPaneTheme;
 
 public class MainFrame extends JFrame implements Appendable {
 
@@ -95,68 +88,63 @@ public class MainFrame extends JFrame implements Appendable {
 				try {
 					final MainFrame frame = new MainFrame();
 					frame.setExtendedState(JFrame.MAXIMIZED_BOTH);
-					frame.addConsole(new AnsiColorTextPane());
-					frame.addConsole(new AnsiColorTextPane());
-					frame.addConsole(new AnsiColorTextPane());
-					frame.addConsole(new AnsiColorTextPane());
-					frame.addConsole(new AnsiColorTextPane());
-					frame.addConsole(new AnsiColorTextPane());
-					frame.addConsole(new AnsiColorTextPane());
-					frame.addConsole(new AnsiColorTextPane());
-					frame.addConsole(new AnsiColorTextPane());
-					frame.addConsole(new AnsiColorTextPane());
-					frame.addConsole(new AnsiColorTextPane());
-					frame.addConsole(new AnsiColorTextPane());
-					frame.addConsole(new AnsiColorTextPane());
-					frame.addConsole(new AnsiColorTextPane());
-					frame.addConsole(new AnsiColorTextPane());
-					frame.addConsole(new AnsiColorTextPane());
-					frame.addConsole(new AnsiColorTextPane());
-					frame.addConsole(new AnsiColorTextPane());
-					frame.addConsole(new AnsiColorTextPane());
-					frame.addConsole(new AnsiColorTextPane());
-					frame.addConsole(new AnsiColorTextPane());
-					frame.addConsole(new AnsiColorTextPane());
-					frame.addConsole(new AnsiColorTextPane());
-					frame.addConsole(new AnsiColorTextPane());
-					frame.addConsole(new AnsiColorTextPane());
-					frame.addConsole(new AnsiColorTextPane());
-					frame.addConsole(new AnsiColorTextPane());
-					frame.addConsole(new AnsiColorTextPane());
-					frame.addConsole(new AnsiColorTextPane());
-					frame.addConsole(new AnsiColorTextPane());
-					frame.addConsole(new AnsiColorTextPane());
-					frame.addConsole(new AnsiColorTextPane());
-					frame.addConsole(new AnsiColorTextPane());
-					frame.addConsole(new AnsiColorTextPane());
-					frame.addConsole(new AnsiColorTextPane());
-					frame.addConsole(new AnsiColorTextPane());
-					frame.addConsole(new AnsiColorTextPane());
-					frame.addConsole(new AnsiColorTextPane());
-					frame.addConsole(new AnsiColorTextPane());
-					frame.addConsole(new AnsiColorTextPane());
-					frame.addConsole(new AnsiColorTextPane());
-					frame.addConsole(new AnsiColorTextPane());
-					frame.addConsole(new AnsiColorTextPane());
-					frame.addConsole(new AnsiColorTextPane());
-					frame.addConsole(new AnsiColorTextPane());
-					frame.addConsole(new AnsiColorTextPane());
-					frame.addConsole(new AnsiColorTextPane());
-					frame.addConsole(new AnsiColorTextPane());
-					frame.addConsole(new AnsiColorTextPane());
-					frame.addConsole(new AnsiColorTextPane());
-					frame.addConsole(new AnsiColorTextPane());
-					frame.addConsole(new AnsiColorTextPane());
-					frame.addConsole(new AnsiColorTextPane());
-					frame.addConsole(new AnsiColorTextPane());
-					frame.addConsole(new AnsiColorTextPane());
-					frame.addConsole(new AnsiColorTextPane());
-					frame.addConsole(new AnsiColorTextPane());
-					frame.addConsole(new AnsiColorTextPane());
-					frame.addConsole(new AnsiColorTextPane());
-					frame.addConsole(new AnsiColorTextPane());
-					frame.addConsole(new AnsiColorTextPane());
-					frame.addConsole(new AnsiColorTextPane());
+					frame.addProcessController(new ProcessController());
+					frame.addProcessController(new ProcessController());
+					frame.addProcessController(new ProcessController());
+					frame.addProcessController(new ProcessController());
+					frame.addProcessController(new ProcessController());
+					frame.addProcessController(new ProcessController());
+					frame.addProcessController(new ProcessController());
+					frame.addProcessController(new ProcessController());
+					frame.addProcessController(new ProcessController());
+					frame.addProcessController(new ProcessController());
+					frame.addProcessController(new ProcessController());
+					frame.addProcessController(new ProcessController());
+					frame.addProcessController(new ProcessController());
+					frame.addProcessController(new ProcessController());
+					frame.addProcessController(new ProcessController());
+					frame.addProcessController(new ProcessController());
+					frame.addProcessController(new ProcessController());
+					frame.addProcessController(new ProcessController());
+					frame.addProcessController(new ProcessController());
+					frame.addProcessController(new ProcessController());
+					frame.addProcessController(new ProcessController());
+					frame.addProcessController(new ProcessController());
+					frame.addProcessController(new ProcessController());
+					frame.addProcessController(new ProcessController());
+					frame.addProcessController(new ProcessController());
+					frame.addProcessController(new ProcessController());
+					frame.addProcessController(new ProcessController());
+					frame.addProcessController(new ProcessController());
+					frame.addProcessController(new ProcessController());
+					frame.addProcessController(new ProcessController());
+					frame.addProcessController(new ProcessController());
+					frame.addProcessController(new ProcessController());
+					frame.addProcessController(new ProcessController());
+					frame.addProcessController(new ProcessController());
+					frame.addProcessController(new ProcessController());
+					frame.addProcessController(new ProcessController());
+					frame.addProcessController(new ProcessController());
+					frame.addProcessController(new ProcessController());
+					frame.addProcessController(new ProcessController());
+					frame.addProcessController(new ProcessController());
+					frame.addProcessController(new ProcessController());
+					frame.addProcessController(new ProcessController());
+					frame.addProcessController(new ProcessController());
+					frame.addProcessController(new ProcessController());
+					frame.addProcessController(new ProcessController());
+					frame.addProcessController(new ProcessController());
+					frame.addProcessController(new ProcessController());
+					frame.addProcessController(new ProcessController());
+					frame.addProcessController(new ProcessController());
+					frame.addProcessController(new ProcessController());
+					frame.addProcessController(new ProcessController());
+					frame.addProcessController(new ProcessController());
+					frame.addProcessController(new ProcessController());
+					frame.addProcessController(new ProcessController());
+					frame.addProcessController(new ProcessController());
+					frame.addProcessController(new ProcessController());
+					frame.addProcessController(new ProcessController());
 					frame.setVisible(true);
 
 					Thread t = new Thread(new Runnable() {
@@ -324,28 +312,11 @@ public class MainFrame extends JFrame implements Appendable {
 		this.repaint();
 	}
 
-	public void addConsole(AnsiColorTextPane textPane) {
+	public void addProcessController(ProcessController processController) {
 		boolean activateFirst = this.processes.isEmpty();
-		theme(textPane);
-		ProcessController processController = new ProcessController(textPane);
 		this.processes.addElement(processController);
 		if (activateFirst) {
 			this.processList.setSelectedIndex(0);
-		}
-	}
-
-	private void theme(AnsiColorTextPane console) {
-		theme(console, AnsiColorTextPaneTheme.class);
-	}
-
-	private <C extends JComponent> void theme(C component, Class<? extends Theme<C>> service) {
-		requireNonNull(component, "The component to be themed may not be null.");
-		requireNonNull(service, "The theme type may not be null.");
-		ServiceLoader<? extends Theme<C>> themeLoader = ServiceLoader.load(service);
-		Iterator<? extends Theme<C>> it = themeLoader.iterator();
-		if (it.hasNext()) {
-			Theme<C> theme = it.next();
-			theme.apply(component);
 		}
 	}
 

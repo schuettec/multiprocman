@@ -190,6 +190,13 @@ public class ScrollableAnsiColorTextPaneContainer extends JScrollPane
 		JButton btnClose = new JButton(finishSearchAction);
 		panel.add(btnClose);
 
+	}
+
+	@Override
+	public void addNotify() {
+		super.addNotify();
+		this.addMouseWheelListener(this);
+
 		getInputMap(WHEN_IN_FOCUSED_WINDOW).put(KeyStroke.getKeyStroke(KeyEvent.VK_F, InputEvent.CTRL_MASK),
 				CMD_SHOW_SEARCH);
 		getActionMap().put(CMD_SHOW_SEARCH, startSearchAction);
@@ -199,15 +206,15 @@ public class ScrollableAnsiColorTextPaneContainer extends JScrollPane
 	}
 
 	@Override
-	public void addNotify() {
-		super.addNotify();
-		this.addMouseWheelListener(this);
-	}
-
-	@Override
 	public void removeNotify() {
 		super.addNotify();
 		this.removeMouseWheelListener(this);
+
+		getInputMap(WHEN_IN_FOCUSED_WINDOW).remove(KeyStroke.getKeyStroke(KeyEvent.VK_F, InputEvent.CTRL_MASK));
+		getActionMap().remove(CMD_SHOW_SEARCH);
+
+		getInputMap(WHEN_IN_FOCUSED_WINDOW).remove(KeyStroke.getKeyStroke(KeyEvent.VK_ESCAPE, 0));
+		getActionMap().remove(CMD_HIDE_SEARCH);
 	}
 
 	@Override
