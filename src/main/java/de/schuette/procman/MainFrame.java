@@ -10,8 +10,6 @@ import java.awt.datatransfer.DataFlavor;
 import java.awt.datatransfer.StringSelection;
 import java.awt.datatransfer.Transferable;
 import java.awt.event.ActionEvent;
-import java.util.Random;
-import java.util.concurrent.atomic.AtomicInteger;
 
 import javax.swing.AbstractAction;
 import javax.swing.DefaultListModel;
@@ -88,99 +86,56 @@ public class MainFrame extends JFrame implements Appendable {
 				try {
 					final MainFrame frame = new MainFrame();
 					frame.setExtendedState(JFrame.MAXIMIZED_BOTH);
-					frame.addProcessController(new ProcessController());
-					frame.addProcessController(new ProcessController());
-					frame.addProcessController(new ProcessController());
-					frame.addProcessController(new ProcessController());
-					frame.addProcessController(new ProcessController());
-					frame.addProcessController(new ProcessController());
-					frame.addProcessController(new ProcessController());
-					frame.addProcessController(new ProcessController());
-					frame.addProcessController(new ProcessController());
-					frame.addProcessController(new ProcessController());
-					frame.addProcessController(new ProcessController());
-					frame.addProcessController(new ProcessController());
-					frame.addProcessController(new ProcessController());
-					frame.addProcessController(new ProcessController());
-					frame.addProcessController(new ProcessController());
-					frame.addProcessController(new ProcessController());
-					frame.addProcessController(new ProcessController());
-					frame.addProcessController(new ProcessController());
-					frame.addProcessController(new ProcessController());
-					frame.addProcessController(new ProcessController());
-					frame.addProcessController(new ProcessController());
-					frame.addProcessController(new ProcessController());
-					frame.addProcessController(new ProcessController());
-					frame.addProcessController(new ProcessController());
-					frame.addProcessController(new ProcessController());
-					frame.addProcessController(new ProcessController());
-					frame.addProcessController(new ProcessController());
-					frame.addProcessController(new ProcessController());
-					frame.addProcessController(new ProcessController());
-					frame.addProcessController(new ProcessController());
-					frame.addProcessController(new ProcessController());
-					frame.addProcessController(new ProcessController());
-					frame.addProcessController(new ProcessController());
-					frame.addProcessController(new ProcessController());
-					frame.addProcessController(new ProcessController());
-					frame.addProcessController(new ProcessController());
-					frame.addProcessController(new ProcessController());
-					frame.addProcessController(new ProcessController());
-					frame.addProcessController(new ProcessController());
-					frame.addProcessController(new ProcessController());
-					frame.addProcessController(new ProcessController());
-					frame.addProcessController(new ProcessController());
-					frame.addProcessController(new ProcessController());
-					frame.addProcessController(new ProcessController());
-					frame.addProcessController(new ProcessController());
-					frame.addProcessController(new ProcessController());
-					frame.addProcessController(new ProcessController());
-					frame.addProcessController(new ProcessController());
-					frame.addProcessController(new ProcessController());
-					frame.addProcessController(new ProcessController());
-					frame.addProcessController(new ProcessController());
-					frame.addProcessController(new ProcessController());
-					frame.addProcessController(new ProcessController());
-					frame.addProcessController(new ProcessController());
-					frame.addProcessController(new ProcessController());
-					frame.addProcessController(new ProcessController());
-					frame.addProcessController(new ProcessController());
+					ProcessDescriptor descriptor = new ProcessDescriptor();
+					frame.addProcessController(new ProcessController(descriptor).start());
+					frame.addProcessController(new ProcessController(descriptor));
+					frame.addProcessController(new ProcessController(descriptor));
+					frame.addProcessController(new ProcessController(descriptor));
+					frame.addProcessController(new ProcessController(descriptor));
+					frame.addProcessController(new ProcessController(descriptor));
+					frame.addProcessController(new ProcessController(descriptor));
+					frame.addProcessController(new ProcessController(descriptor));
+					frame.addProcessController(new ProcessController(descriptor));
+					frame.addProcessController(new ProcessController(descriptor));
+					frame.addProcessController(new ProcessController(descriptor));
+					frame.addProcessController(new ProcessController(descriptor));
+					frame.addProcessController(new ProcessController(descriptor));
 					frame.setVisible(true);
 
-					Thread t = new Thread(new Runnable() {
-
-						@Override
-						public void run() {
-							AtomicInteger index = new AtomicInteger();
-							while (true) {
-								EventQueue.invokeLater(new Runnable() {
-									@Override
-									public void run() {
-										Random r = new Random();
-										int i = index.incrementAndGet();
-										Color c = new Color(r.nextInt(255), r.nextInt(255), r.nextInt(255));
-										frame.append(c, i + " " + "Hallo\n");
-										c = new Color(r.nextInt(255), r.nextInt(255), r.nextInt(255));
-										frame.append(c,
-												i + " " + "Duuuuuuuuuuuuuuuuuuu\nESEEEEEEEEEEEEEEEEEEEEEEEEEEL");
-										c = new Color(r.nextInt(255), r.nextInt(255), r.nextInt(255));
-										frame.append(c, i + " " + "MÖÖÖÖÖÖÖÖÖÖÖÖÖP\n");
-										c = new Color(r.nextInt(255), r.nextInt(255), r.nextInt(255));
-										frame.append(c, i + " " + "TEST\n");
-									}
-								});
-								try {
-									Thread.sleep(1000);
-								} catch (InterruptedException e) {
-								}
-								if (index.get() == 35) {
-									return;
-								}
-							}
-						}
-
-					});
-					t.start();
+					// Thread t = new Thread(new Runnable() {
+					//
+					// @Override
+					// public void run() {
+					// AtomicInteger index = new AtomicInteger();
+					// while (true) {
+					// EventQueue.invokeLater(new Runnable() {
+					// @Override
+					// public void run() {
+					// Random r = new Random();
+					// int i = index.incrementAndGet();
+					// Color c = new Color(r.nextInt(255), r.nextInt(255), r.nextInt(255));
+					// frame.append(c, i + " " + "Hallo\n");
+					// c = new Color(r.nextInt(255), r.nextInt(255), r.nextInt(255));
+					// frame.append(c,
+					// i + " " + "Duuuuuuuuuuuuuuuuuuu\nESEEEEEEEEEEEEEEEEEEEEEEEEEEL");
+					// c = new Color(r.nextInt(255), r.nextInt(255), r.nextInt(255));
+					// frame.append(c, i + " " + "MÖÖÖÖÖÖÖÖÖÖÖÖÖP\n");
+					// c = new Color(r.nextInt(255), r.nextInt(255), r.nextInt(255));
+					// frame.append(c, i + " " + "TEST\n");
+					// }
+					// });
+					// try {
+					// Thread.sleep(1000);
+					// } catch (InterruptedException e) {
+					// }
+					// if (index.get() == 35) {
+					// return;
+					// }
+					// }
+					// }
+					//
+					// });
+					// t.start();
 				} catch (Exception e) {
 					e.printStackTrace();
 				}

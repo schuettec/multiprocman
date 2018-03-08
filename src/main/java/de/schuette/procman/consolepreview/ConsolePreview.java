@@ -16,8 +16,10 @@ import javax.swing.JPanel;
 import javax.swing.plaf.BorderUIResource;
 
 import de.schuette.procman.AppendListener;
+import de.schuette.procman.ProcessListener;
+import de.schuette.procman.Resources;
 
-public class ConsolePreview extends JPanel implements AppendListener {
+public class ConsolePreview extends JPanel implements AppendListener, ProcessListener {
 
 	/**
 	 *
@@ -42,6 +44,12 @@ public class ConsolePreview extends JPanel implements AppendListener {
 
 	private boolean selected = false;
 
+	public enum State {
+		RUNNING, STOPPED_OK, STOPPED_ALERT;
+	}
+
+	private State processState;
+
 	public ConsolePreview() {
 		super();
 		initialize();
@@ -54,6 +62,7 @@ public class ConsolePreview extends JPanel implements AppendListener {
 		Graphics2D g = (Graphics2D) bufferedImage.getGraphics();
 		g.setColor(Color.BLACK);
 		g.fillRect(0, 0, WIDTH, HEIGHT);
+
 	}
 
 	@Override
@@ -65,21 +74,34 @@ public class ConsolePreview extends JPanel implements AppendListener {
 			g2d.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_OVER, 0.6f));
 		}
 		g2d.drawImage(bufferedImage, insets.left, insets.top, this);
+
+		if (processState == null) {
+			g2d.drawImage(Resources.getQuestion(), insets.left, insets.top, this);
+		} else {
+			switch (processState) {
+			case RUNNING:
+				g2d.drawImage(Resources.getRunningState(), insets.left, insets.top, this);
+				break;
+			case STOPPED_OK:
+				g2d.drawImage(Resources.getCheckState(), insets.left, insets.top, this);
+				break;
+			case STOPPED_ALERT:
+				g2d.drawImage(Resources.getAlertState(), insets.left, insets.top, this);
+				break;
+			}
+		}
 	}
 
 	@Override
 	public void append(Color c, String s) {
 
 		List<String> lines = Arrays.asList(s.split("\\\n|\\\r\\\n"));
-
 		Iterator<String> it = lines.iterator();
 		while (it.hasNext()) {
 			int localCurY = HEIGHT - Y_INC;
-
 			String line = it.next();
 			int length = line.length();
 			int endX = length * X_INC;
-
 			Graphics2D g = (Graphics2D) bufferedImage.getGraphics();
 			g.setColor(c);
 			g.setStroke(new BasicStroke(Y_INC - 1));
@@ -111,6 +133,20 @@ public class ConsolePreview extends JPanel implements AppendListener {
 
 	public void setIsSelected(boolean isSelected) {
 		this.selected = isSelected;
+	}
+
+	@Override
+	public void processStarted() {
+		this.processState = State.RUNNING;
+	}
+
+	@Override
+	public void processStopped(int exitValue) {
+		if (exitValue == 0) {
+			processState = State.STOPPED_OK;
+		} else {
+			processState = State.STOPPED_ALERT;
+		}
 	}
 
 }
