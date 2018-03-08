@@ -9,6 +9,8 @@ import java.awt.datatransfer.DataFlavor;
 import java.awt.datatransfer.StringSelection;
 import java.awt.datatransfer.Transferable;
 import java.awt.event.ActionEvent;
+import java.awt.event.InputEvent;
+import java.awt.event.KeyEvent;
 import java.awt.event.WindowEvent;
 import java.awt.event.WindowListener;
 import java.nio.charset.Charset;
@@ -17,14 +19,19 @@ import javax.swing.AbstractAction;
 import javax.swing.DefaultListModel;
 import javax.swing.DropMode;
 import javax.swing.ImageIcon;
+import javax.swing.JCheckBoxMenuItem;
 import javax.swing.JComponent;
 import javax.swing.JFrame;
 import javax.swing.JList;
+import javax.swing.JMenu;
+import javax.swing.JMenuBar;
+import javax.swing.JMenuItem;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JSeparator;
 import javax.swing.JToggleButton;
+import javax.swing.KeyStroke;
 import javax.swing.ListSelectionModel;
 import javax.swing.SwingConstants;
 import javax.swing.TransferHandler;
@@ -34,9 +41,10 @@ import javax.swing.event.ListSelectionListener;
 
 import de.schuette.procman.console.AutoScrollToBottomListener;
 import de.schuette.procman.console.ScrollableAnsiColorTextPaneContainer;
+import de.schuette.procman.console.SearchFieldListener;
 import de.schuette.procman.themes.ThemeUtil;
 
-public class MainFrame extends JFrame implements WindowListener, ProcessListener {
+public class MainFrame extends JFrame implements WindowListener, ProcessListener, SearchFieldListener {
 
 	/**
 	 *
@@ -81,6 +89,16 @@ public class MainFrame extends JFrame implements WindowListener, ProcessListener
 	private ProcessController currentProcess;
 
 	private ListeningToggleButtonModel autoScrollToBottomToggleModel;
+	private JMenuBar menuBar;
+	private JMenu mnFile;
+	private JMenuItem mntmSave;
+	private JMenuItem mntmNewMenuItem;
+	private JSeparator separator_1;
+	private JSeparator separator_2;
+	private JMenuItem mntmNewProcess;
+	private JMenu mnView;
+	private JCheckBoxMenuItem chckbxmntmAutoScrollTo;
+	private JCheckBoxMenuItem chckbxmntmFind;
 
 	/**
 	 * Launch the application.
@@ -115,6 +133,7 @@ public class MainFrame extends JFrame implements WindowListener, ProcessListener
 		addWindowListener(this);
 		setLocationByPlatform(true);
 		setPreferredSize(new Dimension(480, 640));
+
 		contentPane = new JPanel();
 		contentPane.setBorder(new EmptyBorder(5, 5, 5, 5));
 		contentPane.setLayout(new BorderLayout(0, 0));
@@ -212,12 +231,55 @@ public class MainFrame extends JFrame implements WindowListener, ProcessListener
 		contentPane.add(new JScrollPane(processList, JScrollPane.VERTICAL_SCROLLBAR_NEVER,
 				JScrollPane.HORIZONTAL_SCROLLBAR_AS_NEEDED), BorderLayout.NORTH);
 
+		// Build menu
+
+		menuBar = new JMenuBar();
+		setJMenuBar(menuBar);
+
+		mnFile = new JMenu("File");
+		menuBar.add(mnFile);
+
+		mntmNewProcess = new JMenuItem("New...");
+		mnFile.add(mntmNewProcess);
+
+		separator_2 = new JSeparator();
+		mnFile.add(separator_2);
+
+		mntmSave = new JMenuItem("Save As...");
+		mnFile.add(mntmSave);
+
+		separator_1 = new JSeparator();
+		mnFile.add(separator_1);
+
+		mntmNewMenuItem = new JMenuItem("Exit");
+		mnFile.add(mntmNewMenuItem);
+
+		mnView = new JMenu("View");
+		menuBar.add(mnView);
+
+		chckbxmntmFind = new JCheckBoxMenuItem(new AbstractAction("Find") {
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				if (chckbxmntmFind.isSelected()) {
+					currentProcess.getConsoleScroller().startSearch();
+				} else {
+					currentProcess.getConsoleScroller().finishSearch();
+				}
+			}
+		});
+		chckbxmntmFind.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_F, InputEvent.CTRL_MASK));
+		mnView.add(chckbxmntmFind);
+
+		chckbxmntmAutoScrollTo = new JCheckBoxMenuItem("Auto scroll to bottom");
+		chckbxmntmAutoScrollTo.setModel(autoScrollToBottomToggleModel);
+		mnView.add(chckbxmntmAutoScrollTo);
 	}
 
 	private void selectConsole(ProcessController selectedValue) {
 		if (this.currentProcess != null) {
 			// Deregister everything
 			currentProcess.getConsoleScroller().removeAutoScrollToBottomListener(autoScrollToBottomToggleModel);
+			currentProcess.getConsoleScroller().removeSearchFieldListener(this);
 		}
 
 		BorderLayout layout = (BorderLayout) contentPane.getLayout();
@@ -229,6 +291,7 @@ public class MainFrame extends JFrame implements WindowListener, ProcessListener
 		ScrollableAnsiColorTextPaneContainer consoleScroller = selectedValue.getConsoleScroller();
 		contentPane.add(consoleScroller, BorderLayout.CENTER);
 		consoleScroller.addAutoScrollToBottomListener(autoScrollToBottomToggleModel);
+		consoleScroller.addSearchFieldListener(this);
 
 		this.currentProcess = selectedValue;
 
@@ -301,6 +364,16 @@ public class MainFrame extends JFrame implements WindowListener, ProcessListener
 	@Override
 	public void windowDeactivated(WindowEvent e) {
 
+	}
+
+	@Override
+	public void searchFieldOpen() {
+		chckbxmntmFind.setSelected(true);
+	}
+
+	@Override
+	public void searchFieldClosed() {
+		chckbxmntmFind.setSelected(false);
 	}
 
 }

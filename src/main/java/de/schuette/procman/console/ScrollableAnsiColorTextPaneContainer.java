@@ -45,6 +45,7 @@ public class ScrollableAnsiColorTextPaneContainer extends JScrollPane
 	private static final long serialVersionUID = 1L;
 
 	private EventListenerSupport<AutoScrollToBottomListener> autoScrollToBottomListeners;
+	private EventListenerSupport<SearchFieldListener> searchFieldListeners;
 
 	private AnsiColorTextPane textPane;
 
@@ -138,6 +139,7 @@ public class ScrollableAnsiColorTextPaneContainer extends JScrollPane
 	};
 
 	private boolean oldAutoscrollToBottom;
+	private boolean searchFieldOpen;
 
 	public ScrollableAnsiColorTextPaneContainer(AnsiColorTextPane ansiColorTextPane) {
 		super();
@@ -146,6 +148,7 @@ public class ScrollableAnsiColorTextPaneContainer extends JScrollPane
 		caret.setUpdatePolicy(DefaultCaret.NEVER_UPDATE);
 		setViewportView(textPane);
 		this.autoScrollToBottomListeners = new EventListenerSupport<>(AutoScrollToBottomListener.class);
+		this.searchFieldListeners = new EventListenerSupport<>(SearchFieldListener.class);
 		getVerticalScrollBar().addAdjustmentListener(this);
 
 		this.pnlSearch = new JPanel();
@@ -236,6 +239,16 @@ public class ScrollableAnsiColorTextPaneContainer extends JScrollPane
 		autoScrollToBottomListeners.removeListener(listener);
 	}
 
+	public void addSearchFieldListener(SearchFieldListener listener) {
+		searchFieldListeners.addListener(listener);
+		fireSearchFieldState();
+	}
+
+	public void removeSearchFieldListener(SearchFieldListener listener) {
+		searchFieldListeners.removeListener(listener);
+		fireSearchFieldState();
+	}
+
 	@Override
 	public boolean isAutoScrollToBottom() {
 		return autoScrollToBottom;
@@ -300,6 +313,14 @@ public class ScrollableAnsiColorTextPaneContainer extends JScrollPane
 		ignoreAdjustment = false;
 	}
 
+	private void fireSearchFieldState() {
+		if (searchFieldOpen) {
+			searchFieldListeners.fire().searchFieldOpen();
+		} else {
+			searchFieldListeners.fire().searchFieldClosed();
+		}
+	}
+
 	public void startSearch() {
 		this.oldAutoscrollToBottom = isAutoScrollToBottom();
 		setAutoScrollToBottom(false);
@@ -307,6 +328,8 @@ public class ScrollableAnsiColorTextPaneContainer extends JScrollPane
 		txtSearch.requestFocus();
 		txtSearch.addKeyListener(searchKeyListener);
 		textPane.addAppendListener(searchOnAppend);
+		searchFieldListeners.fire().searchFieldOpen();
+		this.searchFieldOpen = true;
 	}
 
 	public void finishSearch() {
@@ -315,6 +338,8 @@ public class ScrollableAnsiColorTextPaneContainer extends JScrollPane
 		txtSearch.removeKeyListener(searchKeyListener);
 		textPane.removeAppendListener(searchOnAppend);
 		wordSearch.clear();
+		searchFieldListeners.fire().searchFieldClosed();
+		this.searchFieldOpen = false;
 	}
 
 }
