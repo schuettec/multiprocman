@@ -229,6 +229,7 @@ public class ScrollableAnsiColorTextPaneContainer extends JScrollPane
 
 	public void addAutoScrollToBottomListener(AutoScrollToBottomListener listener) {
 		autoScrollToBottomListeners.addListener(listener);
+		autoScrollToBottomListeners.fire().autoScrollToBottomProperty(autoScrollToBottom);
 	}
 
 	public void removeAutoScrollToBottomListener(AutoScrollToBottomListener listener) {
@@ -287,16 +288,16 @@ public class ScrollableAnsiColorTextPaneContainer extends JScrollPane
 	public void append(Color c, String s) {
 		ignoreAdjustment = true;
 		textPane.append(c, s);
-		ignoreAdjustment = false;
 		scrollToBottomOnDemand();
+		ignoreAdjustment = false;
 	}
 
 	@Override
 	public void appendANSI(String s) {
 		ignoreAdjustment = true;
 		textPane.appendANSI(s);
-		ignoreAdjustment = false;
 		scrollToBottomOnDemand();
+		ignoreAdjustment = false;
 	}
 
 	public void startSearch() {

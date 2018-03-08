@@ -16,6 +16,7 @@ import java.nio.charset.Charset;
 import javax.swing.AbstractAction;
 import javax.swing.DefaultListModel;
 import javax.swing.DropMode;
+import javax.swing.ImageIcon;
 import javax.swing.JComponent;
 import javax.swing.JFrame;
 import javax.swing.JList;
@@ -48,7 +49,8 @@ public class MainFrame extends JFrame implements WindowListener, ProcessListener
 		public void actionPerformed(ActionEvent e) {
 			JToggleButton source = (JToggleButton) e.getSource();
 			ScrollableAnsiColorTextPaneContainer consoleScroller = currentProcess.getConsoleScroller();
-			consoleScroller.setAutoScrollToBottom(source.isSelected());
+			boolean autoScroll = source.isSelected();
+			consoleScroller.setAutoScrollToBottom(autoScroll);
 			consoleScroller.scrollToBottom();
 		}
 	};
@@ -97,41 +99,6 @@ public class MainFrame extends JFrame implements WindowListener, ProcessListener
 					descriptor.setTitle("Ping google.de");
 					frame.addProcessController(new ProcessController(descriptor).start());
 					frame.setVisible(true);
-
-					// Thread t = new Thread(new Runnable() {
-					//
-					// @Override
-					// public void run() {
-					// AtomicInteger index = new AtomicInteger();
-					// while (true) {
-					// EventQueue.invokeLater(new Runnable() {
-					// @Override
-					// public void run() {
-					// Random r = new Random();
-					// int i = index.incrementAndGet();
-					// Color c = new Color(r.nextInt(255), r.nextInt(255), r.nextInt(255));
-					// frame.append(c, i + " " + "Hallo\n");
-					// c = new Color(r.nextInt(255), r.nextInt(255), r.nextInt(255));
-					// frame.append(c,
-					// i + " " + "Duuuuuuuuuuuuuuuuuuu\nESEEEEEEEEEEEEEEEEEEEEEEEEEEL");
-					// c = new Color(r.nextInt(255), r.nextInt(255), r.nextInt(255));
-					// frame.append(c, i + " " + "MÖÖÖÖÖÖÖÖÖÖÖÖÖP\n");
-					// c = new Color(r.nextInt(255), r.nextInt(255), r.nextInt(255));
-					// frame.append(c, i + " " + "TEST\n");
-					// }
-					// });
-					// try {
-					// Thread.sleep(1000);
-					// } catch (InterruptedException e) {
-					// }
-					// if (index.get() == 35) {
-					// return;
-					// }
-					// }
-					// }
-					//
-					// });
-					// t.start();
 				} catch (Exception e) {
 					e.printStackTrace();
 				}
@@ -168,8 +135,12 @@ public class MainFrame extends JFrame implements WindowListener, ProcessListener
 		footer.setLayout(new FlowLayout(FlowLayout.RIGHT, 0, 0));
 
 		tglScrollToBottom = new JToggleButton(scrollToBottomAction);
+		tglScrollToBottom.setIcon(new ImageIcon(Resources.getScrollLock()));
+		tglScrollToBottom.setSelectedIcon(new ImageIcon(Resources.getScrollFree()));
 		this.autoScrollToBottomToggleModel = new ListeningToggleButtonModel();
 		tglScrollToBottom.setModel(autoScrollToBottomToggleModel);
+		tglScrollToBottom.setIcon(new ImageIcon(Resources.getScrollLock()));
+
 		footer.add(tglScrollToBottom);
 
 		this.processes = new DefaultListModel<ProcessController>();

@@ -14,6 +14,8 @@ public class Resources {
 	private static BufferedImage alert;
 	private static BufferedImage question;
 	private static BufferedImage terminal;
+	private static BufferedImage scrollFree;
+	private static BufferedImage scrollLock;
 
 	static {
 		try {
@@ -22,10 +24,20 @@ public class Resources {
 			alert = ImageIO.read(getResource("/x-circle.png"));
 			question = ImageIO.read(getResource("/help-circle.png"));
 			terminal = ImageIO.read(getResource("/terminal.png"));
+			scrollFree = ImageIO.read(getResource("/scrollFree.png"));
+			scrollLock = ImageIO.read(getResource("/scrollToBottom.png"));
 		} catch (IOException e) {
 			ExceptionDialog.showException(e, "Some application resources could not be found!");
 		}
 
+	}
+
+	public static BufferedImage getScrollFree() {
+		return scrollFree;
+	}
+
+	public static BufferedImage getScrollLock() {
+		return scrollLock;
 	}
 
 	public static BufferedImage getTerminal() {

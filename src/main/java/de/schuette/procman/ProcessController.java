@@ -95,12 +95,12 @@ public class ProcessController {
 						while (process.isAlive()) {
 							if (input1.hasNextLine()) {
 								String nextLine = input1.nextLine();
-								textPane.appendANSI(nextLine + "\n");
+								consoleScroller.appendANSI(nextLine + "\n");
 								processListener.fire().processUpdate();
 							}
 							if (input2.hasNextLine()) {
 								String nextLine = input2.nextLine();
-								textPane.appendANSI(nextLine + "\n");
+								consoleScroller.appendANSI(nextLine + "\n");
 								processListener.fire().processUpdate();
 							}
 						}
