@@ -8,6 +8,6 @@ public interface ProcessListener {
 
 	public void processAbandoned();
 
-	public void processOutputChanged();
+	public void processUpdate();
 
 }

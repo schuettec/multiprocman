@@ -9,6 +9,9 @@ import java.awt.datatransfer.DataFlavor;
 import java.awt.datatransfer.StringSelection;
 import java.awt.datatransfer.Transferable;
 import java.awt.event.ActionEvent;
+import java.awt.event.WindowEvent;
+import java.awt.event.WindowListener;
+import java.nio.charset.Charset;
 
 import javax.swing.AbstractAction;
 import javax.swing.DefaultListModel;
@@ -16,6 +19,7 @@ import javax.swing.DropMode;
 import javax.swing.JComponent;
 import javax.swing.JFrame;
 import javax.swing.JList;
+import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JSeparator;
@@ -29,8 +33,9 @@ import javax.swing.event.ListSelectionListener;
 
 import de.schuette.procman.console.AutoScrollToBottomListener;
 import de.schuette.procman.console.ScrollableAnsiColorTextPaneContainer;
+import de.schuette.procman.themes.ThemeUtil;
 
-public class MainFrame extends JFrame implements ProcessListener {
+public class MainFrame extends JFrame implements WindowListener, ProcessListener {
 
 	/**
 	 *
@@ -83,22 +88,14 @@ public class MainFrame extends JFrame implements ProcessListener {
 			@Override
 			public void run() {
 				try {
+					ThemeUtil.setLookAndFeel();
 					final MainFrame frame = new MainFrame();
 					frame.setExtendedState(JFrame.MAXIMIZED_BOTH);
 					ProcessDescriptor descriptor = new ProcessDescriptor();
+					descriptor.setCommand("ping", "google.de", "-n", "10000");
+					descriptor.setCharset(Charset.forName("ibm850"));
+					descriptor.setTitle("Ping google.de");
 					frame.addProcessController(new ProcessController(descriptor).start());
-					frame.addProcessController(new ProcessController(descriptor));
-					frame.addProcessController(new ProcessController(descriptor));
-					frame.addProcessController(new ProcessController(descriptor));
-					frame.addProcessController(new ProcessController(descriptor));
-					frame.addProcessController(new ProcessController(descriptor));
-					frame.addProcessController(new ProcessController(descriptor));
-					frame.addProcessController(new ProcessController(descriptor));
-					frame.addProcessController(new ProcessController(descriptor));
-					frame.addProcessController(new ProcessController(descriptor));
-					frame.addProcessController(new ProcessController(descriptor));
-					frame.addProcessController(new ProcessController(descriptor));
-					frame.addProcessController(new ProcessController(descriptor));
 					frame.setVisible(true);
 
 					// Thread t = new Thread(new Runnable() {
@@ -147,8 +144,10 @@ public class MainFrame extends JFrame implements ProcessListener {
 	 * Create the frame.
 	 */
 	public MainFrame() {
-		setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+		setDefaultCloseOperation(JFrame.DO_NOTHING_ON_CLOSE);
+		addWindowListener(this);
 		setLocationByPlatform(true);
+		setPreferredSize(new Dimension(480, 640));
 		contentPane = new JPanel();
 		contentPane.setBorder(new EmptyBorder(5, 5, 5, 5));
 		contentPane.setLayout(new BorderLayout(0, 0));
@@ -288,8 +287,56 @@ public class MainFrame extends JFrame implements ProcessListener {
 	}
 
 	@Override
-	public void processOutputChanged() {
+	public void processUpdate() {
 		this.processList.repaint();
+	}
+
+	@Override
+	public void windowOpened(WindowEvent e) {
+		// TODO Auto-generated method stub
+
+	}
+
+	@Override
+	public void windowClosing(WindowEvent e) {
+		if (ProcessController.hasActiveProcesses()) {
+			int answer = JOptionPane.showConfirmDialog(this, "There are running processes. Do you want to stop them?",
+					"Active processes", JOptionPane.YES_NO_OPTION, JOptionPane.WARNING_MESSAGE);
+			if (answer == JOptionPane.YES_OPTION) {
+				ProcessController.shutdown();
+				this.dispose();
+			}
+		}
+	}
+
+	@Override
+	public void windowClosed(WindowEvent e) {
+		// TODO Auto-generated method stub
+
+	}
+
+	@Override
+	public void windowIconified(WindowEvent e) {
+		// TODO Auto-generated method stub
+
+	}
+
+	@Override
+	public void windowDeiconified(WindowEvent e) {
+		// TODO Auto-generated method stub
+
+	}
+
+	@Override
+	public void windowActivated(WindowEvent e) {
+		// TODO Auto-generated method stub
+
+	}
+
+	@Override
+	public void windowDeactivated(WindowEvent e) {
+		// TODO Auto-generated method stub
+
 	}
 
 }

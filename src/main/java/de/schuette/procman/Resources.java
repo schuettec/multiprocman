@@ -13,6 +13,7 @@ public class Resources {
 	private static BufferedImage running;
 	private static BufferedImage alert;
 	private static BufferedImage question;
+	private static BufferedImage terminal;
 
 	static {
 		try {
@@ -20,10 +21,15 @@ public class Resources {
 			running = ImageIO.read(getResource("/eye.png"));
 			alert = ImageIO.read(getResource("/x-circle.png"));
 			question = ImageIO.read(getResource("/help-circle.png"));
+			terminal = ImageIO.read(getResource("/terminal.png"));
 		} catch (IOException e) {
 			ExceptionDialog.showException(e, "Some application resources could not be found!");
 		}
 
+	}
+
+	public static BufferedImage getTerminal() {
+		return terminal;
 	}
 
 	public static BufferedImage getQuestion() {

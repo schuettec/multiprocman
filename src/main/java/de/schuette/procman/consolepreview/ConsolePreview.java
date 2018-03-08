@@ -4,9 +4,12 @@ import java.awt.AlphaComposite;
 import java.awt.BasicStroke;
 import java.awt.Color;
 import java.awt.Dimension;
+import java.awt.FontMetrics;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
 import java.awt.Insets;
+import java.awt.geom.AffineTransform;
+import java.awt.geom.Rectangle2D;
 import java.awt.image.BufferedImage;
 import java.util.Arrays;
 import java.util.Iterator;
@@ -16,6 +19,7 @@ import javax.swing.JPanel;
 import javax.swing.plaf.BorderUIResource;
 
 import de.schuette.procman.AppendListener;
+import de.schuette.procman.ProcessDescriptor;
 import de.schuette.procman.ProcessListener;
 import de.schuette.procman.Resources;
 
@@ -35,7 +39,8 @@ public class ConsolePreview extends JPanel implements AppendListener, ProcessLis
 		Color color;
 	}
 
-	public static final int WIDTH = 110;
+	public static final int TITLE_SPACE_X = 14;
+	public static final int WIDTH = 120;
 	public static final int HEIGHT = 140;
 
 	private BufferedImage bufferedImage;
@@ -49,20 +54,44 @@ public class ConsolePreview extends JPanel implements AppendListener, ProcessLis
 	}
 
 	private State processState;
+	private ProcessDescriptor descriptor;
+	private BufferedImage titleImage;
 
-	public ConsolePreview() {
+	public ConsolePreview(ProcessDescriptor descriptor) {
 		super();
+		this.descriptor = descriptor;
 		initialize();
 	}
 
 	private void initialize() {
 		this.setBorder(BorderUIResource.getRaisedBevelBorderUIResource());
-		this.setPreferredSize(new Dimension(WIDTH, HEIGHT + 20));
+		this.setPreferredSize(new Dimension(WIDTH, HEIGHT));
 		this.bufferedImage = new BufferedImage(WIDTH, HEIGHT, BufferedImage.TYPE_INT_RGB);
-		Graphics2D g = (Graphics2D) bufferedImage.getGraphics();
-		g.setColor(Color.BLACK);
-		g.fillRect(0, 0, WIDTH, HEIGHT);
+		Insets insets = this.getInsets();
+		this.titleImage = new BufferedImage(HEIGHT - insets.top - insets.bottom, TITLE_SPACE_X,
+				BufferedImage.TYPE_INT_RGB);
 
+		clearImage(bufferedImage, Color.BLACK);
+		drawTitleImage();
+
+	}
+
+	private void clearImage(BufferedImage bufferedImage, Color clearColor) {
+		Graphics2D g = (Graphics2D) bufferedImage.getGraphics();
+		g.setColor(clearColor);
+		g.fillRect(0, 0, bufferedImage.getWidth(), bufferedImage.getHeight());
+	}
+
+	private void drawTitleImage() {
+		clearImage(titleImage, descriptor.getColor());
+		Graphics2D g2d = (Graphics2D) titleImage.getGraphics();
+		g2d.setColor(Color.BLACK);
+		String title = descriptor.getTitle();
+		FontMetrics fontMetrics = g2d.getFontMetrics();
+		Rectangle2D stringBounds = fontMetrics.getStringBounds(title, g2d);
+		double titleWidth = stringBounds.getWidth();
+		int x = (int) ((titleImage.getWidth() - titleWidth) / 2.0);
+		g2d.drawString(title, x, titleImage.getHeight() - fontMetrics.getDescent());
 	}
 
 	@Override
@@ -73,26 +102,44 @@ public class ConsolePreview extends JPanel implements AppendListener, ProcessLis
 		if (!selected) {
 			g2d.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_OVER, 0.6f));
 		}
-		g2d.drawImage(bufferedImage, insets.left, insets.top, this);
+		g2d.drawImage(bufferedImage, insets.left + TITLE_SPACE_X, insets.top, this);
+		drawTitle(g2d);
+		drawStateIcon(g2d);
+	}
 
+	private void drawTitle(Graphics2D g2d) {
+		Insets insets = this.getInsets();
+		AffineTransform orig = g2d.getTransform();
+		g2d.rotate(-Math.PI / 2);
+		g2d.drawImage(titleImage, -HEIGHT + insets.top, insets.left, null);
+		g2d.setTransform(orig);
+	}
+
+	private void drawStateIcon(Graphics2D g2d) {
+		Insets insets = this.getInsets();
+
+		BufferedImage stateIcon = null;
 		if (processState == null) {
-			g2d.drawImage(Resources.getQuestion(), insets.left, insets.top, this);
+			stateIcon = Resources.getQuestion();
 		} else {
 			switch (processState) {
 			case RUNNING:
-				g2d.drawImage(Resources.getRunningState(), insets.left, insets.top, this);
+				stateIcon = Resources.getRunningState();
 				break;
 			case STOPPED_OK:
-				g2d.drawImage(Resources.getCheckState(), insets.left, insets.top, this);
+				stateIcon = Resources.getCheckState();
 				break;
 			case STOPPED_ALERT:
-				g2d.drawImage(Resources.getAlertState(), insets.left, insets.top, this);
+				stateIcon = Resources.getAlertState();
 				break;
 			case ABANDONED:
-				g2d.drawImage(Resources.getQuestion(), insets.left, insets.top, this);
+				stateIcon = Resources.getQuestion();
 				break;
 			}
 		}
+		int x = getWidth() - insets.right - stateIcon.getWidth();
+		int y = insets.top;
+		g2d.drawImage(stateIcon, x, y, this);
 	}
 
 	@Override
@@ -158,7 +205,7 @@ public class ConsolePreview extends JPanel implements AppendListener, ProcessLis
 	}
 
 	@Override
-	public void processOutputChanged() {
+	public void processUpdate() {
 	}
 
 }
