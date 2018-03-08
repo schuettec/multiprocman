@@ -13,6 +13,7 @@ import java.awt.event.InputEvent;
 import java.awt.event.KeyEvent;
 import java.awt.event.WindowEvent;
 import java.awt.event.WindowListener;
+import java.io.File;
 import java.nio.charset.Charset;
 
 import javax.swing.AbstractAction;
@@ -39,12 +40,22 @@ import javax.swing.border.EmptyBorder;
 import javax.swing.event.ListSelectionEvent;
 import javax.swing.event.ListSelectionListener;
 
+import de.schuette.procman.console.AnsiColorTextPane.ExportType;
 import de.schuette.procman.console.AutoScrollToBottomListener;
 import de.schuette.procman.console.ScrollableAnsiColorTextPaneContainer;
 import de.schuette.procman.console.SearchFieldListener;
 import de.schuette.procman.themes.ThemeUtil;
+import javafx.embed.swing.JFXPanel;
+import javafx.stage.FileChooser;
+import javafx.stage.FileChooser.ExtensionFilter;
 
 public class MainFrame extends JFrame implements WindowListener, ProcessListener, SearchFieldListener {
+
+	private static final String TEXT_FILES = "Text Files";
+
+	private static final String RICH_TEXT_FILES = "Rich Text Files";
+
+	private static final String HTML_FILES = "HTML Files";
 
 	/**
 	 *
@@ -92,7 +103,7 @@ public class MainFrame extends JFrame implements WindowListener, ProcessListener
 	private JMenuBar menuBar;
 	private JMenu mnFile;
 	private JMenuItem mntmSave;
-	private JMenuItem mntmNewMenuItem;
+	private JMenuItem mntmExit;
 	private JSeparator separator_1;
 	private JSeparator separator_2;
 	private JMenuItem mntmNewProcess;
@@ -129,10 +140,12 @@ public class MainFrame extends JFrame implements WindowListener, ProcessListener
 	 * Create the frame.
 	 */
 	public MainFrame() {
+		new JFXPanel();
 		setDefaultCloseOperation(JFrame.DO_NOTHING_ON_CLOSE);
 		addWindowListener(this);
-		setLocationByPlatform(true);
 		setPreferredSize(new Dimension(480, 640));
+		setSize(new Dimension(480, 640));
+		setLocationRelativeTo(null);
 
 		contentPane = new JPanel();
 		contentPane.setBorder(new EmptyBorder(5, 5, 5, 5));
@@ -245,14 +258,29 @@ public class MainFrame extends JFrame implements WindowListener, ProcessListener
 		separator_2 = new JSeparator();
 		mnFile.add(separator_2);
 
-		mntmSave = new JMenuItem("Save As...");
+		mntmSave = new JMenuItem(new AbstractAction("Save As...") {
+
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				saveAs();
+			}
+
+		});
+		mntmSave.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_S, InputEvent.CTRL_MASK));
 		mnFile.add(mntmSave);
 
 		separator_1 = new JSeparator();
 		mnFile.add(separator_1);
 
-		mntmNewMenuItem = new JMenuItem("Exit");
-		mnFile.add(mntmNewMenuItem);
+		mntmExit = new JMenuItem(new AbstractAction("Exit") {
+
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				exit();
+			}
+		});
+		mntmExit.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_Q, InputEvent.CTRL_MASK));
+		mnFile.add(mntmExit);
 
 		mnView = new JMenu("View");
 		menuBar.add(mnView);
@@ -331,14 +359,58 @@ public class MainFrame extends JFrame implements WindowListener, ProcessListener
 
 	@Override
 	public void windowClosing(WindowEvent e) {
+		exit();
+	}
+
+	private void exit() {
 		if (ProcessController.hasActiveProcesses()) {
 			int answer = JOptionPane.showConfirmDialog(this, "There are running processes. Do you want to stop them?",
 					"Active processes", JOptionPane.YES_NO_OPTION, JOptionPane.WARNING_MESSAGE);
 			if (answer == JOptionPane.YES_OPTION) {
 				ProcessController.shutdown();
 				this.dispose();
+
+				try {
+					javafx.application.Platform.exit();
+				} catch (Exception e) {
+				}
+
 			}
 		}
+	}
+
+	private void saveAs() {
+		javafx.application.Platform.runLater(new Runnable() {
+
+			@Override
+			public void run() {
+				FileChooser fileChooser = new FileChooser();
+				fileChooser.setTitle("Open Resource File");
+				fileChooser.getExtensionFilters().addAll(new ExtensionFilter(TEXT_FILES, "*.txt"),
+						new ExtensionFilter(HTML_FILES, "*.html", "*.htm"),
+						new ExtensionFilter(RICH_TEXT_FILES, "*.rtf"));
+				File selectedFile = fileChooser.showSaveDialog(null);
+				ExtensionFilter extension = fileChooser.getSelectedExtensionFilter();
+
+				ExportType exportType = null;
+				switch (extension.getDescription()) {
+				default:
+				case TEXT_FILES:
+					exportType = ExportType.TEXT;
+					break;
+				case HTML_FILES:
+					exportType = ExportType.HTML;
+					break;
+				case RICH_TEXT_FILES:
+					exportType = ExportType.RTF;
+					break;
+				}
+
+				if (selectedFile != null) {
+					currentProcess.getTextPane().saveAs(selectedFile, exportType);
+				}
+			}
+		});
 	}
 
 	@Override

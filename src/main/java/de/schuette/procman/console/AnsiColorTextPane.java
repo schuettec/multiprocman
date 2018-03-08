@@ -6,6 +6,7 @@ import static java.util.Objects.nonNull;
 
 import java.awt.Color;
 import java.awt.Font;
+import java.io.File;
 
 import javax.swing.JTextPane;
 import javax.swing.text.AttributeSet;
@@ -21,137 +22,146 @@ import de.schuette.procman.AppendListener;
 import de.schuette.procman.Appendable;
 
 public class AnsiColorTextPane extends JTextPane implements Appendable {
-  /**
-   *
-   */
-  private static final long serialVersionUID = 1L;
+	/**
+	 *
+	 */
+	private static final long serialVersionUID = 1L;
 
-  static final Color cReset = Color.getHSBColor(0.000f, 0.000f, 1.000f);
+	public enum ExportType {
+		TEXT, HTML, RTF;
+	}
 
-  static Color colorCurrent = cReset;
+	static final Color cReset = Color.getHSBColor(0.000f, 0.000f, 1.000f);
 
-  private EventListenerSupport<AppendListener> appendListener = new EventListenerSupport<>(AppendListener.class);
+	static Color colorCurrent = cReset;
 
-  private String remaining = "";
+	private EventListenerSupport<AppendListener> appendListener = new EventListenerSupport<>(AppendListener.class);
 
-  private StyleContext lastStyleContext;
+	private String remaining = "";
 
-  public AnsiColorTextPane() {
-    super();
-    initialize();
-  }
+	private StyleContext lastStyleContext;
 
-  public AnsiColorTextPane(StyledDocument doc) {
-    super(doc);
-    initialize();
-  }
+	public AnsiColorTextPane() {
+		super();
+		initialize();
+	}
 
-  private void initialize() {
-    this.setEditable(false);
-  }
+	public AnsiColorTextPane(StyledDocument doc) {
+		super(doc);
+		initialize();
+	}
 
-  public void addAppendListener(AppendListener listener) {
-    appendListener.addListener(listener);
-  }
+	private void initialize() {
+		this.setEditable(false);
+	}
 
-  public void removeAppendListener(AppendListener listener) {
-    appendListener.removeListener(listener);
-  }
+	public void addAppendListener(AppendListener listener) {
+		appendListener.addListener(listener);
+	}
 
-  private StyleContext lastStyleContext() {
-    if (isNull(lastStyleContext)) {
-      this.lastStyleContext = StyleContext.getDefaultStyleContext();
-    }
-    return lastStyleContext;
-  }
+	public void removeAppendListener(AppendListener listener) {
+		appendListener.removeListener(listener);
+	}
 
-  @Override
-  public void setFont(Font font) {
-    super.setFont(font);
-    SimpleAttributeSet newFontStyle = new SimpleAttributeSet();
-    StyleConstants.setFontFamily(newFontStyle, font.getFamily());
-    StyleConstants.setFontSize(newFontStyle, font.getSize());
-    StyleConstants.setBold(newFontStyle, font.isBold());
-    StyleConstants.setItalic(newFontStyle, font.isItalic());
-    StyledDocument styledDocument = getStyledDocument();
-    if (nonNull(styledDocument)) {
-      styledDocument.setCharacterAttributes(0, styledDocument.getLength(), newFontStyle.copyAttributes(), false);
-    }
-    lastStyleContext().addAttributes(SimpleAttributeSet.EMPTY, newFontStyle);
-  }
+	private StyleContext lastStyleContext() {
+		if (isNull(lastStyleContext)) {
+			this.lastStyleContext = StyleContext.getDefaultStyleContext();
+		}
+		return lastStyleContext;
+	}
 
-  @Override
-  public void append(Color c, String s) {
-    AttributeSet aset = lastStyleContext().addAttribute(SimpleAttributeSet.EMPTY, StyleConstants.Foreground, c);
-    int len = getDocument().getLength(); // same value as getText().length();
-    appendString(s, aset, len);
-    appendListener.fire()
-        .append(c, s);
-  }
+	@Override
+	public void setFont(Font font) {
+		super.setFont(font);
+		SimpleAttributeSet newFontStyle = new SimpleAttributeSet();
+		StyleConstants.setFontFamily(newFontStyle, font.getFamily());
+		StyleConstants.setFontSize(newFontStyle, font.getSize());
+		StyleConstants.setBold(newFontStyle, font.isBold());
+		StyleConstants.setItalic(newFontStyle, font.isItalic());
+		StyledDocument styledDocument = getStyledDocument();
+		if (nonNull(styledDocument)) {
+			styledDocument.setCharacterAttributes(0, styledDocument.getLength(), newFontStyle.copyAttributes(), false);
+		}
+		lastStyleContext().addAttributes(SimpleAttributeSet.EMPTY, newFontStyle);
+	}
 
-  private void appendString(String s, AttributeSet aset, int len) {
-    try {
-      getDocument().insertString(len, s, aset);
-    } catch (BadLocationException e) {
-      e.printStackTrace();
-    }
-  }
+	@Override
+	public void append(Color c, String s) {
+		AttributeSet aset = lastStyleContext().addAttribute(SimpleAttributeSet.EMPTY, StyleConstants.Foreground, c);
+		int len = getDocument().getLength(); // same value as getText().length();
+		appendString(s, aset, len);
+		appendListener.fire().append(c, s);
+	}
 
-  @Override
-  public void appendANSI(String s) { // convert ANSI color codes first
-    int aPos = 0; // current char position in addString
-    int aIndex = 0; // index of next Escape sequence
-    int mIndex = 0; // index of "m" terminating Escape sequence
-    String tmpString = "";
-    boolean stillSearching = true; // true until no more Escape sequences
-    String addString = remaining + s;
-    remaining = "";
+	private void appendString(String s, AttributeSet aset, int len) {
+		try {
+			getDocument().insertString(len, s, aset);
+		} catch (BadLocationException e) {
+			e.printStackTrace();
+		}
+	}
 
-    if (addString.length() > 0) {
-      aIndex = addString.indexOf("\u001B"); // find first escape
-      if (aIndex == -1) { // no escape/color change in this string, so just send it with current color
-        append(colorCurrent, addString);
-        return;
-      }
-      // otherwise There is an escape character in the string, so we must process it
+	@Override
+	public void appendANSI(String s) { // convert ANSI color codes first
+		int aPos = 0; // current char position in addString
+		int aIndex = 0; // index of next Escape sequence
+		int mIndex = 0; // index of "m" terminating Escape sequence
+		String tmpString = "";
+		boolean stillSearching = true; // true until no more Escape sequences
+		String addString = remaining + s;
+		remaining = "";
 
-      if (aIndex > 0) { // Escape is not first char, so send text up to first escape
-        tmpString = addString.substring(0, aIndex);
-        append(colorCurrent, tmpString);
-        aPos = aIndex;
-      }
-      // aPos is now at the beginning of the first escape sequence
+		if (addString.length() > 0) {
+			aIndex = addString.indexOf("\u001B"); // find first escape
+			if (aIndex == -1) { // no escape/color change in this string, so just send it with current color
+				append(colorCurrent, addString);
+				return;
+			}
+			// otherwise There is an escape character in the string, so we must process it
 
-      stillSearching = true;
-      while (stillSearching) {
-        mIndex = addString.indexOf("m", aPos); // find the end of the escape sequence
-        if (mIndex < 0) { // the buffer ends halfway through the ansi string!
-          remaining = addString.substring(aPos, addString.length());
-          stillSearching = false;
-          continue;
-        } else {
-          tmpString = addString.substring(aPos, mIndex + 1);
-          colorCurrent = getANSIColor(tmpString, cReset);
-        }
-        aPos = mIndex + 1;
-        // now we have the color, send text that is in that color (up to next escape)
+			if (aIndex > 0) { // Escape is not first char, so send text up to first escape
+				tmpString = addString.substring(0, aIndex);
+				append(colorCurrent, tmpString);
+				aPos = aIndex;
+			}
+			// aPos is now at the beginning of the first escape sequence
 
-        aIndex = addString.indexOf("\u001B", aPos);
+			stillSearching = true;
+			while (stillSearching) {
+				mIndex = addString.indexOf("m", aPos); // find the end of the escape sequence
+				if (mIndex < 0) { // the buffer ends halfway through the ansi string!
+					remaining = addString.substring(aPos, addString.length());
+					stillSearching = false;
+					continue;
+				} else {
+					tmpString = addString.substring(aPos, mIndex + 1);
+					colorCurrent = getANSIColor(tmpString, cReset);
+				}
+				aPos = mIndex + 1;
+				// now we have the color, send text that is in that color (up to next escape)
 
-        if (aIndex == -1) { // if that was the last sequence of the input, send remaining text
-          tmpString = addString.substring(aPos, addString.length());
-          append(colorCurrent, tmpString);
-          stillSearching = false;
-          continue; // jump out of loop early, as the whole string has been sent now
-        }
+				aIndex = addString.indexOf("\u001B", aPos);
 
-        // there is another escape sequence, so send part of the string and prepare for the next
-        tmpString = addString.substring(aPos, aIndex);
-        aPos = aIndex;
-        append(colorCurrent, tmpString);
+				if (aIndex == -1) { // if that was the last sequence of the input, send remaining text
+					tmpString = addString.substring(aPos, addString.length());
+					append(colorCurrent, tmpString);
+					stillSearching = false;
+					continue; // jump out of loop early, as the whole string has been sent now
+				}
 
-      } // while there's text in the input buffer
-    }
-  }
+				// there is another escape sequence, so send part of the string and prepare for
+				// the next
+				tmpString = addString.substring(aPos, aIndex);
+				aPos = aIndex;
+				append(colorCurrent, tmpString);
+
+			} // while there's text in the input buffer
+		}
+	}
+
+	public void saveAs(File file, ExportType exportType) {
+		// TODO Auto-generated method stub
+
+	}
 
 }
