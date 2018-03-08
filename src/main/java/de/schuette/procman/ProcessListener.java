@@ -6,4 +6,8 @@ public interface ProcessListener {
 
 	public void processStopped(int exitValue);
 
+	public void processAbandoned();
+
+	public void processOutputChanged();
+
 }

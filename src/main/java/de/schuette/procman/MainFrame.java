@@ -1,7 +1,6 @@
 package de.schuette.procman;
 
 import java.awt.BorderLayout;
-import java.awt.Color;
 import java.awt.Component;
 import java.awt.Dimension;
 import java.awt.EventQueue;
@@ -31,7 +30,7 @@ import javax.swing.event.ListSelectionListener;
 import de.schuette.procman.console.AutoScrollToBottomListener;
 import de.schuette.procman.console.ScrollableAnsiColorTextPaneContainer;
 
-public class MainFrame extends JFrame implements Appendable {
+public class MainFrame extends JFrame implements ProcessListener {
 
 	/**
 	 *
@@ -269,6 +268,7 @@ public class MainFrame extends JFrame implements Appendable {
 
 	public void addProcessController(ProcessController processController) {
 		boolean activateFirst = this.processes.isEmpty();
+		processController.addProcessListener(this);
 		this.processes.addElement(processController);
 		if (activateFirst) {
 			this.processList.setSelectedIndex(0);
@@ -276,14 +276,19 @@ public class MainFrame extends JFrame implements Appendable {
 	}
 
 	@Override
-	public void append(Color c, String s) {
-		currentProcess.getConsoleScroller().append(c, s);
-		this.processList.repaint();
+	public void processStarted() {
 	}
 
 	@Override
-	public void appendANSI(String s) {
-		currentProcess.getConsoleScroller().appendANSI(s);
+	public void processStopped(int exitValue) {
+	}
+
+	@Override
+	public void processAbandoned() {
+	}
+
+	@Override
+	public void processOutputChanged() {
 		this.processList.repaint();
 	}
 

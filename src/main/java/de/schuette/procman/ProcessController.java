@@ -2,7 +2,9 @@ package de.schuette.procman;
 
 import java.io.File;
 import java.io.IOException;
+import java.io.InputStream;
 import java.util.Map;
+import java.util.Scanner;
 
 import org.apache.commons.lang3.event.EventListenerSupport;
 
@@ -48,7 +50,8 @@ public class ProcessController {
 		File directory = null;
 		Map<String, String> environment;
 		try {
-			this.process = new ProcessBuilder("ping", "google.de", "-n", "10000").directory(directory).start();
+			this.process = new ProcessBuilder("ping", "google.de", "-n", "10000").directory(directory)
+					.redirectErrorStream(true).start();
 			startProcessObserver();
 		} catch (IOException e) {
 			ExceptionDialog.showException(e, "Error while starting the application.");
@@ -63,6 +66,27 @@ public class ProcessController {
 			public void run() {
 				if (process.isAlive()) {
 					processListener.fire().processStarted();
+
+					// Read outputs
+					final InputStream inputStream = process.getInputStream();
+					final InputStream errorStream = process.getErrorStream();
+
+					while (process.isAlive()) {
+						try (Scanner input1 = new Scanner(inputStream); Scanner input2 = new Scanner(errorStream)) {
+							if (input1.hasNextLine()) {
+								String nextLine = input1.nextLine();
+								textPane.appendANSI(nextLine + "\n");
+								processListener.fire().processOutputChanged();
+							}
+							if (input2.hasNextLine()) {
+								String nextLine = input2.nextLine();
+								textPane.appendANSI(nextLine + "\n");
+								processListener.fire().processOutputChanged();
+							}
+						} catch (IllegalStateException e) {
+							processListener.fire().processAbandoned();
+						}
+					}
 					try {
 						int exitValue = process.waitFor();
 						processListener.fire().processStopped(exitValue);
@@ -71,6 +95,7 @@ public class ProcessController {
 				}
 			}
 		});
+		processObserver.start();
 	}
 
 	public void stop() {

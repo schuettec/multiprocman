@@ -45,7 +45,7 @@ public class ConsolePreview extends JPanel implements AppendListener, ProcessLis
 	private boolean selected = false;
 
 	public enum State {
-		RUNNING, STOPPED_OK, STOPPED_ALERT;
+		RUNNING, STOPPED_OK, STOPPED_ALERT, ABANDONED;
 	}
 
 	private State processState;
@@ -87,6 +87,9 @@ public class ConsolePreview extends JPanel implements AppendListener, ProcessLis
 				break;
 			case STOPPED_ALERT:
 				g2d.drawImage(Resources.getAlertState(), insets.left, insets.top, this);
+				break;
+			case ABANDONED:
+				g2d.drawImage(Resources.getQuestion(), insets.left, insets.top, this);
 				break;
 			}
 		}
@@ -147,6 +150,15 @@ public class ConsolePreview extends JPanel implements AppendListener, ProcessLis
 		} else {
 			processState = State.STOPPED_ALERT;
 		}
+	}
+
+	@Override
+	public void processAbandoned() {
+		this.processState = State.ABANDONED;
+	}
+
+	@Override
+	public void processOutputChanged() {
 	}
 
 }
