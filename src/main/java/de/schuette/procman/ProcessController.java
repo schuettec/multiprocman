@@ -3,6 +3,7 @@ package de.schuette.procman;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
+import java.nio.charset.Charset;
 import java.util.Map;
 import java.util.Scanner;
 
@@ -46,6 +47,7 @@ public class ProcessController {
 	}
 
 	public ProcessController start() {
+		Charset charset;
 		String command = "";
 		File directory = null;
 		Map<String, String> environment;
@@ -71,8 +73,9 @@ public class ProcessController {
 					final InputStream inputStream = process.getInputStream();
 					final InputStream errorStream = process.getErrorStream();
 
-					while (process.isAlive()) {
-						try (Scanner input1 = new Scanner(inputStream); Scanner input2 = new Scanner(errorStream)) {
+					try (Scanner input1 = new Scanner(inputStream, "ibm850");
+							Scanner input2 = new Scanner(errorStream, "ibm850")) {
+						while (process.isAlive()) {
 							if (input1.hasNextLine()) {
 								String nextLine = input1.nextLine();
 								textPane.appendANSI(nextLine + "\n");
@@ -83,9 +86,9 @@ public class ProcessController {
 								textPane.appendANSI(nextLine + "\n");
 								processListener.fire().processOutputChanged();
 							}
-						} catch (IllegalStateException e) {
-							processListener.fire().processAbandoned();
 						}
+					} catch (IllegalStateException e) {
+						processListener.fire().processAbandoned();
 					}
 					try {
 						int exitValue = process.waitFor();
