@@ -6,20 +6,26 @@ import static java.util.Objects.requireNonNull;
 import java.awt.Color;
 import java.awt.image.BufferedImage;
 import java.io.File;
+import java.io.Serializable;
 import java.nio.charset.Charset;
 import java.util.Map;
 import java.util.Objects;
 
 import javax.swing.ImageIcon;
 
-public class ProcessDescriptor {
+public class ProcessDescriptor implements Serializable {
+
+	/**
+	 * 
+	 */
+	private static final long serialVersionUID = 1L;
 
 	private ImageIcon icon;
-	private Color color;
 	private String title;
-	private Charset charset;
-	private String[] command;
+	private String command;
 	private File executionDirectory;
+	private Color color;
+	private Charset charset;
 	private Map<String, String> environment;
 
 	public ProcessDescriptor() {
@@ -75,14 +81,14 @@ public class ProcessDescriptor {
 		this.charset = charset;
 	}
 
-	public String[] getCommand() {
+	public String getCommand() {
 		return command;
 	}
 
-	public void setCommand(String... command) {
+	public void setCommand(String command) {
 		requireNonNull(command, "Must not be null!");
 		this.command = command;
-		setTitleOnDemand(command[0]);
+		setTitleOnDemand(command);
 	}
 
 	private void setTitleOnDemand(String string) {

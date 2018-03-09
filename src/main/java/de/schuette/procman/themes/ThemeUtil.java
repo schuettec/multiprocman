@@ -10,6 +10,8 @@ import javax.swing.UIManager;
 
 import org.apache.commons.lang3.SystemUtils;
 
+import javafx.embed.swing.JFXPanel;
+
 public class ThemeUtil {
 
 	public static <C extends JComponent> void theme(C component, Class<? extends Theme<C>> service) {
@@ -33,4 +35,14 @@ public class ThemeUtil {
 		}
 	}
 
+	public static void startJavaFX() {
+		new JFXPanel();
+	}
+
+	public static void stopJavaFX() {
+		try {
+			javafx.application.Platform.exit();
+		} catch (Exception e) {
+		}
+	}
 }

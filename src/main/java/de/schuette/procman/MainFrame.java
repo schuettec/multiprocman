@@ -15,7 +15,6 @@ import java.awt.event.KeyEvent;
 import java.awt.event.WindowEvent;
 import java.awt.event.WindowListener;
 import java.io.File;
-import java.nio.charset.Charset;
 
 import javax.swing.AbstractAction;
 import javax.swing.DefaultListModel;
@@ -48,8 +47,8 @@ import de.schuette.procman.console.AnsiColorTextPane.ExportType;
 import de.schuette.procman.console.AutoScrollToBottomListener;
 import de.schuette.procman.console.ScrollableAnsiColorTextPaneContainer;
 import de.schuette.procman.console.SearchFieldListener;
+import de.schuette.procman.consolepreview.ConsolePreview;
 import de.schuette.procman.themes.ThemeUtil;
-import javafx.embed.swing.JFXPanel;
 import javafx.stage.FileChooser;
 import javafx.stage.FileChooser.ExtensionFilter;
 
@@ -118,9 +117,9 @@ public class MainFrame extends JFrame implements WindowListener, ProcessListener
 	private JButton btnStop;
 	private JButton btnStopForcibly;
 	private JButton btnRestart;
-	private JButton btnNewButton;
+	private JButton btnClear;
 	private JPanel panel;
-	private JButton btnNewButton_1;
+	private JButton btnSave;
 
 	/**
 	 * Launch the application.
@@ -133,11 +132,11 @@ public class MainFrame extends JFrame implements WindowListener, ProcessListener
 					ThemeUtil.setLookAndFeel();
 					final MainFrame frame = new MainFrame();
 					frame.setExtendedState(JFrame.MAXIMIZED_BOTH);
-					ProcessDescriptor descriptor = new ProcessDescriptor();
-					descriptor.setCommand("ping", "google.de", "-n", "10000");
-					descriptor.setCharset(Charset.forName("ibm850"));
-					descriptor.setTitle("Ping google.de");
-					frame.addProcessController(new ProcessController(descriptor).start());
+					// ProcessDescriptor descriptor = new ProcessDescriptor();
+					// descriptor.setCommand("ping", "google.de", "-n", "10000");
+					// descriptor.setCharset(Charset.forName("ibm850"));
+					// descriptor.setTitle("Ping google.de");
+					// frame.addProcessController(new ProcessController(descriptor).start());
 					frame.setVisible(true);
 				} catch (Exception e) {
 					e.printStackTrace();
@@ -151,7 +150,6 @@ public class MainFrame extends JFrame implements WindowListener, ProcessListener
 	 * Create the frame.
 	 */
 	public MainFrame() {
-		new JFXPanel();
 		setDefaultCloseOperation(JFrame.DO_NOTHING_ON_CLOSE);
 		addWindowListener(this);
 		setPreferredSize(new Dimension(480, 640));
@@ -258,6 +256,7 @@ public class MainFrame extends JFrame implements WindowListener, ProcessListener
 
 		JScrollPane scrollPane = new JScrollPane(processList, JScrollPane.VERTICAL_SCROLLBAR_NEVER,
 				JScrollPane.HORIZONTAL_SCROLLBAR_AS_NEEDED);
+		scrollPane.setPreferredSize(new Dimension(ConsolePreview.WIDTH, ConsolePreview.HEIGHT));
 		panel.add(scrollPane);
 
 		toolBar = new JToolBar();
@@ -265,17 +264,18 @@ public class MainFrame extends JFrame implements WindowListener, ProcessListener
 		panel.add(toolBar, BorderLayout.SOUTH);
 		toolBar.setFloatable(false);
 
-		btnNewButton_1 = new JButton(new AbstractAction(null, new ImageIcon(Resources.getSave())) {
+		btnSave = new JButton(new AbstractAction(null, new ImageIcon(Resources.getSave())) {
 
 			@Override
 			public void actionPerformed(ActionEvent e) {
 				saveAs();
 			}
 		});
-		btnNewButton_1.setToolTipText("Save output");
-		toolBar.add(btnNewButton_1);
+		btnSave.setEnabled(false);
+		btnSave.setToolTipText("Save output");
+		toolBar.add(btnSave);
 
-		btnNewButton = new JButton(new AbstractAction(null, new ImageIcon(Resources.getClear())) {
+		btnClear = new JButton(new AbstractAction(null, new ImageIcon(Resources.getClear())) {
 
 			@Override
 			public void actionPerformed(ActionEvent e) {
@@ -283,8 +283,9 @@ public class MainFrame extends JFrame implements WindowListener, ProcessListener
 			}
 
 		});
-		btnNewButton.setToolTipText("Clear console");
-		toolBar.add(btnNewButton);
+		btnClear.setEnabled(false);
+		btnClear.setToolTipText("Clear console");
+		toolBar.add(btnClear);
 		toolBar.addSeparator();
 
 		btnRestart = new JButton(new AbstractAction(null, new ImageIcon(Resources.getRestart())) {
@@ -306,6 +307,7 @@ public class MainFrame extends JFrame implements WindowListener, ProcessListener
 			}
 
 		});
+		btnRestart.setEnabled(false);
 		btnRestart.setToolTipText("Restart");
 		toolBar.add(btnRestart);
 
@@ -317,6 +319,7 @@ public class MainFrame extends JFrame implements WindowListener, ProcessListener
 			}
 
 		});
+		btnStop.setEnabled(false);
 		btnStop.setToolTipText("Stop");
 		toolBar.add(btnStop);
 
@@ -328,6 +331,7 @@ public class MainFrame extends JFrame implements WindowListener, ProcessListener
 			}
 
 		});
+		btnStopForcibly.setEnabled(false);
 		btnStopForcibly.setToolTipText("Stop forcibly");
 		toolBar.add(btnStopForcibly);
 
@@ -340,6 +344,7 @@ public class MainFrame extends JFrame implements WindowListener, ProcessListener
 		menuBar.add(mnFile);
 
 		mntmNewProcess = new JMenuItem("New...");
+
 		mnFile.add(mntmNewProcess);
 
 		separator_2 = new JSeparator();
@@ -353,6 +358,7 @@ public class MainFrame extends JFrame implements WindowListener, ProcessListener
 			}
 
 		});
+		mntmSave.setEnabled(false);
 		mntmSave.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_S, InputEvent.CTRL_MASK));
 		mnFile.add(mntmSave);
 
@@ -455,11 +461,7 @@ public class MainFrame extends JFrame implements WindowListener, ProcessListener
 		ProcessController.shutdown();
 		this.setVisible(false);
 		this.dispose();
-
-		try {
-			javafx.application.Platform.exit();
-		} catch (Exception e) {
-		}
+		// ThemeUtil.stopJavaFX();
 	}
 
 	private void clearConsole() {
@@ -467,6 +469,7 @@ public class MainFrame extends JFrame implements WindowListener, ProcessListener
 	}
 
 	private void saveAs() {
+		ThemeUtil.startJavaFX();
 		javafx.application.Platform.runLater(new Runnable() {
 
 			@Override
@@ -498,6 +501,7 @@ public class MainFrame extends JFrame implements WindowListener, ProcessListener
 				}
 			}
 		});
+		ThemeUtil.stopJavaFX();
 	}
 
 	@Override
@@ -541,22 +545,34 @@ public class MainFrame extends JFrame implements WindowListener, ProcessListener
 		if (currentProcess == controller) {
 			switch (controller.getState()) {
 			case NOT_STARTED:
+				chckbxmntmFind.setEnabled(false);
+				btnSave.setEnabled(false);
+				btnClear.setEnabled(false);
 				btnStop.setEnabled(false);
 				btnStopForcibly.setEnabled(false);
 				btnRestart.setEnabled(true);
 				break;
 			case RUNNING:
+				chckbxmntmFind.setEnabled(true);
+				btnSave.setEnabled(true);
+				btnClear.setEnabled(true);
 				btnStop.setEnabled(true);
 				btnStopForcibly.setEnabled(true);
 				btnRestart.setEnabled(true);
 				break;
 			case STOPPED_OK:
 			case STOPPED_ALERT:
+				chckbxmntmFind.setEnabled(true);
+				btnSave.setEnabled(true);
+				btnClear.setEnabled(true);
 				btnStop.setEnabled(false);
 				btnStopForcibly.setEnabled(false);
 				btnRestart.setEnabled(true);
 				break;
 			case STOPPING:
+				chckbxmntmFind.setEnabled(true);
+				btnSave.setEnabled(true);
+				btnClear.setEnabled(true);
 				btnStop.setEnabled(false);
 				btnStopForcibly.setEnabled(false);
 				btnRestart.setEnabled(false);

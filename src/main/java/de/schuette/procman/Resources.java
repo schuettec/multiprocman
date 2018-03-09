@@ -13,7 +13,7 @@ public class Resources {
 	private static BufferedImage running;
 	private static BufferedImage alert;
 	private static BufferedImage question;
-	private static BufferedImage terminal;
+
 	private static BufferedImage scrollFree;
 	private static BufferedImage scrollLock;
 	private static BufferedImage save;
@@ -21,6 +21,11 @@ public class Resources {
 	private static BufferedImage stop;
 	private static BufferedImage stopForcibly;
 	private static BufferedImage restart;
+	private static BufferedImage terminal;
+	private static BufferedImage folder;
+	private static BufferedImage folderPlus;
+	private static BufferedImage folderMinus;
+	private static BufferedImage edit;
 
 	static {
 		try {
@@ -31,16 +36,38 @@ public class Resources {
 			terminal = ImageIO.read(getResource("/terminal.png"));
 			scrollFree = ImageIO.read(getResource("/scrollFree.png"));
 			scrollLock = ImageIO.read(getResource("/scrollToBottom.png"));
-
+			folder = ImageIO.read(getResource("/folder.png"));
 			save = ImageIO.read(getResource("/save.png"));
 			clear = ImageIO.read(getResource("/trash-2.png"));
 			stop = ImageIO.read(getResource("/stop-circle.png"));
 			stopForcibly = ImageIO.read(getResource("/stop-forcibly.png"));
 			restart = ImageIO.read(getResource("/repeat.png"));
+			folderPlus = ImageIO.read(getResource("/folder-plus.png"));
+			folderMinus = ImageIO.read(getResource("/folder-minus.png"));
+			edit = ImageIO.read(getResource("/edit.png"));
 		} catch (IOException e) {
 			ExceptionDialog.showException(e, "Some application resources could not be found!");
 		}
+	}
 
+	public static BufferedImage getEdit() {
+		return edit;
+	}
+
+	public static BufferedImage getFolderMinus() {
+		return folderMinus;
+	}
+
+	public static BufferedImage getFolderPlus() {
+		return folderPlus;
+	}
+
+	public static BufferedImage getFolder() {
+		return folder;
+	}
+
+	public static BufferedImage getTerminal() {
+		return terminal;
 	}
 
 	public static BufferedImage getSave() {
@@ -69,10 +96,6 @@ public class Resources {
 
 	public static BufferedImage getScrollLock() {
 		return scrollLock;
-	}
-
-	public static BufferedImage getTerminal() {
-		return terminal;
 	}
 
 	public static BufferedImage getQuestion() {
