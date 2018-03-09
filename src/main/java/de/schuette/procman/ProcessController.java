@@ -32,6 +32,10 @@ public class ProcessController {
 		}));
 	}
 
+	public enum State {
+		NOT_STARTED, RUNNING, STOPPING, STOPPED_OK, STOPPED_ALERT, ABANDONED;
+	}
+
 	private EventListenerSupport<ProcessListener> processListener = new EventListenerSupport<>(ProcessListener.class);
 
 	private ScrollableAnsiColorTextPaneContainer consoleScroller;
@@ -42,6 +46,7 @@ public class ProcessController {
 	private Thread processObserver;
 
 	private Process process;
+	private State state;
 
 	public ProcessController(ProcessDescriptor processDescriptor) {
 		this.processDescriptor = processDescriptor;
@@ -51,6 +56,7 @@ public class ProcessController {
 		this.consolePreview = new ConsolePreview(processDescriptor);
 		this.textPane.addAppendListener(consolePreview);
 		processListener.addListener(consolePreview);
+		this.state = State.NOT_STARTED;
 	}
 
 	public void addProcessListener(ProcessListener l) {
@@ -85,7 +91,7 @@ public class ProcessController {
 			@Override
 			public void run() {
 				if (process.isAlive()) {
-					processListener.fire().processStarted();
+					updateState(State.RUNNING);
 					controllers.add(ProcessController.this);
 
 					// Read outputs
@@ -105,11 +111,15 @@ public class ProcessController {
 							}
 						}
 					} catch (IllegalStateException e) {
-						processListener.fire().processAbandoned();
+						updateState(State.ABANDONED);
 					}
 					try {
 						int exitValue = process.waitFor();
-						processListener.fire().processStopped(exitValue);
+						if (exitValue == 0) {
+							updateState(State.STOPPED_OK);
+						} else {
+							updateState(State.STOPPED_ALERT);
+						}
 						controllers.remove(ProcessController.this);
 					} catch (InterruptedException e) {
 					}
@@ -122,7 +132,7 @@ public class ProcessController {
 					@Override
 					public void run() {
 						consoleScroller.appendANSI(nextLine + "\n");
-						processListener.fire().processUpdate();
+						processListener.fire().processUpdate(ProcessController.this);
 					}
 				});
 			}
@@ -130,12 +140,19 @@ public class ProcessController {
 		processObserver.start();
 	}
 
+	private void updateState(State state) {
+		this.state = state;
+		processListener.fire().processUpdate(ProcessController.this);
+	}
+
 	public void stop(boolean waitFor) {
+		updateState(State.STOPPING);
 		this.process.destroy();
 		waitForOnDemand(waitFor);
 	}
 
 	public void stopForce(boolean waitFor) {
+		updateState(State.STOPPING);
 		this.process.destroyForcibly();
 		waitForOnDemand(waitFor);
 	}
@@ -180,4 +197,9 @@ public class ProcessController {
 	public static boolean hasActiveProcesses() {
 		return !controllers.isEmpty();
 	}
+
+	public State getState() {
+		return state;
+	}
+
 }

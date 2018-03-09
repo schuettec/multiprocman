@@ -2,6 +2,7 @@ package de.schuette.procman;
 
 import java.awt.BorderLayout;
 import java.awt.Component;
+import java.awt.Cursor;
 import java.awt.Dimension;
 import java.awt.EventQueue;
 import java.awt.FlowLayout;
@@ -20,6 +21,7 @@ import javax.swing.AbstractAction;
 import javax.swing.DefaultListModel;
 import javax.swing.DropMode;
 import javax.swing.ImageIcon;
+import javax.swing.JButton;
 import javax.swing.JCheckBoxMenuItem;
 import javax.swing.JComponent;
 import javax.swing.JFrame;
@@ -32,6 +34,7 @@ import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JSeparator;
 import javax.swing.JToggleButton;
+import javax.swing.JToolBar;
 import javax.swing.KeyStroke;
 import javax.swing.ListSelectionModel;
 import javax.swing.SwingConstants;
@@ -111,6 +114,13 @@ public class MainFrame extends JFrame implements WindowListener, ProcessListener
 	private JMenu mnView;
 	private JCheckBoxMenuItem chckbxmntmAutoScrollTo;
 	private JCheckBoxMenuItem chckbxmntmFind;
+	private JToolBar toolBar;
+	private JButton btnStop;
+	private JButton btnStopForcibly;
+	private JButton btnRestart;
+	private JButton btnNewButton;
+	private JPanel panel;
+	private JButton btnNewButton_1;
 
 	/**
 	 * Launch the application.
@@ -177,6 +187,9 @@ public class MainFrame extends JFrame implements WindowListener, ProcessListener
 		footer.add(tglScrollToBottom);
 
 		this.processes = new DefaultListModel<ProcessController>();
+
+		panel = new JPanel();
+		contentPane.add(panel, BorderLayout.NORTH);
 		this.processList = new JList<>(processes);
 		processList.setVisibleRowCount(1);
 		processList.setLayoutOrientation(JList.HORIZONTAL_WRAP);
@@ -192,6 +205,7 @@ public class MainFrame extends JFrame implements WindowListener, ProcessListener
 			}
 
 		});
+		panel.setLayout(new BorderLayout(0, 0));
 		processList.setDragEnabled(true);
 		processList.setDropMode(DropMode.INSERT);
 		processList.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
@@ -242,8 +256,80 @@ public class MainFrame extends JFrame implements WindowListener, ProcessListener
 			}
 		});
 
-		contentPane.add(new JScrollPane(processList, JScrollPane.VERTICAL_SCROLLBAR_NEVER,
-				JScrollPane.HORIZONTAL_SCROLLBAR_AS_NEEDED), BorderLayout.NORTH);
+		JScrollPane scrollPane = new JScrollPane(processList, JScrollPane.VERTICAL_SCROLLBAR_NEVER,
+				JScrollPane.HORIZONTAL_SCROLLBAR_AS_NEEDED);
+		panel.add(scrollPane);
+
+		toolBar = new JToolBar();
+		toolBar.setRollover(true);
+		panel.add(toolBar, BorderLayout.SOUTH);
+		toolBar.setFloatable(false);
+
+		btnNewButton_1 = new JButton(new AbstractAction(null, new ImageIcon(Resources.getSave())) {
+
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				saveAs();
+			}
+		});
+		btnNewButton_1.setToolTipText("Save output");
+		toolBar.add(btnNewButton_1);
+
+		btnNewButton = new JButton(new AbstractAction(null, new ImageIcon(Resources.getClear())) {
+
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				clearConsole();
+			}
+
+		});
+		btnNewButton.setToolTipText("Clear console");
+		toolBar.add(btnNewButton);
+		toolBar.addSeparator();
+
+		btnRestart = new JButton(new AbstractAction(null, new ImageIcon(Resources.getRestart())) {
+
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				SwingUtilities.invokeLater(new Runnable() {
+
+					@Override
+					public void run() {
+						Cursor defaultCursor = Cursor.getDefaultCursor();
+						Cursor waitCursor = Cursor.getPredefinedCursor(Cursor.WAIT_CURSOR);
+						setCursor(waitCursor);
+						currentProcess.stop(true);
+						currentProcess.start();
+						setCursor(defaultCursor);
+					}
+				});
+			}
+
+		});
+		btnRestart.setToolTipText("Restart");
+		toolBar.add(btnRestart);
+
+		btnStop = new JButton(new AbstractAction(null, new ImageIcon(Resources.getStop())) {
+
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				currentProcess.stop(false);
+			}
+
+		});
+		btnStop.setToolTipText("Stop");
+		toolBar.add(btnStop);
+
+		btnStopForcibly = new JButton(new AbstractAction(null, new ImageIcon(Resources.getStopForcibly())) {
+
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				currentProcess.stopForce(false);
+			}
+
+		});
+		btnStopForcibly.setToolTipText("Stop forcibly");
+		toolBar.add(btnStopForcibly);
 
 		// Build menu
 
@@ -344,23 +430,6 @@ public class MainFrame extends JFrame implements WindowListener, ProcessListener
 	}
 
 	@Override
-	public void processStarted() {
-	}
-
-	@Override
-	public void processStopped(int exitValue) {
-	}
-
-	@Override
-	public void processAbandoned() {
-	}
-
-	@Override
-	public void processUpdate() {
-		this.processList.repaint();
-	}
-
-	@Override
 	public void windowOpened(WindowEvent e) {
 	}
 
@@ -374,17 +443,27 @@ public class MainFrame extends JFrame implements WindowListener, ProcessListener
 			int answer = JOptionPane.showConfirmDialog(this, "There are running processes. Do you want to stop them?",
 					"Active processes", JOptionPane.YES_NO_OPTION, JOptionPane.WARNING_MESSAGE);
 			if (answer == JOptionPane.YES_OPTION) {
-				ProcessController.shutdown();
-				this.setVisible(false);
-				this.dispose();
-
-				try {
-					javafx.application.Platform.exit();
-				} catch (Exception e) {
-				}
-
+				_exit();
+			} else {
+				return;
 			}
 		}
+		_exit();
+	}
+
+	private void _exit() {
+		ProcessController.shutdown();
+		this.setVisible(false);
+		this.dispose();
+
+		try {
+			javafx.application.Platform.exit();
+		} catch (Exception e) {
+		}
+	}
+
+	private void clearConsole() {
+		currentProcess.getTextPane().setText("");
 	}
 
 	private void saveAs() {
@@ -400,21 +479,21 @@ public class MainFrame extends JFrame implements WindowListener, ProcessListener
 				File selectedFile = fileChooser.showSaveDialog(null);
 				ExtensionFilter extension = fileChooser.getSelectedExtensionFilter();
 
-				ExportType exportType = null;
-				switch (extension.getDescription()) {
-				default:
-				case TEXT_FILES:
-					exportType = ExportType.TEXT;
-					break;
-				case HTML_FILES:
-					exportType = ExportType.HTML;
-					break;
-				case RICH_TEXT_FILES:
-					exportType = ExportType.RTF;
-					break;
-				}
-
 				if (selectedFile != null) {
+					ExportType exportType = null;
+					switch (extension.getDescription()) {
+					default:
+					case TEXT_FILES:
+						exportType = ExportType.TEXT;
+						break;
+					case HTML_FILES:
+						exportType = ExportType.HTML;
+						break;
+					case RICH_TEXT_FILES:
+						exportType = ExportType.RTF;
+						break;
+					}
+
 					currentProcess.getTextPane().saveAs(selectedFile, exportType);
 				}
 			}
@@ -454,6 +533,39 @@ public class MainFrame extends JFrame implements WindowListener, ProcessListener
 	@Override
 	public void searchFieldClosed() {
 		chckbxmntmFind.setSelected(false);
+	}
+
+	@Override
+	public void processUpdate(ProcessController controller) {
+		this.processList.repaint();
+		if (currentProcess == controller) {
+			switch (controller.getState()) {
+			case NOT_STARTED:
+				btnStop.setEnabled(false);
+				btnStopForcibly.setEnabled(false);
+				btnRestart.setEnabled(true);
+				break;
+			case RUNNING:
+				btnStop.setEnabled(true);
+				btnStopForcibly.setEnabled(true);
+				btnRestart.setEnabled(true);
+				break;
+			case STOPPED_OK:
+			case STOPPED_ALERT:
+				btnStop.setEnabled(false);
+				btnStopForcibly.setEnabled(false);
+				btnRestart.setEnabled(true);
+				break;
+			case STOPPING:
+				btnStop.setEnabled(false);
+				btnStopForcibly.setEnabled(false);
+				btnRestart.setEnabled(false);
+				break;
+			case ABANDONED:
+				break;
+			}
+		}
+
 	}
 
 }

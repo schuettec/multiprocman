@@ -16,6 +16,11 @@ public class Resources {
 	private static BufferedImage terminal;
 	private static BufferedImage scrollFree;
 	private static BufferedImage scrollLock;
+	private static BufferedImage save;
+	private static BufferedImage clear;
+	private static BufferedImage stop;
+	private static BufferedImage stopForcibly;
+	private static BufferedImage restart;
 
 	static {
 		try {
@@ -26,10 +31,36 @@ public class Resources {
 			terminal = ImageIO.read(getResource("/terminal.png"));
 			scrollFree = ImageIO.read(getResource("/scrollFree.png"));
 			scrollLock = ImageIO.read(getResource("/scrollToBottom.png"));
+
+			save = ImageIO.read(getResource("/save.png"));
+			clear = ImageIO.read(getResource("/trash-2.png"));
+			stop = ImageIO.read(getResource("/stop-circle.png"));
+			stopForcibly = ImageIO.read(getResource("/stop-forcibly.png"));
+			restart = ImageIO.read(getResource("/repeat.png"));
 		} catch (IOException e) {
 			ExceptionDialog.showException(e, "Some application resources could not be found!");
 		}
 
+	}
+
+	public static BufferedImage getSave() {
+		return save;
+	}
+
+	public static BufferedImage getClear() {
+		return clear;
+	}
+
+	public static BufferedImage getStop() {
+		return stop;
+	}
+
+	public static BufferedImage getStopForcibly() {
+		return stopForcibly;
+	}
+
+	public static BufferedImage getRestart() {
+		return restart;
 	}
 
 	public static BufferedImage getScrollFree() {

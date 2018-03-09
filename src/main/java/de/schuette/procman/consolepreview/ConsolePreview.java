@@ -19,6 +19,8 @@ import javax.swing.JPanel;
 import javax.swing.plaf.BorderUIResource;
 
 import de.schuette.procman.AppendListener;
+import de.schuette.procman.ProcessController;
+import de.schuette.procman.ProcessController.State;
 import de.schuette.procman.ProcessDescriptor;
 import de.schuette.procman.ProcessListener;
 import de.schuette.procman.Resources;
@@ -48,10 +50,6 @@ public class ConsolePreview extends JPanel implements AppendListener, ProcessLis
 	private int curX = INITIAL_X;
 
 	private boolean selected = false;
-
-	public enum State {
-		RUNNING, STOPPED_OK, STOPPED_ALERT, ABANDONED;
-	}
 
 	private State processState;
 	private ProcessDescriptor descriptor;
@@ -186,26 +184,8 @@ public class ConsolePreview extends JPanel implements AppendListener, ProcessLis
 	}
 
 	@Override
-	public void processStarted() {
-		this.processState = State.RUNNING;
-	}
-
-	@Override
-	public void processStopped(int exitValue) {
-		if (exitValue == 0) {
-			processState = State.STOPPED_OK;
-		} else {
-			processState = State.STOPPED_ALERT;
-		}
-	}
-
-	@Override
-	public void processAbandoned() {
-		this.processState = State.ABANDONED;
-	}
-
-	@Override
-	public void processUpdate() {
+	public void processUpdate(ProcessController controller) {
+		this.processState = controller.getState();
 	}
 
 }
