@@ -7,19 +7,28 @@ import static java.util.Objects.nonNull;
 import java.awt.Color;
 import java.awt.Font;
 import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
+import java.io.IOException;
 
+import javax.swing.JOptionPane;
 import javax.swing.JTextPane;
 import javax.swing.text.AttributeSet;
 import javax.swing.text.BadLocationException;
+import javax.swing.text.DefaultEditorKit;
+import javax.swing.text.EditorKit;
 import javax.swing.text.SimpleAttributeSet;
 import javax.swing.text.StyleConstants;
 import javax.swing.text.StyleContext;
 import javax.swing.text.StyledDocument;
+import javax.swing.text.html.HTMLEditorKit;
+import javax.swing.text.rtf.RTFEditorKit;
 
 import org.apache.commons.lang3.event.EventListenerSupport;
 
 import de.schuette.procman.AppendListener;
 import de.schuette.procman.Appendable;
+import de.schuette.procman.ExceptionDialog;
 
 public class AnsiColorTextPane extends JTextPane implements Appendable {
 	/**
@@ -87,8 +96,9 @@ public class AnsiColorTextPane extends JTextPane implements Appendable {
 
 	@Override
 	public void append(Color c, String s) {
-		AttributeSet aset = lastStyleContext().addAttribute(SimpleAttributeSet.EMPTY, StyleConstants.Foreground, c);
-		int len = getDocument().getLength(); // same value as getText().length();
+		StyleContext lastStyleContext = lastStyleContext();
+		AttributeSet aset = lastStyleContext.addAttribute(SimpleAttributeSet.EMPTY, StyleConstants.Foreground, c);
+		int len = getDocument().getLength();
 		appendString(s, aset, len);
 		appendListener.fire().append(c, s);
 	}
@@ -159,9 +169,39 @@ public class AnsiColorTextPane extends JTextPane implements Appendable {
 		}
 	}
 
-	public void saveAs(File file, ExportType exportType) {
-		// TODO Auto-generated method stub
+	public static String getHTMLColor(Color color) {
+		if (color == null) {
+			return "#000000";
+		}
+		return "#" + Integer.toHexString(color.getRGB()).substring(2).toUpperCase();
+	}
 
+	public void saveAs(File file, ExportType exportType) {
+		EditorKit editorKit = null;
+		switch (exportType) {
+		case HTML:
+			HTMLEditorKit htmlEditorKit = new HTMLEditorKit();
+			editorKit = htmlEditorKit;
+			break;
+		case RTF:
+			editorKit = new RTFEditorKit();
+			break;
+		case TEXT:
+			editorKit = new DefaultEditorKit();
+			break;
+		}
+		try (FileOutputStream fout = new FileOutputStream(file)) {
+			StyledDocument styledDocument = getStyledDocument();
+			editorKit.write(fout, styledDocument, 0, styledDocument.getLength());
+		} catch (FileNotFoundException e) {
+			JOptionPane.showMessageDialog(this, "The file was not found or could not be created.", "File not found",
+					JOptionPane.ERROR_MESSAGE);
+		} catch (IOException e) {
+			JOptionPane.showMessageDialog(this, "The document was not saved due to an I/O error.", "I/O error",
+					JOptionPane.ERROR_MESSAGE);
+		} catch (BadLocationException e) {
+			ExceptionDialog.showException(e, "Bad location while saving the document.");
+		}
 	}
 
 }

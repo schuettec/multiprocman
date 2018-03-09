@@ -35,6 +35,7 @@ import javax.swing.JToggleButton;
 import javax.swing.KeyStroke;
 import javax.swing.ListSelectionModel;
 import javax.swing.SwingConstants;
+import javax.swing.SwingUtilities;
 import javax.swing.TransferHandler;
 import javax.swing.border.EmptyBorder;
 import javax.swing.event.ListSelectionEvent;
@@ -276,7 +277,13 @@ public class MainFrame extends JFrame implements WindowListener, ProcessListener
 
 			@Override
 			public void actionPerformed(ActionEvent e) {
-				exit();
+				SwingUtilities.invokeLater(new Runnable() {
+
+					@Override
+					public void run() {
+						exit();
+					}
+				});
 			}
 		});
 		mntmExit.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_Q, InputEvent.CTRL_MASK));
@@ -368,6 +375,7 @@ public class MainFrame extends JFrame implements WindowListener, ProcessListener
 					"Active processes", JOptionPane.YES_NO_OPTION, JOptionPane.WARNING_MESSAGE);
 			if (answer == JOptionPane.YES_OPTION) {
 				ProcessController.shutdown();
+				this.setVisible(false);
 				this.dispose();
 
 				try {

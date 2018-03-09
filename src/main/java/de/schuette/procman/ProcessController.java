@@ -9,6 +9,8 @@ import java.util.Queue;
 import java.util.Scanner;
 import java.util.concurrent.ConcurrentLinkedQueue;
 
+import javax.swing.SwingUtilities;
+
 import org.apache.commons.lang3.event.EventListenerSupport;
 
 import de.schuette.procman.console.AnsiColorTextPane;
@@ -95,13 +97,11 @@ public class ProcessController {
 						while (process.isAlive()) {
 							if (input1.hasNextLine()) {
 								String nextLine = input1.nextLine();
-								consoleScroller.appendANSI(nextLine + "\n");
-								processListener.fire().processUpdate();
+								appendInEDT(nextLine);
 							}
 							if (input2.hasNextLine()) {
 								String nextLine = input2.nextLine();
-								consoleScroller.appendANSI(nextLine + "\n");
-								processListener.fire().processUpdate();
+								appendInEDT(nextLine);
 							}
 						}
 					} catch (IllegalStateException e) {
@@ -115,16 +115,39 @@ public class ProcessController {
 					}
 				}
 			}
+
+			private void appendInEDT(String nextLine) {
+				SwingUtilities.invokeLater(new Runnable() {
+
+					@Override
+					public void run() {
+						consoleScroller.appendANSI(nextLine + "\n");
+						processListener.fire().processUpdate();
+					}
+				});
+			}
 		});
 		processObserver.start();
 	}
 
-	public void stop() {
+	public void stop(boolean waitFor) {
 		this.process.destroy();
+		waitForOnDemand(waitFor);
 	}
 
-	public void stopForce() {
+	public void stopForce(boolean waitFor) {
 		this.process.destroyForcibly();
+		waitForOnDemand(waitFor);
+	}
+
+	private void waitForOnDemand(boolean waitFor) {
+		if (waitFor) {
+			try {
+				this.process.waitFor();
+			} catch (InterruptedException e) {
+				// Nothing to do.
+			}
+		}
 	}
 
 	public ScrollableAnsiColorTextPaneContainer getConsoleScroller() {
@@ -146,7 +169,7 @@ public class ProcessController {
 		if (!controllers.isEmpty()) {
 			List<ProcessController> toShutdown = new LinkedList<>(controllers);
 			for (ProcessController controller : toShutdown) {
-				controller.stopForce();
+				controller.stopForce(true);
 			}
 		}
 	}
