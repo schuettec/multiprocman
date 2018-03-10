@@ -414,7 +414,7 @@ public class ProcessManager extends JFrame {
 								}
 
 							});
-							btnRunApplication.setToolTipText("Run selected application.");
+							btnRunApplication.setToolTipText("Run selected applications.");
 							toolBar.add(btnRunApplication);
 						}
 					}
