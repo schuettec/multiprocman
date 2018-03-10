@@ -33,6 +33,7 @@ import javax.swing.JLabel;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
+import javax.swing.JTabbedPane;
 import javax.swing.JTextArea;
 import javax.swing.JTextField;
 import javax.swing.KeyStroke;
@@ -50,12 +51,14 @@ import javafx.stage.FileChooser.ExtensionFilter;
 
 public class ApplicationEditor extends JDialog {
 
-	private final JPanel contentPanel = new JPanel();
+	private final JPanel mainPanel = new JPanel();
+	private final JPanel environmentPanel = new JPanel();
 	private ProcessDescriptor processDescriptor;
 	private JTextField txtTitle;
 	private JTextField txtWorkingDir;
 	private JComboBox<Charset> comboBox;
 	private JTextArea txtCommand;
+	private JTabbedPane tabbedPane;
 
 	/**
 	 * Launch the application.
@@ -87,9 +90,13 @@ public class ApplicationEditor extends JDialog {
 		this.setSize(new Dimension(385, 476));
 		this.setLocationRelativeTo(null);
 		getContentPane().setLayout(new BorderLayout());
-		contentPanel.setBorder(new EmptyBorder(5, 5, 5, 5));
-		getContentPane().add(contentPanel, BorderLayout.CENTER);
 
+		tabbedPane = new JTabbedPane();
+		tabbedPane.add("Application", mainPanel);
+		tabbedPane.add("Environment", environmentPanel);
+		getContentPane().add(tabbedPane, BorderLayout.CENTER);
+
+		mainPanel.setBorder(new EmptyBorder(5, 5, 5, 5));
 		JLabel lblIcon = new JLabel(new ImageIcon(Resources.getTerminal()));
 		lblIcon.setSize(new Dimension(24, 24));
 		lblIcon.setPreferredSize(new Dimension(24, 24));
@@ -213,7 +220,7 @@ public class ApplicationEditor extends JDialog {
 			}
 		});
 
-		GroupLayout gl_contentPanel = new GroupLayout(contentPanel);
+		GroupLayout gl_contentPanel = new GroupLayout(mainPanel);
 		gl_contentPanel.setHorizontalGroup(gl_contentPanel.createParallelGroup(Alignment.LEADING)
 		    .addGroup(gl_contentPanel.createSequentialGroup()
 		        .addContainerGap()
@@ -310,7 +317,7 @@ public class ApplicationEditor extends JDialog {
 
 		txtCommand = new JTextArea();
 		scrollPane.setViewportView(txtCommand);
-		contentPanel.setLayout(gl_contentPanel);
+		mainPanel.setLayout(gl_contentPanel);
 
 		{
 			JPanel buttonPane = new JPanel();
@@ -335,7 +342,7 @@ public class ApplicationEditor extends JDialog {
 						if (command.isEmpty()) {
 							JOptionPane.showMessageDialog(ApplicationEditor.this, "Command must not be empty!", "Command not set",
 							    JOptionPane.WARNING_MESSAGE);
-							return;
+
 						}
 						ApplicationEditor.this.processDescriptor.setCommand(command);
 						String workingDir = txtWorkingDir.getText();
