@@ -63,6 +63,7 @@ public class CategoryEditor extends JDialog {
 	 * @param category
 	 */
 	private CategoryEditor(Category category) {
+		setIconImage(Resources.getApplicationIcon());
 		setModal(true);
 		setTitle("Category");
 		setResizable(false);

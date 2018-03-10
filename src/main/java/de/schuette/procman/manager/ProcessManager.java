@@ -192,8 +192,8 @@ public class ProcessManager extends JFrame {
 	 * Create the dialog.
 	 */
 	public ProcessManager() {
-		setAlwaysOnTop(true);
-		setTitle("Applications");
+		setIconImage(Resources.getApplicationIcon());
+		setTitle("Application manager");
 		setDefaultCloseOperation(JDialog.DISPOSE_ON_CLOSE);
 		setPreferredSize(new Dimension(640, 480));
 		setSize(new Dimension(640, 480));

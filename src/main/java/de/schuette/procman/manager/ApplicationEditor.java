@@ -78,6 +78,7 @@ public class ApplicationEditor extends JDialog {
 	 * @param category
 	 */
 	private ApplicationEditor(ProcessDescriptor process) {
+		setIconImage(Resources.getApplicationIcon());
 		setModal(true);
 		setTitle("Application");
 		setResizable(false);

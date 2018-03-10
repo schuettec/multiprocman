@@ -28,6 +28,7 @@ public class Resources {
 	private static BufferedImage edit;
 	private static BufferedImage play;
 	private static BufferedImage x;
+	private static BufferedImage appIcon;
 
 	static {
 		try {
@@ -49,6 +50,7 @@ public class Resources {
 			edit = ImageIO.read(getResource("/edit.png"));
 			play = ImageIO.read(getResource("/play.png"));
 			x = ImageIO.read(getResource("/x.png"));
+			appIcon = ImageIO.read(getResource("/app.png"));
 		} catch (IOException e) {
 			ExceptionDialog.showException(e, "Some application resources could not be found!");
 		}
@@ -129,5 +131,9 @@ public class Resources {
 
 	private static URL getResource(String name) {
 		return Resource.class.getResource(name);
+	}
+
+	public static BufferedImage getApplicationIcon() {
+		return appIcon;
 	}
 }

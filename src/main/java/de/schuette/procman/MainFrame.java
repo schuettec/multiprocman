@@ -163,6 +163,8 @@ public class MainFrame extends JFrame implements WindowListener, ProcessListener
 	 * Create the frame.
 	 */
 	private MainFrame() {
+		setTitle("Running applications");
+		setIconImage(Resources.getApplicationIcon());
 		setDefaultCloseOperation(JFrame.DO_NOTHING_ON_CLOSE);
 		addWindowListener(this);
 		setPreferredSize(new Dimension(480, 640));
