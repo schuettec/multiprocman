@@ -9,6 +9,8 @@ import java.awt.datatransfer.DataFlavor;
 import java.awt.datatransfer.StringSelection;
 import java.awt.datatransfer.Transferable;
 import java.awt.event.ActionEvent;
+import java.util.Arrays;
+import java.util.Iterator;
 import java.util.List;
 import java.util.function.Consumer;
 
@@ -309,11 +311,11 @@ public class ProcessManager extends JFrame {
 			{
 				JPanel panel = new JPanel();
 				scrollPane.setColumnHeaderView(panel);
-				panel.setLayout(new BorderLayout(0, 0));
+				panel.setLayout(new BorderLayout(5, 5));
 				{
 					JLabel lblNewLabel_1 = new JLabel("Categories:");
 					lblNewLabel_1.setLabelFor(lstCategories);
-					panel.add(lblNewLabel_1, BorderLayout.NORTH);
+					panel.add(lblNewLabel_1, BorderLayout.WEST);
 				}
 				{
 					JToolBar toolBar = new JToolBar();
@@ -321,7 +323,27 @@ public class ProcessManager extends JFrame {
 					toolBar.setFloatable(false);
 					panel.add(toolBar, BorderLayout.CENTER);
 					{
-						JButton btnRunCategory = new JButton("Run all applications in category.");
+						JButton btnRunCategory = new JButton(new AbstractAction(null, new ImageIcon(Resources.getPlay())) {
+
+							@Override
+							public void actionPerformed(ActionEvent e) {
+
+								int selectedIndex = lstCategories.getSelectedIndex();
+								if (selectedIndex == -1) {
+									JOptionPane.showMessageDialog(ProcessManager.this, "Please select the category to start first.",
+									    "No selection", JOptionPane.WARNING_MESSAGE);
+								} else {
+									MainFrame mainFrame = MainFrame.getInstance();
+									Category selected = lstCategories.getSelectedValue();
+									DefaultListModel<ProcessDescriptor> processTemplates = selected.getProcessTemplates();
+									ProcessDescriptor[] array = new ProcessDescriptor[processTemplates.size()];
+									processTemplates.copyInto(array);
+									startAll(mainFrame, Arrays.asList(array)
+									    .iterator());
+									dispose();
+								}
+							}
+						});
 						btnRunCategory.setToolTipText("Run all applications in category.");
 						toolBar.add(btnRunCategory);
 					}
@@ -361,11 +383,11 @@ public class ProcessManager extends JFrame {
 				{
 					JPanel panel = new JPanel();
 					scrollPane_1.setColumnHeaderView(panel);
-					panel.setLayout(new BorderLayout(0, 0));
+					panel.setLayout(new BorderLayout(5, 5));
 					{
-						JLabel lblApplications = new JLabel("Applications");
+						JLabel lblApplications = new JLabel("Applications:");
 						lblApplications.setLabelFor(lstProcesses);
-						panel.add(lblApplications, BorderLayout.NORTH);
+						panel.add(lblApplications, BorderLayout.WEST);
 					}
 					{
 						JToolBar toolBar = new JToolBar();
@@ -385,14 +407,12 @@ public class ProcessManager extends JFrame {
 									} else {
 										MainFrame mainFrame = MainFrame.getInstance();
 										List<ProcessDescriptor> selected = lstProcesses.getSelectedValuesList();
-										for (ProcessDescriptor d : selected) {
-											ProcessController c = new ProcessController(d);
-											mainFrame.addProcessController(c);
-											c.start();
-										}
+										Iterator<ProcessDescriptor> iterator = selected.iterator();
+										startAll(mainFrame, iterator);
 										dispose();
 									}
 								}
+
 							});
 							btnRunApplication.setToolTipText("Run selected application.");
 							toolBar.add(btnRunApplication);
@@ -404,6 +424,15 @@ public class ProcessManager extends JFrame {
 		lstCategories.setSelectedIndex(0);
 		lstProcesses.setSelectedIndex(0);
 		setVisible(true);
+	}
+
+	private void startAll(MainFrame mainFrame, Iterator<ProcessDescriptor> iterator) {
+		while (iterator.hasNext()) {
+			ProcessDescriptor descriptor = iterator.next();
+			ProcessController c = new ProcessController(descriptor);
+			mainFrame.addProcessController(c);
+			c.start();
+		}
 	}
 
 	private void modifyApplications(Consumer<DefaultListModel<ProcessDescriptor>> applicationsModificator) {
