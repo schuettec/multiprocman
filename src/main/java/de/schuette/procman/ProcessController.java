@@ -1,10 +1,13 @@
 package de.schuette.procman;
 
+import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Queue;
 import java.util.Scanner;
 import java.util.concurrent.ConcurrentLinkedQueue;
@@ -73,25 +76,32 @@ public class ProcessController {
 		processListener.removeListener(l);
 	}
 
-	public ProcessController start() {
+	public boolean start() {
 		try {
-			ProcessBuilder builder = new ProcessBuilder(processDescriptor.getCommandParts());
+			File workingDir = null;
 			if (processDescriptor.hasExecutionDirectory()) {
-				builder.directory(processDescriptor.getExecutionDirectory());
+				workingDir = processDescriptor.getExecutionDirectory();
 			}
-			builder.redirectErrorStream(true);
-
+			String[] env = null;
 			if (processDescriptor.hasEnvironmentVariables()) {
-				Map<String, String> environment = builder.environment();
-				environment.putAll(processDescriptor.getEnvironment());
+				Map<String, String> environment = processDescriptor.getEnvironment();
+				env = new String[environment.size()];
+				Iterator<Entry<String, String>> it = environment.entrySet()
+				    .iterator();
+				int i = 0;
+				while (it.hasNext()) {
+					Entry<String, String> next = it.next();
+					env[i] = next.getKey() + "=" + next.getValue();
+				}
 			}
-
-			this.process = builder.start();
+			this.process = Runtime.getRuntime()
+			    .exec(processDescriptor.getCommand(), env, workingDir);
 			startProcessObserver();
 		} catch (IOException e) {
 			ExceptionDialog.showException(e, "Error while starting the application.");
+			return false;
 		}
-		return this;
+		return true;
 	}
 
 	private void startProcessObserver() {
@@ -112,16 +122,16 @@ public class ProcessController {
 					    Scanner input2 = new Scanner(errorStream, processDescriptor.getCharset()
 					        .name())) {
 						while (process.isAlive()) {
-							if (input1.hasNextLine()) {
+							if (inputStream.available() > 0) {
 								String nextLine = input1.nextLine();
 								appendInEDT(nextLine);
 							}
-							if (input2.hasNextLine()) {
+							if (errorStream.available() > 0) {
 								String nextLine = input2.nextLine();
 								appendInEDT(nextLine);
 							}
 						}
-					} catch (IllegalStateException e) {
+					} catch (Exception e) {
 						updateState(State.ABANDONED);
 					}
 					try {

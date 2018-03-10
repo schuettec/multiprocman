@@ -116,8 +116,4 @@ public class ProcessDescriptor implements Serializable {
 		return nonNull(executionDirectory);
 	}
 
-	public String[] getCommandParts() {
-		return this.command.split(" ");
-	}
-
 }
