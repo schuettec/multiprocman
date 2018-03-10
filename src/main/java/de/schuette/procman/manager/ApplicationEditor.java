@@ -322,10 +322,22 @@ public class ApplicationEditor extends JDialog {
 					@Override
 					public void actionPerformed(ActionEvent e) {
 						ApplicationEditor.this.processDescriptor.setIcon((ImageIcon) lblIcon.getIcon());
-						ApplicationEditor.this.processDescriptor.setTitle(txtTitle.getText()
-						    .trim());
-						ApplicationEditor.this.processDescriptor.setCommand(txtCommand.getText()
-						    .trim());
+						String title = txtTitle.getText()
+						    .trim();
+						if (title.isEmpty()) {
+							JOptionPane.showMessageDialog(ApplicationEditor.this, "Title must not be empty!", "Title not set",
+							    JOptionPane.WARNING_MESSAGE);
+							return;
+						}
+						ApplicationEditor.this.processDescriptor.setTitle(title);
+						String command = txtCommand.getText()
+						    .trim();
+						if (command.isEmpty()) {
+							JOptionPane.showMessageDialog(ApplicationEditor.this, "Command must not be empty!", "Command not set",
+							    JOptionPane.WARNING_MESSAGE);
+							return;
+						}
+						ApplicationEditor.this.processDescriptor.setCommand(command);
 						String workingDir = txtWorkingDir.getText();
 						if (workingDir.trim()
 						    .isEmpty()) {

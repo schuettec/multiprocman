@@ -116,4 +116,10 @@ public class ProcessDescriptor implements Serializable {
 		return nonNull(executionDirectory);
 	}
 
+	@Override
+	public String toString() {
+		return "ProcessDescriptor [title=" + title + ", command=" + command + ", executionDirectory=" + executionDirectory
+		    + ", color=" + color + ", charset=" + charset + "]";
+	}
+
 }
