@@ -41,11 +41,11 @@ import javax.swing.SwingConstants;
 import javax.swing.border.BevelBorder;
 import javax.swing.border.EmptyBorder;
 
+import de.schuette.procman.FileChooserCallback;
+import de.schuette.procman.FileUtil;
 import de.schuette.procman.ProcessDescriptor;
 import de.schuette.procman.Resources;
 import de.schuette.procman.themes.ThemeUtil;
-import javafx.collections.ObservableList;
-import javafx.stage.FileChooser;
 import javafx.stage.FileChooser.ExtensionFilter;
 
 public class ApplicationEditor extends JDialog {
@@ -89,7 +89,7 @@ public class ApplicationEditor extends JDialog {
 		contentPanel.setBorder(new EmptyBorder(5, 5, 5, 5));
 		getContentPane().add(contentPanel, BorderLayout.CENTER);
 
-		JLabel lblIcon = new JLabel(new ImageIcon(Resources.getFolder()));
+		JLabel lblIcon = new JLabel(new ImageIcon(Resources.getTerminal()));
 		lblIcon.setSize(new Dimension(24, 24));
 		lblIcon.setPreferredSize(new Dimension(24, 24));
 		JLabel lblForIcon = new JLabel("Category icon: ");
@@ -106,41 +106,37 @@ public class ApplicationEditor extends JDialog {
 
 			@Override
 			public void actionPerformed(ActionEvent e) {
-				ThemeUtil.startJavaFX();
-				javafx.application.Platform.runLater(new Runnable() {
+				FileUtil.showFileChooser(FileUtil.Type.OPEN, l -> {
+					String[] suffixes = ImageIO.getReaderFileSuffixes();
+					List<String> suffixList = new ArrayList<>(suffixes.length);
+					for (String suffix : suffixes) {
+						suffixList.add("*." + suffix);
+					}
+					l.add(new ExtensionFilter("Supported image type", suffixList));
+				}, new FileChooserCallback() {
 
 					@Override
-					public void run() {
+					public void noFile() {
+					}
 
-						FileChooser fileChooser = new FileChooser();
-						fileChooser.setTitle("Open Resource File");
-						ObservableList<ExtensionFilter> extensionFilters = fileChooser.getExtensionFilters();
-						String[] suffixes = ImageIO.getReaderFileSuffixes();
-						List<String> suffixList = new ArrayList<>(suffixes.length);
-						for (String suffix : suffixes) {
-							suffixList.add("*." + suffix);
-						}
-						extensionFilters.add(new ExtensionFilter("Supported image type", suffixList));
-						File selectedFile = fileChooser.showOpenDialog(null);
-						if (nonNull(selectedFile)) {
-							try {
-								BufferedImage read = ImageIO.read(selectedFile);
-								BufferedImage after = new BufferedImage(24, 24, BufferedImage.TYPE_INT_ARGB);
-								Graphics2D g = (Graphics2D) after.getGraphics();
-								double ratio = read.getHeight() / (double) read.getWidth();
-								int newHeight = (int) Math.round(24 * ratio);
-								g.drawImage(read, 0, 0, 24, newHeight, null);
-								lblIcon.setIcon(new ImageIcon(after));
-							} catch (IOException e1) {
-								JOptionPane.showMessageDialog(ApplicationEditor.this,
-										"Error while loading the selected image file.", "I/O error",
-										JOptionPane.ERROR_MESSAGE);
-								e1.printStackTrace();
-							}
+					@Override
+					public void fileSelected(File file, ExtensionFilter extension) {
+						try {
+							BufferedImage read = ImageIO.read(file);
+							BufferedImage after = new BufferedImage(24, 24, BufferedImage.TYPE_INT_ARGB);
+							Graphics2D g = (Graphics2D) after.getGraphics();
+							double ratio = read.getHeight() / (double) read.getWidth();
+							int newHeight = (int) Math.round(24 * ratio);
+							g.drawImage(read, 0, 0, 24, newHeight, null);
+							lblIcon.setIcon(new ImageIcon(after));
+						} catch (IOException e1) {
+							JOptionPane.showMessageDialog(ApplicationEditor.this,
+									"Error while loading the selected image file.", "I/O error",
+									JOptionPane.ERROR_MESSAGE);
+							e1.printStackTrace();
 						}
 					}
 				});
-				ThemeUtil.stopJavaFX();
 			}
 		});
 
@@ -195,25 +191,25 @@ public class ApplicationEditor extends JDialog {
 
 			@Override
 			public void actionPerformed(ActionEvent e) {
-				ThemeUtil.startJavaFX();
-				javafx.application.Platform.runLater(new Runnable() {
+				FileUtil.showFileChooser(FileUtil.Type.OPEN, new FileChooserCallback() {
 
 					@Override
-					public void run() {
-
-						FileChooser fileChooser = new FileChooser();
-						fileChooser.setTitle("Find executable");
-						File selectedFile = fileChooser.showOpenDialog(null);
-						if (nonNull(selectedFile)) {
-							txtCommand.setText(selectedFile.getName());
-							txtTitle.setText(selectedFile.getName());
-							if (nonNull(selectedFile.getParent())) {
-								txtWorkingDir.setText(selectedFile.getParent());
-							}
+					public void fileSelected(File file, ExtensionFilter extension) {
+						txtCommand.setText(file.getName());
+						txtTitle.setText(file.getName());
+						if (nonNull(file.getParent())) {
+							txtWorkingDir.setText(file.getParent());
 						}
 					}
 				});
-				ThemeUtil.stopJavaFX();
+			}
+		});
+
+		JButton btnDefaultIcon = new JButton(new AbstractAction("Default icon") {
+
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				lblIcon.setIcon(new ImageIcon(Resources.getTerminal()));
 			}
 		});
 
@@ -235,9 +231,10 @@ public class ApplicationEditor extends JDialog {
 										.addGroup(gl_contentPanel.createSequentialGroup()
 												.addComponent(lblIcon, GroupLayout.PREFERRED_SIZE,
 														GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
-												.addPreferredGap(ComponentPlacement.RELATED, 136, Short.MAX_VALUE)
-												.addComponent(btnFindIcon, GroupLayout.PREFERRED_SIZE, 98,
-														GroupLayout.PREFERRED_SIZE))
+												.addPreferredGap(ComponentPlacement.RELATED, 41, Short.MAX_VALUE)
+												.addComponent(btnDefaultIcon)
+												.addPreferredGap(ComponentPlacement.RELATED).addComponent(btnFindIcon,
+														GroupLayout.PREFERRED_SIZE, 98, GroupLayout.PREFERRED_SIZE))
 										.addComponent(txtTitle, GroupLayout.DEFAULT_SIZE, 258, Short.MAX_VALUE)))
 						.addGroup(gl_contentPanel.createSequentialGroup()
 								.addGroup(gl_contentPanel.createParallelGroup(Alignment.TRAILING, false)
@@ -267,7 +264,8 @@ public class ApplicationEditor extends JDialog {
 						.addGroup(gl_contentPanel.createParallelGroup(Alignment.LEADING, false)
 								.addGroup(gl_contentPanel.createSequentialGroup().addGap(11).addComponent(lblIcon,
 										GroupLayout.DEFAULT_SIZE, GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
-								.addComponent(btnFindIcon))
+								.addGroup(gl_contentPanel.createParallelGroup(Alignment.BASELINE)
+										.addComponent(btnFindIcon).addComponent(btnDefaultIcon)))
 						.addComponent(lblForIcon, GroupLayout.PREFERRED_SIZE, 38, GroupLayout.PREFERRED_SIZE))
 				.addPreferredGap(ComponentPlacement.RELATED)
 				.addGroup(gl_contentPanel.createParallelGroup(Alignment.LEADING)
@@ -293,8 +291,7 @@ public class ApplicationEditor extends JDialog {
 						.addGroup(gl_contentPanel.createParallelGroup(Alignment.TRAILING)
 								.addComponent(pnlColor, GroupLayout.PREFERRED_SIZE, 26, GroupLayout.PREFERRED_SIZE)
 								.addGroup(gl_contentPanel.createSequentialGroup().addComponent(btnFindWorkingDir)
-										.addPreferredGap(ComponentPlacement.RELATED).addComponent(btnSelectColor)
-										.addPreferredGap(ComponentPlacement.RELATED))))
+										.addPreferredGap(ComponentPlacement.RELATED).addComponent(btnSelectColor))))
 				.addContainerGap()));
 
 		txtCommand = new JTextArea();
@@ -311,10 +308,14 @@ public class ApplicationEditor extends JDialog {
 					@Override
 					public void actionPerformed(ActionEvent e) {
 						ApplicationEditor.this.processDescriptor.setIcon((ImageIcon) lblIcon.getIcon());
-						ApplicationEditor.this.processDescriptor.setTitle(txtTitle.getText());
-						ApplicationEditor.this.processDescriptor.setCommand(txtCommand.getText());
-						ApplicationEditor.this.processDescriptor
-								.setExecutionDirectory(new File(txtWorkingDir.getText()));
+						ApplicationEditor.this.processDescriptor.setTitle(txtTitle.getText().trim());
+						ApplicationEditor.this.processDescriptor.setCommand(txtCommand.getText().trim());
+						String workingDir = txtWorkingDir.getText();
+						if (workingDir.trim().isEmpty()) {
+							ApplicationEditor.this.processDescriptor.setExecutionDirectory(null);
+						} else {
+							ApplicationEditor.this.processDescriptor.setExecutionDirectory(new File(workingDir.trim()));
+						}
 						ApplicationEditor.this.processDescriptor.setColor(pnlColor.getBackground());
 						ApplicationEditor.this.processDescriptor.setCharset((Charset) comboBox.getSelectedItem());
 						dispose();
@@ -353,7 +354,10 @@ public class ApplicationEditor extends JDialog {
 			lblIcon.setIcon(processDescriptor.getIcon());
 			txtTitle.setText(processDescriptor.getTitle());
 			txtCommand.setText(processDescriptor.getCommand());
-			txtWorkingDir.setText(processDescriptor.getExecutionDirectory().getAbsolutePath());
+			if (processDescriptor.hasExecutionDirectory()) {
+				File executionDirectory = processDescriptor.getExecutionDirectory();
+				txtWorkingDir.setText(executionDirectory.getAbsolutePath());
+			}
 			pnlColor.setBackground(processDescriptor.getColor());
 			int charsetIndex = charsets.getIndexOf(processDescriptor.getCharset());
 			comboBox.setSelectedIndex(charsetIndex);

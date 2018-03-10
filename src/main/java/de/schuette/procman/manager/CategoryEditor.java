@@ -1,7 +1,6 @@
 package de.schuette.procman.manager;
 
 import static java.util.Objects.isNull;
-import static java.util.Objects.nonNull;
 
 import java.awt.BorderLayout;
 import java.awt.Dimension;
@@ -32,10 +31,10 @@ import javax.swing.LayoutStyle.ComponentPlacement;
 import javax.swing.SwingConstants;
 import javax.swing.border.EmptyBorder;
 
+import de.schuette.procman.FileChooserCallback;
+import de.schuette.procman.FileUtil;
 import de.schuette.procman.Resources;
 import de.schuette.procman.themes.ThemeUtil;
-import javafx.collections.ObservableList;
-import javafx.stage.FileChooser;
 import javafx.stage.FileChooser.ExtensionFilter;
 
 public class CategoryEditor extends JDialog {
@@ -98,41 +97,37 @@ public class CategoryEditor extends JDialog {
 
 			@Override
 			public void actionPerformed(ActionEvent e) {
-				ThemeUtil.startJavaFX();
-				javafx.application.Platform.runLater(new Runnable() {
+				FileUtil.showFileChooser(FileUtil.Type.OPEN, l -> {
+					String[] suffixes = ImageIO.getReaderFileSuffixes();
+					List<String> suffixList = new ArrayList<>(suffixes.length);
+					for (String suffix : suffixes) {
+						suffixList.add("*." + suffix);
+					}
+					l.add(new ExtensionFilter("Supported image type", suffixList));
+				}, new FileChooserCallback() {
 
 					@Override
-					public void run() {
+					public void noFile() {
+					}
 
-						FileChooser fileChooser = new FileChooser();
-						fileChooser.setTitle("Open Resource File");
-						ObservableList<ExtensionFilter> extensionFilters = fileChooser.getExtensionFilters();
-						String[] suffixes = ImageIO.getReaderFileSuffixes();
-						List<String> suffixList = new ArrayList<>(suffixes.length);
-						for (String suffix : suffixes) {
-							suffixList.add("*." + suffix);
-						}
-						extensionFilters.add(new ExtensionFilter("Supported image type", suffixList));
-						File selectedFile = fileChooser.showOpenDialog(null);
-						if (nonNull(selectedFile)) {
-							try {
-								BufferedImage read = ImageIO.read(selectedFile);
-								BufferedImage after = new BufferedImage(24, 24, BufferedImage.TYPE_INT_ARGB);
-								Graphics2D g = (Graphics2D) after.getGraphics();
-								double ratio = read.getHeight() / (double) read.getWidth();
-								int newHeight = (int) Math.round(24 * ratio);
-								g.drawImage(read, 0, 0, 24, newHeight, null);
-								lblIcon.setIcon(new ImageIcon(after));
-							} catch (IOException e1) {
-								JOptionPane.showMessageDialog(CategoryEditor.this,
-										"Error while loading the selected image file.", "I/O error",
-										JOptionPane.ERROR_MESSAGE);
-								e1.printStackTrace();
-							}
+					@Override
+					public void fileSelected(File file, ExtensionFilter extension) {
+						try {
+							BufferedImage read = ImageIO.read(file);
+							BufferedImage after = new BufferedImage(24, 24, BufferedImage.TYPE_INT_ARGB);
+							Graphics2D g = (Graphics2D) after.getGraphics();
+							double ratio = read.getHeight() / (double) read.getWidth();
+							int newHeight = (int) Math.round(24 * ratio);
+							g.drawImage(read, 0, 0, 24, newHeight, null);
+							lblIcon.setIcon(new ImageIcon(after));
+						} catch (IOException e1) {
+							JOptionPane.showMessageDialog(CategoryEditor.this,
+									"Error while loading the selected image file.", "I/O error",
+									JOptionPane.ERROR_MESSAGE);
+							e1.printStackTrace();
 						}
 					}
 				});
-				ThemeUtil.stopJavaFX();
 			}
 		});
 
@@ -196,8 +191,8 @@ public class CategoryEditor extends JDialog {
 
 					@Override
 					public void actionPerformed(ActionEvent e) {
-						CategoryEditor.this.category.setName(txtName.getText());
-						CategoryEditor.this.category.setDescription(txtDescription.getText());
+						CategoryEditor.this.category.setName(txtName.getText().trim());
+						CategoryEditor.this.category.setDescription(txtDescription.getText().trim());
 						CategoryEditor.this.category.setIcon((ImageIcon) lblIcon.getIcon());
 						dispose();
 					}

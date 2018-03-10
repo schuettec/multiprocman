@@ -9,6 +9,7 @@ import java.awt.datatransfer.DataFlavor;
 import java.awt.datatransfer.StringSelection;
 import java.awt.datatransfer.Transferable;
 import java.awt.event.ActionEvent;
+import java.util.List;
 import java.util.function.Consumer;
 
 import javax.swing.AbstractAction;
@@ -19,6 +20,7 @@ import javax.swing.ImageIcon;
 import javax.swing.JButton;
 import javax.swing.JComponent;
 import javax.swing.JDialog;
+import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JList;
 import javax.swing.JOptionPane;
@@ -33,11 +35,13 @@ import javax.swing.border.EmptyBorder;
 import javax.swing.event.ListSelectionEvent;
 import javax.swing.event.ListSelectionListener;
 
+import de.schuette.procman.MainFrame;
+import de.schuette.procman.ProcessController;
 import de.schuette.procman.ProcessDescriptor;
 import de.schuette.procman.Resources;
 import de.schuette.procman.themes.ThemeUtil;
 
-public class ProcessManager extends JDialog {
+public class ProcessManager extends JFrame {
 
 	/**
 	 * 
@@ -188,6 +192,8 @@ public class ProcessManager extends JDialog {
 	 * Create the dialog.
 	 */
 	public ProcessManager() {
+		setAlwaysOnTop(true);
+		setTitle("Applications");
 		setDefaultCloseOperation(JDialog.DISPOSE_ON_CLOSE);
 		setPreferredSize(new Dimension(640, 480));
 		setSize(new Dimension(640, 480));
@@ -251,6 +257,7 @@ public class ProcessManager extends JDialog {
 						else
 							categories.remove(index);
 					}
+					System.out.println("DRagging Done");
 				}
 
 				@Override
@@ -277,11 +284,6 @@ public class ProcessManager extends JDialog {
 			lstCategories.setCellRenderer(new CategoryCellRenderer());
 			scrollPane.setViewportView(lstCategories);
 			{
-				JLabel lblCategories = new JLabel("Categories:");
-				lblCategories.setLabelFor(lstCategories);
-				scrollPane.setColumnHeaderView(lblCategories);
-			}
-			{
 				JToolBar toolBar = new JToolBar();
 				toolBar.setFloatable(false);
 				toolBar.setOrientation(SwingConstants.VERTICAL);
@@ -303,17 +305,35 @@ public class ProcessManager extends JDialog {
 				}
 			}
 			{
+				JPanel panel = new JPanel();
+				scrollPane.setColumnHeaderView(panel);
+				panel.setLayout(new BorderLayout(0, 0));
+				{
+					JLabel lblNewLabel_1 = new JLabel("Categories:");
+					lblNewLabel_1.setLabelFor(lstCategories);
+					panel.add(lblNewLabel_1, BorderLayout.NORTH);
+				}
+				{
+					JToolBar toolBar = new JToolBar();
+					toolBar.setRollover(true);
+					toolBar.setFloatable(false);
+					panel.add(toolBar, BorderLayout.CENTER);
+					{
+						JButton btnRunCategory = new JButton("Run all applications in category.");
+						btnRunCategory.setToolTipText("Run all applications in category.");
+						toolBar.add(btnRunCategory);
+					}
+				}
+			}
+			{
 				JScrollPane scrollPane_1 = new JScrollPane();
 				splitPane.setRightComponent(scrollPane_1);
 				{
 					lstProcesses = new JList<>();
+					lstProcesses.setVisibleRowCount(-1);
 					lstProcesses.setLayoutOrientation(JList.HORIZONTAL_WRAP);
+					lstProcesses.setCellRenderer(new ProcessCellRenderer());
 					scrollPane_1.setViewportView(lstProcesses);
-				}
-				{
-					JLabel lblNewLabel = new JLabel("Applications:");
-					lblNewLabel.setLabelFor(lstProcesses);
-					scrollPane_1.setColumnHeaderView(lblNewLabel);
 				}
 				{
 					JToolBar toolBar = new JToolBar();
@@ -336,8 +356,54 @@ public class ProcessManager extends JDialog {
 						toolBar.add(btnRemoveApplication);
 					}
 				}
+				{
+					JPanel panel = new JPanel();
+					scrollPane_1.setColumnHeaderView(panel);
+					panel.setLayout(new BorderLayout(0, 0));
+					{
+						JLabel lblApplications = new JLabel("Applications");
+						lblApplications.setLabelFor(lstProcesses);
+						panel.add(lblApplications, BorderLayout.NORTH);
+					}
+					{
+						JToolBar toolBar = new JToolBar();
+						toolBar.setRollover(true);
+						toolBar.setFloatable(false);
+						panel.add(toolBar, BorderLayout.CENTER);
+						{
+							JButton btnRunApplication = new JButton(
+									new AbstractAction(null, new ImageIcon(Resources.getPlay())) {
+
+										@Override
+										public void actionPerformed(ActionEvent e) {
+
+											int selectedIndex = lstProcesses.getSelectedIndex();
+											if (selectedIndex == -1) {
+												JOptionPane.showMessageDialog(ProcessManager.this,
+														"Please select the application to start first.", "No selection",
+														JOptionPane.WARNING_MESSAGE);
+											} else {
+												MainFrame mainFrame = MainFrame.getInstance();
+												List<ProcessDescriptor> selected = lstProcesses.getSelectedValuesList();
+												for (ProcessDescriptor d : selected) {
+													ProcessController c = new ProcessController(d);
+													mainFrame.addProcessController(c);
+													c.start();
+												}
+												dispose();
+											}
+										}
+									});
+							btnRunApplication.setToolTipText("Run selected application.");
+							toolBar.add(btnRunApplication);
+						}
+					}
+				}
 			}
 		}
+		lstCategories.setSelectedIndex(0);
+		lstProcesses.setSelectedIndex(0);
+		setVisible(true);
 	}
 
 	private void modifyApplications(Consumer<DefaultListModel<ProcessDescriptor>> applicationsModificator) {

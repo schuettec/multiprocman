@@ -80,6 +80,10 @@ public class ConsolePreview extends JPanel implements AppendListener, ProcessLis
 		g.fillRect(0, 0, bufferedImage.getWidth(), bufferedImage.getHeight());
 	}
 
+	public void clear() {
+		clearImage(bufferedImage, Color.BLACK);
+	}
+
 	private void drawTitleImage() {
 		clearImage(titleImage, descriptor.getColor());
 		Graphics2D g2d = (Graphics2D) titleImage.getGraphics();
@@ -130,7 +134,9 @@ public class ConsolePreview extends JPanel implements AppendListener, ProcessLis
 			case STOPPED_ALERT:
 				stateIcon = Resources.getAlertState();
 				break;
+			case NOT_STARTED:
 			case ABANDONED:
+			case STOPPING:
 				stateIcon = Resources.getQuestion();
 				break;
 			}

@@ -69,8 +69,11 @@ public class ProcessController {
 
 	public ProcessController start() {
 		try {
-			ProcessBuilder builder = new ProcessBuilder(processDescriptor.getCommand())
-					.directory(processDescriptor.getExecutionDirectory()).redirectErrorStream(true);
+			ProcessBuilder builder = new ProcessBuilder(processDescriptor.getCommandParts());
+			if (processDescriptor.hasExecutionDirectory()) {
+				builder.directory(processDescriptor.getExecutionDirectory());
+			}
+			builder.redirectErrorStream(true);
 
 			if (processDescriptor.hasEnvironmentVariables()) {
 				Map<String, String> environment = builder.environment();
@@ -200,6 +203,11 @@ public class ProcessController {
 
 	public State getState() {
 		return state;
+	}
+
+	public void clearConsole() {
+		getTextPane().setText("");
+		getConsolePreview().clear();
 	}
 
 }

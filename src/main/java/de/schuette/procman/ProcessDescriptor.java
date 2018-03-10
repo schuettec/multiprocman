@@ -32,7 +32,6 @@ public class ProcessDescriptor implements Serializable {
 		super();
 		setCharset(Charset.defaultCharset());
 		setIcon(Resources.getTerminal());
-		setExecutionDirectory(new File("."));
 		setColor(Color.GREEN);
 	}
 
@@ -102,7 +101,6 @@ public class ProcessDescriptor implements Serializable {
 	}
 
 	public void setExecutionDirectory(File executionDirectory) {
-		requireNonNull(executionDirectory, "Directory may not be null!");
 		this.executionDirectory = executionDirectory;
 	}
 
@@ -112,6 +110,14 @@ public class ProcessDescriptor implements Serializable {
 
 	public void setEnvironment(Map<String, String> environment) {
 		this.environment = environment;
+	}
+
+	public boolean hasExecutionDirectory() {
+		return nonNull(executionDirectory);
+	}
+
+	public String[] getCommandParts() {
+		return this.command.split(" ");
 	}
 
 }

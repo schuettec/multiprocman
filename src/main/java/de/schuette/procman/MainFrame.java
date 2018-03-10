@@ -1,5 +1,7 @@
 package de.schuette.procman;
 
+import static java.util.Objects.nonNull;
+
 import java.awt.BorderLayout;
 import java.awt.Component;
 import java.awt.Cursor;
@@ -48,8 +50,8 @@ import de.schuette.procman.console.AutoScrollToBottomListener;
 import de.schuette.procman.console.ScrollableAnsiColorTextPaneContainer;
 import de.schuette.procman.console.SearchFieldListener;
 import de.schuette.procman.consolepreview.ConsolePreview;
+import de.schuette.procman.manager.ProcessManager;
 import de.schuette.procman.themes.ThemeUtil;
-import javafx.stage.FileChooser;
 import javafx.stage.FileChooser.ExtensionFilter;
 
 public class MainFrame extends JFrame implements WindowListener, ProcessListener, SearchFieldListener {
@@ -121,6 +123,8 @@ public class MainFrame extends JFrame implements WindowListener, ProcessListener
 	private JPanel panel;
 	private JButton btnSave;
 
+	private JButton btnClose;
+
 	/**
 	 * Launch the application.
 	 */
@@ -146,10 +150,19 @@ public class MainFrame extends JFrame implements WindowListener, ProcessListener
 
 	}
 
+	private static class Holder {
+		private static final MainFrame INSTANCE = new MainFrame();
+	}
+
+	public static MainFrame getInstance() {
+		Holder.INSTANCE.setVisible(true);
+		return Holder.INSTANCE;
+	}
+
 	/**
 	 * Create the frame.
 	 */
-	public MainFrame() {
+	private MainFrame() {
 		setDefaultCloseOperation(JFrame.DO_NOTHING_ON_CLOSE);
 		addWindowListener(this);
 		setPreferredSize(new Dimension(480, 640));
@@ -197,9 +210,7 @@ public class MainFrame extends JFrame implements WindowListener, ProcessListener
 			@Override
 			public void valueChanged(ListSelectionEvent e) {
 				ProcessController selectedValue = processList.getSelectedValue();
-				if (selectedValue != null) {
-					selectConsole(selectedValue);
-				}
+				selectConsole(selectedValue);
 			}
 
 		});
@@ -334,6 +345,22 @@ public class MainFrame extends JFrame implements WindowListener, ProcessListener
 		btnStopForcibly.setEnabled(false);
 		btnStopForcibly.setToolTipText("Stop forcibly");
 		toolBar.add(btnStopForcibly);
+		toolBar.addSeparator();
+
+		btnClose = new JButton(new AbstractAction(null, new ImageIcon(Resources.getX())) {
+
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				ProcessController selected = processList.getSelectedValue();
+				if (nonNull(selected)) {
+					removeProcessController(selected);
+				}
+			}
+
+		});
+		btnClose.setEnabled(false);
+		btnClose.setToolTipText("Close view.");
+		toolBar.add(btnClose);
 
 		// Build menu
 
@@ -343,7 +370,13 @@ public class MainFrame extends JFrame implements WindowListener, ProcessListener
 		mnFile = new JMenu("File");
 		menuBar.add(mnFile);
 
-		mntmNewProcess = new JMenuItem("New...");
+		mntmNewProcess = new JMenuItem(new AbstractAction("New...") {
+
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				new ProcessManager();
+			}
+		});
 
 		mnFile.add(mntmNewProcess);
 
@@ -413,14 +446,19 @@ public class MainFrame extends JFrame implements WindowListener, ProcessListener
 		Component centerComponent = layout.getLayoutComponent(BorderLayout.CENTER);
 		if (centerComponent != null) {
 			contentPane.remove(centerComponent);
+
 		}
 
-		ScrollableAnsiColorTextPaneContainer consoleScroller = selectedValue.getConsoleScroller();
-		contentPane.add(consoleScroller, BorderLayout.CENTER);
-		consoleScroller.addAutoScrollToBottomListener(autoScrollToBottomToggleModel);
-		consoleScroller.addSearchFieldListener(this);
+		disableProcessToolbar();
 
+		if (nonNull(selectedValue)) {
+			ScrollableAnsiColorTextPaneContainer consoleScroller = selectedValue.getConsoleScroller();
+			contentPane.add(consoleScroller, BorderLayout.CENTER);
+			consoleScroller.addAutoScrollToBottomListener(autoScrollToBottomToggleModel);
+			consoleScroller.addSearchFieldListener(this);
+		}
 		this.currentProcess = selectedValue;
+		processCurrentState();
 
 		this.revalidate();
 		this.repaint();
@@ -433,6 +471,11 @@ public class MainFrame extends JFrame implements WindowListener, ProcessListener
 		if (activateFirst) {
 			this.processList.setSelectedIndex(0);
 		}
+	}
+
+	private void removeProcessController(ProcessController processController) {
+		processController.removeProcessListener(this);
+		this.processes.removeElement(processController);
 	}
 
 	@Override
@@ -458,50 +501,48 @@ public class MainFrame extends JFrame implements WindowListener, ProcessListener
 	}
 
 	private void _exit() {
-		ProcessController.shutdown();
-		this.setVisible(false);
-		this.dispose();
-		// ThemeUtil.stopJavaFX();
-	}
-
-	private void clearConsole() {
-		currentProcess.getTextPane().setText("");
-	}
-
-	private void saveAs() {
-		ThemeUtil.startJavaFX();
-		javafx.application.Platform.runLater(new Runnable() {
+		SwingUtilities.invokeLater(new Runnable() {
 
 			@Override
 			public void run() {
-				FileChooser fileChooser = new FileChooser();
-				fileChooser.setTitle("Open Resource File");
-				fileChooser.getExtensionFilters().addAll(new ExtensionFilter(TEXT_FILES, "*.txt"),
-						new ExtensionFilter(HTML_FILES, "*.html", "*.htm"),
-						new ExtensionFilter(RICH_TEXT_FILES, "*.rtf"));
-				File selectedFile = fileChooser.showSaveDialog(null);
-				ExtensionFilter extension = fileChooser.getSelectedExtensionFilter();
-
-				if (selectedFile != null) {
-					ExportType exportType = null;
-					switch (extension.getDescription()) {
-					default:
-					case TEXT_FILES:
-						exportType = ExportType.TEXT;
-						break;
-					case HTML_FILES:
-						exportType = ExportType.HTML;
-						break;
-					case RICH_TEXT_FILES:
-						exportType = ExportType.RTF;
-						break;
-					}
-
-					currentProcess.getTextPane().saveAs(selectedFile, exportType);
-				}
+				ProcessController.shutdown();
+				setVisible(false);
+				dispose();
 			}
 		});
-		ThemeUtil.stopJavaFX();
+	}
+
+	private void clearConsole() {
+		currentProcess.clearConsole();
+	}
+
+	private void saveAs() {
+		FileUtil.showFileChooser(FileUtil.Type.OPEN, l -> {
+			l.add(new ExtensionFilter(TEXT_FILES, "*.txt"));
+			l.add(new ExtensionFilter(HTML_FILES, "*.html", "*.htm"));
+			l.add(new ExtensionFilter(RICH_TEXT_FILES, "*.rtf"));
+		}, new FileChooserCallback() {
+
+			@Override
+			public void fileSelected(File file, ExtensionFilter extension) {
+				ExportType exportType = null;
+				switch (extension.getDescription()) {
+				default:
+				case TEXT_FILES:
+					exportType = ExportType.TEXT;
+					break;
+				case HTML_FILES:
+					exportType = ExportType.HTML;
+					break;
+				case RICH_TEXT_FILES:
+					exportType = ExportType.RTF;
+					break;
+				}
+
+				currentProcess.getTextPane().saveAs(file, exportType);
+			}
+		});
+
 	}
 
 	@Override
@@ -539,12 +580,28 @@ public class MainFrame extends JFrame implements WindowListener, ProcessListener
 		chckbxmntmFind.setSelected(false);
 	}
 
+	private void disableProcessToolbar() {
+		btnClose.setEnabled(false);
+		chckbxmntmFind.setEnabled(false);
+		btnSave.setEnabled(false);
+		btnClear.setEnabled(false);
+		btnStop.setEnabled(false);
+		btnStopForcibly.setEnabled(false);
+		btnRestart.setEnabled(false);
+	}
+
 	@Override
 	public void processUpdate(ProcessController controller) {
 		this.processList.repaint();
-		if (currentProcess == controller) {
-			switch (controller.getState()) {
+		processCurrentState();
+
+	}
+
+	private void processCurrentState() {
+		if (nonNull(currentProcess)) {
+			switch (currentProcess.getState()) {
 			case NOT_STARTED:
+				btnClose.setEnabled(true);
 				chckbxmntmFind.setEnabled(false);
 				btnSave.setEnabled(false);
 				btnClear.setEnabled(false);
@@ -553,6 +610,7 @@ public class MainFrame extends JFrame implements WindowListener, ProcessListener
 				btnRestart.setEnabled(true);
 				break;
 			case RUNNING:
+				btnClose.setEnabled(false);
 				chckbxmntmFind.setEnabled(true);
 				btnSave.setEnabled(true);
 				btnClear.setEnabled(true);
@@ -562,6 +620,7 @@ public class MainFrame extends JFrame implements WindowListener, ProcessListener
 				break;
 			case STOPPED_OK:
 			case STOPPED_ALERT:
+				btnClose.setEnabled(true);
 				chckbxmntmFind.setEnabled(true);
 				btnSave.setEnabled(true);
 				btnClear.setEnabled(true);
@@ -570,6 +629,7 @@ public class MainFrame extends JFrame implements WindowListener, ProcessListener
 				btnRestart.setEnabled(true);
 				break;
 			case STOPPING:
+				btnClose.setEnabled(false);
 				chckbxmntmFind.setEnabled(true);
 				btnSave.setEnabled(true);
 				btnClear.setEnabled(true);
@@ -581,7 +641,6 @@ public class MainFrame extends JFrame implements WindowListener, ProcessListener
 				break;
 			}
 		}
-
 	}
 
 }

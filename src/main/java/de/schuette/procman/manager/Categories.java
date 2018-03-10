@@ -4,9 +4,7 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.util.Arrays;
-import java.util.HashSet;
 import java.util.List;
-import java.util.Set;
 
 import javax.swing.DefaultListModel;
 import javax.swing.ImageIcon;
@@ -34,9 +32,9 @@ public class Categories extends DefaultListModel<Category> {
 			try (FileInputStream fin = new FileInputStream(userFile)) {
 				XStream xstream = new XStream();
 				Object readObject = xstream.fromXML(fin);
-				if (readObject instanceof Set) {
-					Set set = (Set) readObject;
-					for (Object o : set) {
+				if (readObject instanceof List) {
+					List list = (List) readObject;
+					for (Object o : list) {
 						if (o instanceof Category) {
 							Category category = (Category) o;
 							super.addElement(category);
@@ -63,9 +61,8 @@ public class Categories extends DefaultListModel<Category> {
 			Object[] anArray = new Object[this.size()];
 			this.copyInto(anArray);
 			List<Object> asList = Arrays.asList(anArray);
-			Set set = new HashSet(asList);
 			XStream xstream = new XStream();
-			xstream.toXML(set, fout);
+			xstream.toXML(asList, fout);
 		} catch (Exception e) {
 			ExceptionDialog.showException(e, "Error while persisting user settings in user home directory.");
 		}
