@@ -135,10 +135,12 @@ public class ProcessManager extends JFrame {
 				    JOptionPane.WARNING_MESSAGE);
 			} else {
 				ProcessDescriptor process = ApplicationEditor.newProcess();
-				currentCategory.getProcessTemplates()
-				    .addElement(process);
-				categories.saveToPreferences();
-				lstProcesses.repaint();
+				if (nonNull(process)) {
+					currentCategory.getProcessTemplates()
+					    .addElement(process);
+					categories.saveToPreferences();
+					lstProcesses.repaint();
+				}
 			}
 		}
 	};
@@ -257,7 +259,6 @@ public class ProcessManager extends JFrame {
 						else
 							categories.remove(index);
 					}
-					System.out.println("DRagging Done");
 				}
 
 				@Override
