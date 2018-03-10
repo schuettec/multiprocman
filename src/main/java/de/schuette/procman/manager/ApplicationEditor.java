@@ -127,7 +127,7 @@ public class ApplicationEditor extends JDialog {
 
 		tblEnv = new JTable();
 		this.variables = new DefaultTableModel(new Object[][] {}, new String[] {
-		    "New column", "New column"
+		    "Variable name", "Value"
 		});
 		tblEnv.setModel(variables);
 		scrollPane_1.setViewportView(tblEnv);
