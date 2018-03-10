@@ -15,7 +15,11 @@ import java.io.File;
 import java.io.IOException;
 import java.nio.charset.Charset;
 import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
+import java.util.Map.Entry;
 import java.util.SortedMap;
 
 import javax.imageio.ImageIO;
@@ -34,13 +38,16 @@ import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JTabbedPane;
+import javax.swing.JTable;
 import javax.swing.JTextArea;
 import javax.swing.JTextField;
+import javax.swing.JToolBar;
 import javax.swing.KeyStroke;
 import javax.swing.LayoutStyle.ComponentPlacement;
 import javax.swing.SwingConstants;
 import javax.swing.border.BevelBorder;
 import javax.swing.border.EmptyBorder;
+import javax.swing.table.DefaultTableModel;
 
 import de.schuette.procman.FileChooserCallback;
 import de.schuette.procman.FileUtil;
@@ -59,6 +66,8 @@ public class ApplicationEditor extends JDialog {
 	private JComboBox<Charset> comboBox;
 	private JTextArea txtCommand;
 	private JTabbedPane tabbedPane;
+	private JTable tblEnv;
+	private DefaultTableModel variables;
 
 	/**
 	 * Launch the application.
@@ -87,13 +96,77 @@ public class ApplicationEditor extends JDialog {
 		setResizable(false);
 		setDefaultCloseOperation(JDialog.DISPOSE_ON_CLOSE);
 		this.setPreferredSize(new Dimension(430, 200));
-		this.setSize(new Dimension(385, 476));
+		this.setSize(new Dimension(385, 523));
 		this.setLocationRelativeTo(null);
 		getContentPane().setLayout(new BorderLayout());
 
 		tabbedPane = new JTabbedPane();
 		tabbedPane.add("Application", mainPanel);
 		tabbedPane.add("Environment", environmentPanel);
+
+		JLabel lblNewLabel_1 = new JLabel(
+		    "<html>The environment variables are inherited from this application. To override the environment variables for this application, fill the following key/value map. The variables are for this application runtime only.</html>");
+
+		JScrollPane scrollPane_1 = new JScrollPane();
+		GroupLayout gl_environmentPanel = new GroupLayout(environmentPanel);
+		gl_environmentPanel.setHorizontalGroup(gl_environmentPanel.createParallelGroup(Alignment.LEADING)
+		    .addGroup(gl_environmentPanel.createSequentialGroup()
+		        .addContainerGap()
+		        .addGroup(gl_environmentPanel.createParallelGroup(Alignment.LEADING)
+		            .addGroup(gl_environmentPanel.createSequentialGroup()
+		                .addComponent(scrollPane_1, GroupLayout.DEFAULT_SIZE, 354, Short.MAX_VALUE)
+		                .addContainerGap())
+		            .addComponent(lblNewLabel_1))));
+		gl_environmentPanel.setVerticalGroup(gl_environmentPanel.createParallelGroup(Alignment.LEADING)
+		    .addGroup(gl_environmentPanel.createSequentialGroup()
+		        .addContainerGap()
+		        .addComponent(lblNewLabel_1)
+		        .addGap(8)
+		        .addComponent(scrollPane_1, GroupLayout.DEFAULT_SIZE, 361, Short.MAX_VALUE)
+		        .addContainerGap()));
+
+		tblEnv = new JTable();
+		this.variables = new DefaultTableModel(new Object[][] {}, new String[] {
+		    "New column", "New column"
+		});
+		tblEnv.setModel(variables);
+		scrollPane_1.setViewportView(tblEnv);
+
+		JToolBar toolBar = new JToolBar();
+		toolBar.setRollover(true);
+		toolBar.setFloatable(false);
+		toolBar.setOrientation(SwingConstants.VERTICAL);
+		scrollPane_1.setRowHeaderView(toolBar);
+
+		JButton btnPlus = new JButton(new AbstractAction(null, new ImageIcon(Resources.getPlus())) {
+
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				variables.addRow(new String[] {
+				    "", ""
+				});
+			}
+		});
+		toolBar.add(btnPlus);
+
+		JButton btnMinus = new JButton(new AbstractAction(null, new ImageIcon(Resources.getMinus())) {
+
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				int row = tblEnv.getSelectedRow();
+				if (row == -1) {
+					JOptionPane.showMessageDialog(ApplicationEditor.this, "Please select the variable to remove first.",
+					    "No selection", JOptionPane.WARNING_MESSAGE);
+				} else {
+					variables.removeRow(row);
+					if (variables.getRowCount() > 0) {
+						tblEnv.setRowSelectionInterval(variables.getRowCount() - 1, variables.getRowCount() - 1);
+					}
+				}
+			}
+		});
+		toolBar.add(btnMinus);
+		environmentPanel.setLayout(gl_environmentPanel);
 		getContentPane().add(tabbedPane, BorderLayout.CENTER);
 
 		mainPanel.setBorder(new EmptyBorder(5, 5, 5, 5));
@@ -354,6 +427,17 @@ public class ApplicationEditor extends JDialog {
 						}
 						ApplicationEditor.this.processDescriptor.setColor(pnlColor.getBackground());
 						ApplicationEditor.this.processDescriptor.setCharset((Charset) comboBox.getSelectedItem());
+
+						Map<String, String> vars = new HashMap<>();
+						for (int i = 0; i < variables.getRowCount(); i++) {
+							String key = (String) variables.getValueAt(i, 0);
+							String value = (String) variables.getValueAt(i, 1);
+							vars.put(key, value);
+						}
+						if (!vars.isEmpty()) {
+							ApplicationEditor.this.processDescriptor.setEnvironment(vars);
+						}
+
 						dispose();
 					}
 				});
@@ -399,6 +483,18 @@ public class ApplicationEditor extends JDialog {
 			pnlColor.setBackground(processDescriptor.getColor());
 			int charsetIndex = charsets.getIndexOf(processDescriptor.getCharset());
 			comboBox.setSelectedIndex(charsetIndex);
+
+			if (processDescriptor.hasEnvironmentVariables()) {
+				Map<String, String> environment = processDescriptor.getEnvironment();
+				Iterator<Entry<String, String>> it = environment.entrySet()
+				    .iterator();
+				while (it.hasNext()) {
+					Entry<String, String> entry = it.next();
+					variables.addRow(new String[] {
+					    entry.getKey(), entry.getValue()
+					});
+				}
+			}
 
 		}
 

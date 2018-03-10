@@ -28,7 +28,9 @@ public class Resources {
 	private static BufferedImage edit;
 	private static BufferedImage play;
 	private static BufferedImage x;
+	private static BufferedImage plus;
 	private static BufferedImage appIcon;
+	private static BufferedImage minus;
 
 	static {
 		try {
@@ -51,10 +53,36 @@ public class Resources {
 			play = ImageIO.read(getResource("/play.png"));
 			x = ImageIO.read(getResource("/x.png"));
 			appIcon = ImageIO.read(getResource("/app.png"));
+			plus = ImageIO.read(getResource("/plus.png"));
+			minus = ImageIO.read(getResource("/minus.png"));
 		} catch (IOException e) {
 			ExceptionDialog.showException(e, "Some application resources could not be found!");
 		}
 
+	}
+
+	public static BufferedImage getCheck() {
+		return check;
+	}
+
+	public static BufferedImage getRunning() {
+		return running;
+	}
+
+	public static BufferedImage getAlert() {
+		return alert;
+	}
+
+	public static BufferedImage getPlus() {
+		return plus;
+	}
+
+	public static BufferedImage getAppIcon() {
+		return appIcon;
+	}
+
+	public static BufferedImage getMinus() {
+		return minus;
 	}
 
 	public static BufferedImage getX() {

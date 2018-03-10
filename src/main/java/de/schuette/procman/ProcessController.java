@@ -121,7 +121,7 @@ public class ProcessController {
 					    .name());
 					    Scanner input2 = new Scanner(errorStream, processDescriptor.getCharset()
 					        .name())) {
-						while (process.isAlive()) {
+						do {
 							if (inputStream.available() > 0) {
 								String nextLine = input1.nextLine();
 								appendInEDT(nextLine);
@@ -130,7 +130,7 @@ public class ProcessController {
 								String nextLine = input2.nextLine();
 								appendInEDT(nextLine);
 							}
-						}
+						} while (process.isAlive());
 					} catch (Exception e) {
 						updateState(State.ABANDONED);
 					}

@@ -9,6 +9,8 @@ import java.awt.datatransfer.DataFlavor;
 import java.awt.datatransfer.StringSelection;
 import java.awt.datatransfer.Transferable;
 import java.awt.event.ActionEvent;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
 import java.util.Arrays;
 import java.util.Iterator;
 import java.util.List;
@@ -357,6 +359,15 @@ public class ProcessManager extends JFrame {
 					lstProcesses.setVisibleRowCount(-1);
 					lstProcesses.setLayoutOrientation(JList.HORIZONTAL_WRAP);
 					lstProcesses.setCellRenderer(new ProcessCellRenderer());
+					lstProcesses.addMouseListener(new MouseAdapter() {
+						@Override
+						public void mouseClicked(MouseEvent e) {
+							super.mouseClicked(e);
+							if (e.getClickCount() > 1) {
+								runSelectedApplication();
+							}
+						}
+					});
 					scrollPane_1.setViewportView(lstProcesses);
 				}
 				{
@@ -399,18 +410,7 @@ public class ProcessManager extends JFrame {
 
 								@Override
 								public void actionPerformed(ActionEvent e) {
-
-									int selectedIndex = lstProcesses.getSelectedIndex();
-									if (selectedIndex == -1) {
-										JOptionPane.showMessageDialog(ProcessManager.this, "Please select the application to start first.",
-										    "No selection", JOptionPane.WARNING_MESSAGE);
-									} else {
-										MainFrame mainFrame = MainFrame.getInstance();
-										List<ProcessDescriptor> selected = lstProcesses.getSelectedValuesList();
-										Iterator<ProcessDescriptor> iterator = selected.iterator();
-										startAll(mainFrame, iterator);
-										dispose();
-									}
+									runSelectedApplication();
 								}
 
 							});
@@ -424,6 +424,20 @@ public class ProcessManager extends JFrame {
 		lstCategories.setSelectedIndex(0);
 		lstProcesses.setSelectedIndex(0);
 		setVisible(true);
+	}
+
+	private void runSelectedApplication() {
+		int selectedIndex = lstProcesses.getSelectedIndex();
+		if (selectedIndex == -1) {
+			JOptionPane.showMessageDialog(ProcessManager.this, "Please select the application to start first.",
+			    "No selection", JOptionPane.WARNING_MESSAGE);
+		} else {
+			MainFrame mainFrame = MainFrame.getInstance();
+			List<ProcessDescriptor> selected = lstProcesses.getSelectedValuesList();
+			Iterator<ProcessDescriptor> iterator = selected.iterator();
+			startAll(mainFrame, iterator);
+			dispose();
+		}
 	}
 
 	private void startAll(MainFrame mainFrame, Iterator<ProcessDescriptor> iterator) {
