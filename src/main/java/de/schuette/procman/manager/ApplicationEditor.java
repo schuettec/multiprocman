@@ -93,10 +93,9 @@ public class ApplicationEditor extends JDialog {
 		setIconImage(Resources.getApplicationIcon());
 		setModal(true);
 		setTitle("Application");
-		setResizable(false);
 		setDefaultCloseOperation(JDialog.DISPOSE_ON_CLOSE);
 		this.setPreferredSize(new Dimension(430, 200));
-		this.setSize(new Dimension(385, 523));
+		this.setSize(new Dimension(477, 523));
 		this.setLocationRelativeTo(null);
 		getContentPane().setLayout(new BorderLayout());
 
@@ -328,7 +327,7 @@ public class ApplicationEditor extends JDialog {
 		                        Short.MAX_VALUE)
 		                    .addComponent(lblCharset, GroupLayout.DEFAULT_SIZE, 91, Short.MAX_VALUE))
 		                .addPreferredGap(ComponentPlacement.RELATED)
-		                .addGroup(gl_contentPanel.createParallelGroup(Alignment.LEADING, false)
+		                .addGroup(gl_contentPanel.createParallelGroup(Alignment.LEADING)
 		                    .addComponent(btnFindWorkingDir, GroupLayout.PREFERRED_SIZE, 98, GroupLayout.PREFERRED_SIZE)
 		                    .addGroup(gl_contentPanel.createSequentialGroup()
 		                        .addComponent(pnlColor, GroupLayout.PREFERRED_SIZE, 25, GroupLayout.PREFERRED_SIZE)
@@ -338,7 +337,7 @@ public class ApplicationEditor extends JDialog {
 		                    .addComponent(comboBox, 0, 259, Short.MAX_VALUE)))
 		            .addComponent(btnFindApplication, Alignment.TRAILING, GroupLayout.PREFERRED_SIZE, 98,
 		                GroupLayout.PREFERRED_SIZE))
-		        .addContainerGap()));
+		        .addGap(0)));
 		gl_contentPanel.setVerticalGroup(gl_contentPanel.createParallelGroup(Alignment.LEADING)
 		    .addGroup(gl_contentPanel.createSequentialGroup()
 		        .addGap(8)
@@ -361,7 +360,7 @@ public class ApplicationEditor extends JDialog {
 		        .addPreferredGap(ComponentPlacement.UNRELATED)
 		        .addGroup(gl_contentPanel.createParallelGroup(Alignment.LEADING)
 		            .addGroup(gl_contentPanel.createSequentialGroup()
-		                .addComponent(scrollPane, GroupLayout.PREFERRED_SIZE, 130, GroupLayout.PREFERRED_SIZE)
+		                .addComponent(scrollPane, GroupLayout.DEFAULT_SIZE, 130, Short.MAX_VALUE)
 		                .addPreferredGap(ComponentPlacement.RELATED)
 		                .addComponent(btnFindApplication))
 		            .addComponent(lblNewLabel))
@@ -386,7 +385,7 @@ public class ApplicationEditor extends JDialog {
 		                    .addComponent(btnFindWorkingDir)
 		                    .addPreferredGap(ComponentPlacement.RELATED)
 		                    .addComponent(btnSelectColor))))
-		        .addContainerGap()));
+		        .addGap(23)));
 
 		txtCommand = new JTextArea();
 		scrollPane.setViewportView(txtCommand);
@@ -490,9 +489,14 @@ public class ApplicationEditor extends JDialog {
 				    .iterator();
 				while (it.hasNext()) {
 					Entry<String, String> entry = it.next();
-					variables.addRow(new String[] {
-					    entry.getKey(), entry.getValue()
-					});
+					String key = entry.getKey();
+					String value = entry.getValue();
+					if (!key.trim()
+					    .isEmpty()) {
+						variables.addRow(new String[] {
+						    key.trim(), value
+						});
+					}
 				}
 			}
 
