@@ -121,9 +121,8 @@ public class CategoryEditor extends JDialog {
 							g.drawImage(read, 0, 0, 24, newHeight, null);
 							lblIcon.setIcon(new ImageIcon(after));
 						} catch (IOException e1) {
-							JOptionPane.showMessageDialog(CategoryEditor.this,
-									"Error while loading the selected image file.", "I/O error",
-									JOptionPane.ERROR_MESSAGE);
+							JOptionPane.showMessageDialog(CategoryEditor.this, "Error while loading the selected image file.",
+							    "I/O error", JOptionPane.ERROR_MESSAGE);
 							e1.printStackTrace();
 						}
 					}
@@ -132,54 +131,58 @@ public class CategoryEditor extends JDialog {
 		});
 
 		JLabel lblPleaseFillIn = new JLabel(
-				"<html>Please fill in the desired data for the new category. When selecting a category icon use 24x24px images, otherwise the images will be scaled automatically.</html>");
+		    "<html>Please fill in the desired data for the new category. When selecting a category icon use 24x24px images, otherwise the images will be scaled automatically.</html>");
 
 		GroupLayout gl_contentPanel = new GroupLayout(contentPanel);
 		gl_contentPanel.setHorizontalGroup(gl_contentPanel.createParallelGroup(Alignment.LEADING)
-				.addGroup(gl_contentPanel.createSequentialGroup().addContainerGap().addGroup(gl_contentPanel
-						.createParallelGroup(Alignment.LEADING).addComponent(lblPleaseFillIn)
-						.addGroup(gl_contentPanel.createSequentialGroup()
-								.addGroup(gl_contentPanel.createParallelGroup(Alignment.TRAILING)
-										.addGroup(gl_contentPanel.createParallelGroup(Alignment.TRAILING, false)
-												.addComponent(lblForIcon, Alignment.LEADING, GroupLayout.DEFAULT_SIZE,
-														GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-												.addComponent(lblName, Alignment.LEADING, GroupLayout.PREFERRED_SIZE,
-														78, GroupLayout.PREFERRED_SIZE))
-										.addComponent(lblNewLabel))
-								.addPreferredGap(ComponentPlacement.RELATED)
-								.addGroup(gl_contentPanel.createParallelGroup(Alignment.LEADING)
-										.addGroup(gl_contentPanel.createSequentialGroup()
-												.addComponent(lblIcon, GroupLayout.PREFERRED_SIZE,
-														GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
-												.addGap(93).addComponent(btnNewButton, GroupLayout.PREFERRED_SIZE, 91,
-														GroupLayout.PREFERRED_SIZE))
-										.addGroup(gl_contentPanel.createParallelGroup(Alignment.TRAILING, false)
-												.addComponent(txtDescription, Alignment.LEADING)
-												.addComponent(txtName, Alignment.LEADING, GroupLayout.PREFERRED_SIZE,
-														206, GroupLayout.PREFERRED_SIZE)))))
-						.addContainerGap(GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)));
+		    .addGroup(gl_contentPanel.createSequentialGroup()
+		        .addContainerGap()
+		        .addGroup(gl_contentPanel.createParallelGroup(Alignment.LEADING)
+		            .addComponent(lblPleaseFillIn)
+		            .addGroup(gl_contentPanel.createSequentialGroup()
+		                .addGroup(gl_contentPanel.createParallelGroup(Alignment.TRAILING)
+		                    .addGroup(gl_contentPanel.createParallelGroup(Alignment.TRAILING, false)
+		                        .addComponent(lblForIcon, Alignment.LEADING, GroupLayout.DEFAULT_SIZE,
+		                            GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+		                        .addComponent(lblName, Alignment.LEADING, GroupLayout.PREFERRED_SIZE, 78,
+		                            GroupLayout.PREFERRED_SIZE))
+		                    .addComponent(lblNewLabel))
+		                .addPreferredGap(ComponentPlacement.RELATED)
+		                .addGroup(gl_contentPanel.createParallelGroup(Alignment.LEADING)
+		                    .addGroup(gl_contentPanel.createSequentialGroup()
+		                        .addComponent(lblIcon, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE,
+		                            GroupLayout.PREFERRED_SIZE)
+		                        .addGap(93)
+		                        .addComponent(btnNewButton, GroupLayout.PREFERRED_SIZE, 91, GroupLayout.PREFERRED_SIZE))
+		                    .addGroup(gl_contentPanel.createParallelGroup(Alignment.TRAILING, false)
+		                        .addComponent(txtDescription, Alignment.LEADING)
+		                        .addComponent(txtName, Alignment.LEADING, GroupLayout.PREFERRED_SIZE, 206,
+		                            GroupLayout.PREFERRED_SIZE)))))
+		        .addContainerGap(GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)));
 		gl_contentPanel.setVerticalGroup(gl_contentPanel.createParallelGroup(Alignment.LEADING)
-				.addGroup(gl_contentPanel.createSequentialGroup().addGap(8).addComponent(lblPleaseFillIn)
-						.addPreferredGap(ComponentPlacement.RELATED, GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-						.addGroup(gl_contentPanel.createParallelGroup(Alignment.LEADING, false)
-								.addGroup(gl_contentPanel.createSequentialGroup().addGap(11).addComponent(lblIcon,
-										GroupLayout.DEFAULT_SIZE, GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
-								.addGroup(gl_contentPanel.createParallelGroup(Alignment.BASELINE)
-										.addComponent(lblForIcon, GroupLayout.PREFERRED_SIZE, 38,
-												GroupLayout.PREFERRED_SIZE)
-										.addComponent(btnNewButton)))
-						.addPreferredGap(ComponentPlacement.RELATED)
-						.addGroup(
-								gl_contentPanel.createParallelGroup(Alignment.LEADING).addComponent(lblName)
-										.addGroup(gl_contentPanel.createSequentialGroup()
-												.addComponent(txtName, GroupLayout.PREFERRED_SIZE,
-														GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
-												.addPreferredGap(ComponentPlacement.RELATED)
-												.addGroup(gl_contentPanel.createParallelGroup(Alignment.BASELINE)
-														.addComponent(txtDescription, GroupLayout.PREFERRED_SIZE,
-																GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
-														.addComponent(lblNewLabel))))
-						.addContainerGap()));
+		    .addGroup(gl_contentPanel.createSequentialGroup()
+		        .addGap(8)
+		        .addComponent(lblPleaseFillIn)
+		        .addPreferredGap(ComponentPlacement.RELATED, GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+		        .addGroup(gl_contentPanel.createParallelGroup(Alignment.LEADING, false)
+		            .addGroup(gl_contentPanel.createSequentialGroup()
+		                .addGap(11)
+		                .addComponent(lblIcon, GroupLayout.DEFAULT_SIZE, GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+		            .addGroup(gl_contentPanel.createParallelGroup(Alignment.BASELINE)
+		                .addComponent(lblForIcon, GroupLayout.PREFERRED_SIZE, 38, GroupLayout.PREFERRED_SIZE)
+		                .addComponent(btnNewButton)))
+		        .addPreferredGap(ComponentPlacement.RELATED)
+		        .addGroup(gl_contentPanel.createParallelGroup(Alignment.LEADING)
+		            .addComponent(lblName)
+		            .addGroup(gl_contentPanel.createSequentialGroup()
+		                .addComponent(txtName, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE,
+		                    GroupLayout.PREFERRED_SIZE)
+		                .addPreferredGap(ComponentPlacement.RELATED)
+		                .addGroup(gl_contentPanel.createParallelGroup(Alignment.BASELINE)
+		                    .addComponent(txtDescription, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE,
+		                        GroupLayout.PREFERRED_SIZE)
+		                    .addComponent(lblNewLabel))))
+		        .addContainerGap()));
 		contentPanel.setLayout(gl_contentPanel);
 
 		{
@@ -191,8 +194,10 @@ public class CategoryEditor extends JDialog {
 
 					@Override
 					public void actionPerformed(ActionEvent e) {
-						CategoryEditor.this.category.setName(txtName.getText().trim());
-						CategoryEditor.this.category.setDescription(txtDescription.getText().trim());
+						CategoryEditor.this.category.setName(txtName.getText()
+						    .trim());
+						CategoryEditor.this.category.setDescription(txtDescription.getText()
+						    .trim());
 						CategoryEditor.this.category.setIcon((ImageIcon) lblIcon.getIcon());
 						dispose();
 					}
@@ -202,8 +207,9 @@ public class CategoryEditor extends JDialog {
 				buttonPane.add(okButton);
 				getRootPane().setDefaultButton(okButton);
 				getRootPane().getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW)
-						.put(KeyStroke.getKeyStroke(KeyEvent.VK_ENTER, 0), "OK");
-				getRootPane().getActionMap().put("OK", okButton.getAction());
+				    .put(KeyStroke.getKeyStroke(KeyEvent.VK_ENTER, 0), "OK");
+				getRootPane().getActionMap()
+				    .put("OK", okButton.getAction());
 			}
 			{
 				JButton cancelButton = new JButton(new AbstractAction("Cancel") {
@@ -218,8 +224,9 @@ public class CategoryEditor extends JDialog {
 				cancelButton.setActionCommand("Cancel");
 				buttonPane.add(cancelButton);
 				getRootPane().getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW)
-						.put(KeyStroke.getKeyStroke(KeyEvent.VK_ESCAPE, 0), "CANCEL");
-				getRootPane().getActionMap().put("CANCEL", cancelButton.getAction());
+				    .put(KeyStroke.getKeyStroke(KeyEvent.VK_ESCAPE, 0), "CANCEL");
+				getRootPane().getActionMap()
+				    .put("CANCEL", cancelButton.getAction());
 			}
 		}
 

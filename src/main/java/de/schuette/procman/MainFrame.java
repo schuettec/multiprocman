@@ -80,7 +80,7 @@ public class MainFrame extends JFrame implements WindowListener, ProcessListener
 	};
 
 	private static class ListeningToggleButtonModel extends JToggleButton.ToggleButtonModel
-			implements AutoScrollToBottomListener {
+	    implements AutoScrollToBottomListener {
 
 		/**
 		 *
@@ -221,7 +221,7 @@ public class MainFrame extends JFrame implements WindowListener, ProcessListener
 		processList.setTransferHandler(new TransferHandler() {
 			private int index;
 			private boolean beforeIndex = false; // Start with `false` therefore if it is removed from or added to the
-													// list it still works
+			// list it still works
 
 			@Override
 			public int getSourceActions(JComponent comp) {
@@ -252,7 +252,8 @@ public class MainFrame extends JFrame implements WindowListener, ProcessListener
 			@Override
 			public boolean importData(TransferHandler.TransferSupport support) {
 				try {
-					String s = (String) support.getTransferable().getTransferData(DataFlavor.stringFlavor);
+					String s = (String) support.getTransferable()
+					    .getTransferData(DataFlavor.stringFlavor);
 					JList.DropLocation dl = (JList.DropLocation) support.getDropLocation();
 					ProcessController processController = processes.get(Integer.parseInt(s));
 					processes.add(dl.getIndex(), processController);
@@ -266,7 +267,7 @@ public class MainFrame extends JFrame implements WindowListener, ProcessListener
 		});
 
 		JScrollPane scrollPane = new JScrollPane(processList, JScrollPane.VERTICAL_SCROLLBAR_NEVER,
-				JScrollPane.HORIZONTAL_SCROLLBAR_AS_NEEDED);
+		    JScrollPane.HORIZONTAL_SCROLLBAR_AS_NEEDED);
 		scrollPane.setPreferredSize(new Dimension(ConsolePreview.WIDTH, ConsolePreview.HEIGHT));
 		panel.add(scrollPane);
 
@@ -421,9 +422,11 @@ public class MainFrame extends JFrame implements WindowListener, ProcessListener
 			@Override
 			public void actionPerformed(ActionEvent e) {
 				if (chckbxmntmFind.isSelected()) {
-					currentProcess.getConsoleScroller().startSearch();
+					currentProcess.getConsoleScroller()
+					    .startSearch();
 				} else {
-					currentProcess.getConsoleScroller().finishSearch();
+					currentProcess.getConsoleScroller()
+					    .finishSearch();
 				}
 			}
 		});
@@ -438,8 +441,10 @@ public class MainFrame extends JFrame implements WindowListener, ProcessListener
 	private void selectConsole(ProcessController selectedValue) {
 		if (this.currentProcess != null) {
 			// Deregister everything
-			currentProcess.getConsoleScroller().removeAutoScrollToBottomListener(autoScrollToBottomToggleModel);
-			currentProcess.getConsoleScroller().removeSearchFieldListener(this);
+			currentProcess.getConsoleScroller()
+			    .removeAutoScrollToBottomListener(autoScrollToBottomToggleModel);
+			currentProcess.getConsoleScroller()
+			    .removeSearchFieldListener(this);
 		}
 
 		BorderLayout layout = (BorderLayout) contentPane.getLayout();
@@ -490,7 +495,7 @@ public class MainFrame extends JFrame implements WindowListener, ProcessListener
 	private void exit() {
 		if (ProcessController.hasActiveProcesses()) {
 			int answer = JOptionPane.showConfirmDialog(this, "There are running processes. Do you want to stop them?",
-					"Active processes", JOptionPane.YES_NO_OPTION, JOptionPane.WARNING_MESSAGE);
+			    "Active processes", JOptionPane.YES_NO_OPTION, JOptionPane.WARNING_MESSAGE);
 			if (answer == JOptionPane.YES_OPTION) {
 				_exit();
 			} else {
@@ -527,19 +532,20 @@ public class MainFrame extends JFrame implements WindowListener, ProcessListener
 			public void fileSelected(File file, ExtensionFilter extension) {
 				ExportType exportType = null;
 				switch (extension.getDescription()) {
-				default:
-				case TEXT_FILES:
-					exportType = ExportType.TEXT;
-					break;
-				case HTML_FILES:
-					exportType = ExportType.HTML;
-					break;
-				case RICH_TEXT_FILES:
-					exportType = ExportType.RTF;
-					break;
+					default:
+					case TEXT_FILES:
+						exportType = ExportType.TEXT;
+						break;
+					case HTML_FILES:
+						exportType = ExportType.HTML;
+						break;
+					case RICH_TEXT_FILES:
+						exportType = ExportType.RTF;
+						break;
 				}
 
-				currentProcess.getTextPane().saveAs(file, exportType);
+				currentProcess.getTextPane()
+				    .saveAs(file, exportType);
 			}
 		});
 
@@ -600,45 +606,45 @@ public class MainFrame extends JFrame implements WindowListener, ProcessListener
 	private void processCurrentState() {
 		if (nonNull(currentProcess)) {
 			switch (currentProcess.getState()) {
-			case NOT_STARTED:
-				btnClose.setEnabled(true);
-				chckbxmntmFind.setEnabled(false);
-				btnSave.setEnabled(false);
-				btnClear.setEnabled(false);
-				btnStop.setEnabled(false);
-				btnStopForcibly.setEnabled(false);
-				btnRestart.setEnabled(true);
-				break;
-			case RUNNING:
-				btnClose.setEnabled(false);
-				chckbxmntmFind.setEnabled(true);
-				btnSave.setEnabled(true);
-				btnClear.setEnabled(true);
-				btnStop.setEnabled(true);
-				btnStopForcibly.setEnabled(true);
-				btnRestart.setEnabled(true);
-				break;
-			case STOPPED_OK:
-			case STOPPED_ALERT:
-				btnClose.setEnabled(true);
-				chckbxmntmFind.setEnabled(true);
-				btnSave.setEnabled(true);
-				btnClear.setEnabled(true);
-				btnStop.setEnabled(false);
-				btnStopForcibly.setEnabled(false);
-				btnRestart.setEnabled(true);
-				break;
-			case STOPPING:
-				btnClose.setEnabled(false);
-				chckbxmntmFind.setEnabled(true);
-				btnSave.setEnabled(true);
-				btnClear.setEnabled(true);
-				btnStop.setEnabled(false);
-				btnStopForcibly.setEnabled(false);
-				btnRestart.setEnabled(false);
-				break;
-			case ABANDONED:
-				break;
+				case NOT_STARTED:
+					btnClose.setEnabled(true);
+					chckbxmntmFind.setEnabled(false);
+					btnSave.setEnabled(false);
+					btnClear.setEnabled(false);
+					btnStop.setEnabled(false);
+					btnStopForcibly.setEnabled(false);
+					btnRestart.setEnabled(true);
+					break;
+				case RUNNING:
+					btnClose.setEnabled(false);
+					chckbxmntmFind.setEnabled(true);
+					btnSave.setEnabled(true);
+					btnClear.setEnabled(true);
+					btnStop.setEnabled(true);
+					btnStopForcibly.setEnabled(true);
+					btnRestart.setEnabled(true);
+					break;
+				case STOPPED_OK:
+				case STOPPED_ALERT:
+					btnClose.setEnabled(true);
+					chckbxmntmFind.setEnabled(true);
+					btnSave.setEnabled(true);
+					btnClear.setEnabled(true);
+					btnStop.setEnabled(false);
+					btnStopForcibly.setEnabled(false);
+					btnRestart.setEnabled(true);
+					break;
+				case STOPPING:
+					btnClose.setEnabled(false);
+					chckbxmntmFind.setEnabled(true);
+					btnSave.setEnabled(true);
+					btnClear.setEnabled(true);
+					btnStop.setEnabled(false);
+					btnStopForcibly.setEnabled(false);
+					btnRestart.setEnabled(false);
+					break;
+				case ABANDONED:
+					break;
 			}
 		}
 	}

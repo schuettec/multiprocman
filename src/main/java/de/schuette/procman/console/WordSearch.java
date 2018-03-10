@@ -26,7 +26,8 @@ public class WordSearch {
 
 	public WordSearch(JTextComponent comp) {
 		this.comp = comp;
-		this.painter = new IndexAwareHighlighter(Color.CYAN.darker().darker(), Color.CYAN);
+		this.painter = new IndexAwareHighlighter(Color.CYAN.darker()
+		    .darker(), Color.CYAN);
 	}
 
 	public void clear() {
@@ -71,7 +72,7 @@ public class WordSearch {
 	 * occurrences.
 	 *
 	 * @param word
-	 *            The word to search for.
+	 *        The word to search for.
 	 * @return Returns the index of the last occurrence.
 	 */
 	public int search(String word) {
@@ -89,7 +90,8 @@ public class WordSearch {
 		String content = null;
 		try {
 			Document d = comp.getDocument();
-			content = d.getText(0, d.getLength()).toLowerCase();
+			content = d.getText(0, d.getLength())
+			    .toLowerCase();
 		} catch (BadLocationException e) {
 			// Cannot happen
 			return -1;

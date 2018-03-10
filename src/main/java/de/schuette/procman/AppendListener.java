@@ -8,11 +8,11 @@ import java.awt.Color;
  */
 @FunctionalInterface
 public interface AppendListener {
-  /**
-   * Appends the specified string in the specified color.
-   *
-   * @param c The string to append
-   * @param s The color to use.
-   */
-  public void append(Color c, String s);
+	/**
+	 * Appends the specified string in the specified color.
+	 *
+	 * @param c The string to append
+	 * @param s The color to use.
+	 */
+	public void append(Color c, String s);
 }

@@ -24,16 +24,22 @@ public class ProcessController {
 	private static Queue<ProcessController> controllers = new ConcurrentLinkedQueue<>();
 
 	static {
-		Runtime.getRuntime().addShutdownHook(new Thread(new Runnable() {
-			@Override
-			public void run() {
-				shutdown();
-			}
-		}));
+		Runtime.getRuntime()
+		    .addShutdownHook(new Thread(new Runnable() {
+			    @Override
+			    public void run() {
+				    shutdown();
+			    }
+		    }));
 	}
 
 	public enum State {
-		NOT_STARTED, RUNNING, STOPPING, STOPPED_OK, STOPPED_ALERT, ABANDONED;
+		NOT_STARTED,
+		RUNNING,
+		STOPPING,
+		STOPPED_OK,
+		STOPPED_ALERT,
+		ABANDONED;
 	}
 
 	private EventListenerSupport<ProcessListener> processListener = new EventListenerSupport<>(ProcessListener.class);
@@ -101,8 +107,10 @@ public class ProcessController {
 					final InputStream inputStream = process.getInputStream();
 					final InputStream errorStream = process.getErrorStream();
 
-					try (Scanner input1 = new Scanner(inputStream, processDescriptor.getCharset().name());
-							Scanner input2 = new Scanner(errorStream, processDescriptor.getCharset().name())) {
+					try (Scanner input1 = new Scanner(inputStream, processDescriptor.getCharset()
+					    .name());
+					    Scanner input2 = new Scanner(errorStream, processDescriptor.getCharset()
+					        .name())) {
 						while (process.isAlive()) {
 							if (input1.hasNextLine()) {
 								String nextLine = input1.nextLine();
@@ -135,7 +143,8 @@ public class ProcessController {
 					@Override
 					public void run() {
 						consoleScroller.appendANSI(nextLine + "\n");
-						processListener.fire().processUpdate(ProcessController.this);
+						processListener.fire()
+						    .processUpdate(ProcessController.this);
 					}
 				});
 			}
@@ -145,7 +154,8 @@ public class ProcessController {
 
 	private void updateState(State state) {
 		this.state = state;
-		processListener.fire().processUpdate(ProcessController.this);
+		processListener.fire()
+		    .processUpdate(ProcessController.this);
 	}
 
 	public void stop(boolean waitFor) {

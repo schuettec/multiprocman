@@ -87,7 +87,7 @@ public class Category implements Serializable {
 	@Override
 	public String toString() {
 		return "Category [icon=" + icon + ", name=" + name + ", description=" + description + ", processTemplates="
-				+ processTemplates + "]";
+		    + processTemplates + "]";
 	}
 
 }

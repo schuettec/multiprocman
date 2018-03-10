@@ -90,8 +90,8 @@ public class ProcessManager extends JFrame {
 		public void actionPerformed(ActionEvent e) {
 			int selectedIndex = lstCategories.getSelectedIndex();
 			if (selectedIndex == -1) {
-				JOptionPane.showMessageDialog(ProcessManager.this, "Please select the category to edit first.",
-						"No selection", JOptionPane.WARNING_MESSAGE);
+				JOptionPane.showMessageDialog(ProcessManager.this, "Please select the category to edit first.", "No selection",
+				    JOptionPane.WARNING_MESSAGE);
 			} else {
 				CategoryEditor.editCategory(categories.get(selectedIndex));
 				categories.saveToPreferences();
@@ -112,7 +112,7 @@ public class ProcessManager extends JFrame {
 			int selectedIndex = lstCategories.getSelectedIndex();
 			if (selectedIndex == -1) {
 				JOptionPane.showMessageDialog(ProcessManager.this, "Please select the category to remove first.",
-						"No selection", JOptionPane.WARNING_MESSAGE);
+				    "No selection", JOptionPane.WARNING_MESSAGE);
 			} else {
 				categories.remove(selectedIndex);
 			}
@@ -131,11 +131,12 @@ public class ProcessManager extends JFrame {
 			int selectedIndex = lstCategories.getSelectedIndex();
 			if (selectedIndex == -1) {
 				JOptionPane.showMessageDialog(ProcessManager.this,
-						"Please select the category to assign the new application first.", "No selection",
-						JOptionPane.WARNING_MESSAGE);
+				    "Please select the category to assign the new application first.", "No selection",
+				    JOptionPane.WARNING_MESSAGE);
 			} else {
 				ProcessDescriptor process = ApplicationEditor.newProcess();
-				currentCategory.getProcessTemplates().addElement(process);
+				currentCategory.getProcessTemplates()
+				    .addElement(process);
 				categories.saveToPreferences();
 				lstProcesses.repaint();
 			}
@@ -153,7 +154,7 @@ public class ProcessManager extends JFrame {
 			ProcessDescriptor value = lstProcesses.getSelectedValue();
 			if (isNull(value)) {
 				JOptionPane.showMessageDialog(ProcessManager.this, "Please select the application to edit first.",
-						"No selection", JOptionPane.WARNING_MESSAGE);
+				    "No selection", JOptionPane.WARNING_MESSAGE);
 			} else {
 				ApplicationEditor.editProcessDescriptor(value);
 				categories.saveToPreferences();
@@ -174,10 +175,9 @@ public class ProcessManager extends JFrame {
 			ProcessDescriptor value = lstProcesses.getSelectedValue();
 			if (isNull(value)) {
 				JOptionPane.showMessageDialog(ProcessManager.this, "Please select the application to remove first.",
-						"No selection", JOptionPane.WARNING_MESSAGE);
+				    "No selection", JOptionPane.WARNING_MESSAGE);
 			} else {
-				DefaultListModel<ProcessDescriptor> processes = (DefaultListModel<ProcessDescriptor>) lstProcesses
-						.getModel();
+				DefaultListModel<ProcessDescriptor> processes = (DefaultListModel<ProcessDescriptor>) lstProcesses.getModel();
 				processes.removeElement(value);
 				categories.saveToPreferences();
 				lstProcesses.repaint();
@@ -268,7 +268,8 @@ public class ProcessManager extends JFrame {
 				@Override
 				public boolean importData(TransferHandler.TransferSupport support) {
 					try {
-						String s = (String) support.getTransferable().getTransferData(DataFlavor.stringFlavor);
+						String s = (String) support.getTransferable()
+						    .getTransferData(DataFlavor.stringFlavor);
 						JList.DropLocation dl = (JList.DropLocation) support.getDropLocation();
 						Category category = categories.get(Integer.parseInt(s));
 						categories.add(dl.getIndex(), category);
@@ -371,29 +372,27 @@ public class ProcessManager extends JFrame {
 						toolBar.setFloatable(false);
 						panel.add(toolBar, BorderLayout.CENTER);
 						{
-							JButton btnRunApplication = new JButton(
-									new AbstractAction(null, new ImageIcon(Resources.getPlay())) {
+							JButton btnRunApplication = new JButton(new AbstractAction(null, new ImageIcon(Resources.getPlay())) {
 
-										@Override
-										public void actionPerformed(ActionEvent e) {
+								@Override
+								public void actionPerformed(ActionEvent e) {
 
-											int selectedIndex = lstProcesses.getSelectedIndex();
-											if (selectedIndex == -1) {
-												JOptionPane.showMessageDialog(ProcessManager.this,
-														"Please select the application to start first.", "No selection",
-														JOptionPane.WARNING_MESSAGE);
-											} else {
-												MainFrame mainFrame = MainFrame.getInstance();
-												List<ProcessDescriptor> selected = lstProcesses.getSelectedValuesList();
-												for (ProcessDescriptor d : selected) {
-													ProcessController c = new ProcessController(d);
-													mainFrame.addProcessController(c);
-													c.start();
-												}
-												dispose();
-											}
+									int selectedIndex = lstProcesses.getSelectedIndex();
+									if (selectedIndex == -1) {
+										JOptionPane.showMessageDialog(ProcessManager.this, "Please select the application to start first.",
+										    "No selection", JOptionPane.WARNING_MESSAGE);
+									} else {
+										MainFrame mainFrame = MainFrame.getInstance();
+										List<ProcessDescriptor> selected = lstProcesses.getSelectedValuesList();
+										for (ProcessDescriptor d : selected) {
+											ProcessController c = new ProcessController(d);
+											mainFrame.addProcessController(c);
+											c.start();
 										}
-									});
+										dispose();
+									}
+								}
+							});
 							btnRunApplication.setToolTipText("Run selected application.");
 							toolBar.add(btnRunApplication);
 						}

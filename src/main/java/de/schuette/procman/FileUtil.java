@@ -17,7 +17,8 @@ import javafx.stage.FileChooser.ExtensionFilter;
 public class FileUtil {
 
 	public enum Type {
-		OPEN, SAVE;
+		OPEN,
+		SAVE;
 	}
 
 	public static void showFileChooser(Type type, FileChooserCallback fileConsumer) {
@@ -25,7 +26,7 @@ public class FileUtil {
 	}
 
 	public static void showFileChooser(Type type, Consumer<List<ExtensionFilter>> extensionFilterProvider,
-			FileChooserCallback fileConsumer) {
+	    FileChooserCallback fileConsumer) {
 		requireNonNull(fileConsumer, "File consumer must not be null!");
 		ThemeUtil.startJavaFX();
 		Semaphore s = new Semaphore(1);

@@ -66,8 +66,7 @@ public class ConsolePreview extends JPanel implements AppendListener, ProcessLis
 		this.setPreferredSize(new Dimension(WIDTH, HEIGHT));
 		this.bufferedImage = new BufferedImage(WIDTH, HEIGHT, BufferedImage.TYPE_INT_RGB);
 		Insets insets = this.getInsets();
-		this.titleImage = new BufferedImage(HEIGHT - insets.top - insets.bottom, TITLE_SPACE_X,
-				BufferedImage.TYPE_INT_RGB);
+		this.titleImage = new BufferedImage(HEIGHT - insets.top - insets.bottom, TITLE_SPACE_X, BufferedImage.TYPE_INT_RGB);
 
 		clearImage(bufferedImage, Color.BLACK);
 		drawTitleImage();
@@ -125,20 +124,20 @@ public class ConsolePreview extends JPanel implements AppendListener, ProcessLis
 			stateIcon = Resources.getQuestion();
 		} else {
 			switch (processState) {
-			case RUNNING:
-				stateIcon = Resources.getRunningState();
-				break;
-			case STOPPED_OK:
-				stateIcon = Resources.getCheckState();
-				break;
-			case STOPPED_ALERT:
-				stateIcon = Resources.getAlertState();
-				break;
-			case NOT_STARTED:
-			case ABANDONED:
-			case STOPPING:
-				stateIcon = Resources.getQuestion();
-				break;
+				case RUNNING:
+					stateIcon = Resources.getRunningState();
+					break;
+				case STOPPED_OK:
+					stateIcon = Resources.getCheckState();
+					break;
+				case STOPPED_ALERT:
+					stateIcon = Resources.getAlertState();
+					break;
+				case NOT_STARTED:
+				case ABANDONED:
+				case STOPPING:
+					stateIcon = Resources.getQuestion();
+					break;
 			}
 		}
 		int x = getWidth() - insets.right - stateIcon.getWidth();

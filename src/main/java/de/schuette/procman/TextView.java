@@ -2,12 +2,12 @@ package de.schuette.procman;
 
 public interface TextView extends Appendable {
 
-  public boolean isAutoScrollToBottom();
+	public boolean isAutoScrollToBottom();
 
-  public void setAutoScrollToBottom(boolean autoScrollToBottom);
+	public void setAutoScrollToBottom(boolean autoScrollToBottom);
 
-  /**
-   * This method scrolls the {@link TextView} to the bottom.
-   */
-  public void scrollToBottom();
+	/**
+	 * This method scrolls the {@link TextView} to the bottom.
+	 */
+	public void scrollToBottom();
 }

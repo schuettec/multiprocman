@@ -19,7 +19,7 @@ public class ProcessCellRenderer extends DefaultListCellRenderer {
 
 	@Override
 	public Component getListCellRendererComponent(JList<?> list, Object value, int index, boolean isSelected,
-			boolean cellHasFocus) {
+	    boolean cellHasFocus) {
 		super.getListCellRendererComponent(list, value, index, isSelected, cellHasFocus);
 		ProcessDescriptor processDescriptor = (ProcessDescriptor) value;
 		this.setText(processDescriptor.getTitle());

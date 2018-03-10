@@ -9,8 +9,9 @@ public class ConsolePreviewCellRenderer implements ListCellRenderer<ProcessContr
 
 	@Override
 	public Component getListCellRendererComponent(JList<? extends ProcessController> list, ProcessController value,
-			int index, boolean isSelected, boolean cellHasFocus) {
-		value.getConsolePreview().setIsSelected(isSelected);
+	    int index, boolean isSelected, boolean cellHasFocus) {
+		value.getConsolePreview()
+		    .setIsSelected(isSelected);
 		return value.getConsolePreview();
 	}
 }

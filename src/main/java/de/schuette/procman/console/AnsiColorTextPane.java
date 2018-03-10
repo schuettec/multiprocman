@@ -37,7 +37,9 @@ public class AnsiColorTextPane extends JTextPane implements Appendable {
 	private static final long serialVersionUID = 1L;
 
 	public enum ExportType {
-		TEXT, HTML, RTF;
+		TEXT,
+		HTML,
+		RTF;
 	}
 
 	static final Color cReset = Color.getHSBColor(0.000f, 0.000f, 1.000f);
@@ -100,7 +102,8 @@ public class AnsiColorTextPane extends JTextPane implements Appendable {
 		AttributeSet aset = lastStyleContext.addAttribute(SimpleAttributeSet.EMPTY, StyleConstants.Foreground, c);
 		int len = getDocument().getLength();
 		appendString(s, aset, len);
-		appendListener.fire().append(c, s);
+		appendListener.fire()
+		    .append(c, s);
 	}
 
 	private void appendString(String s, AttributeSet aset, int len) {
@@ -173,32 +176,34 @@ public class AnsiColorTextPane extends JTextPane implements Appendable {
 		if (color == null) {
 			return "#000000";
 		}
-		return "#" + Integer.toHexString(color.getRGB()).substring(2).toUpperCase();
+		return "#" + Integer.toHexString(color.getRGB())
+		    .substring(2)
+		    .toUpperCase();
 	}
 
 	public void saveAs(File file, ExportType exportType) {
 		EditorKit editorKit = null;
 		switch (exportType) {
-		case HTML:
-			HTMLEditorKit htmlEditorKit = new HTMLEditorKit();
-			editorKit = htmlEditorKit;
-			break;
-		case RTF:
-			editorKit = new RTFEditorKit();
-			break;
-		case TEXT:
-			editorKit = new DefaultEditorKit();
-			break;
+			case HTML:
+				HTMLEditorKit htmlEditorKit = new HTMLEditorKit();
+				editorKit = htmlEditorKit;
+				break;
+			case RTF:
+				editorKit = new RTFEditorKit();
+				break;
+			case TEXT:
+				editorKit = new DefaultEditorKit();
+				break;
 		}
 		try (FileOutputStream fout = new FileOutputStream(file)) {
 			StyledDocument styledDocument = getStyledDocument();
 			editorKit.write(fout, styledDocument, 0, styledDocument.getLength());
 		} catch (FileNotFoundException e) {
 			JOptionPane.showMessageDialog(this, "The file was not found or could not be created.", "File not found",
-					JOptionPane.ERROR_MESSAGE);
+			    JOptionPane.ERROR_MESSAGE);
 		} catch (IOException e) {
 			JOptionPane.showMessageDialog(this, "The document was not saved due to an I/O error.", "I/O error",
-					JOptionPane.ERROR_MESSAGE);
+			    JOptionPane.ERROR_MESSAGE);
 		} catch (BadLocationException e) {
 			ExceptionDialog.showException(e, "Bad location while saving the document.");
 		}

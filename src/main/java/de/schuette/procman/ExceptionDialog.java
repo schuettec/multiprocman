@@ -47,7 +47,7 @@ public class ExceptionDialog extends JDialog {
 	public static void main(String[] args) {
 		ThemeUtil.setLookAndFeel();
 		showException(new NullPointerException(),
-				"Message Message Message Message Message Message Message Message Message Message Message Message Message Message Message Message ");
+		    "Message Message Message Message Message Message Message Message Message Message Message Message Message Message Message Message ");
 	}
 
 	public static void showException(Exception exception, String messageFormat, Object... param) {
@@ -89,29 +89,32 @@ public class ExceptionDialog extends JDialog {
 		lblMessage.setVerticalAlignment(SwingConstants.TOP);
 
 		GroupLayout gl_contentPanel = new GroupLayout(contentPanel);
-		gl_contentPanel
-				.setHorizontalGroup(gl_contentPanel.createParallelGroup(Alignment.LEADING)
-						.addGroup(gl_contentPanel.createSequentialGroup().addContainerGap().addComponent(lblIcon)
-								.addPreferredGap(ComponentPlacement.RELATED)
-								.addGroup(gl_contentPanel.createParallelGroup(Alignment.LEADING)
-										.addComponent(scrollPane, GroupLayout.DEFAULT_SIZE, 389, Short.MAX_VALUE)
-										.addGroup(gl_contentPanel.createSequentialGroup()
-												.addComponent(lblHeader, GroupLayout.DEFAULT_SIZE, 337, Short.MAX_VALUE)
-												.addGap(52))
-										.addGroup(
-												gl_contentPanel
-														.createSequentialGroup().addComponent(lblMessage,
-																GroupLayout.DEFAULT_SIZE, 379, Short.MAX_VALUE)
-														.addGap(10)))
-								.addContainerGap()));
+		gl_contentPanel.setHorizontalGroup(gl_contentPanel.createParallelGroup(Alignment.LEADING)
+		    .addGroup(gl_contentPanel.createSequentialGroup()
+		        .addContainerGap()
+		        .addComponent(lblIcon)
+		        .addPreferredGap(ComponentPlacement.RELATED)
+		        .addGroup(gl_contentPanel.createParallelGroup(Alignment.LEADING)
+		            .addComponent(scrollPane, GroupLayout.DEFAULT_SIZE, 389, Short.MAX_VALUE)
+		            .addGroup(gl_contentPanel.createSequentialGroup()
+		                .addComponent(lblHeader, GroupLayout.DEFAULT_SIZE, 337, Short.MAX_VALUE)
+		                .addGap(52))
+		            .addGroup(gl_contentPanel.createSequentialGroup()
+		                .addComponent(lblMessage, GroupLayout.DEFAULT_SIZE, 379, Short.MAX_VALUE)
+		                .addGap(10)))
+		        .addContainerGap()));
 		gl_contentPanel.setVerticalGroup(gl_contentPanel.createParallelGroup(Alignment.LEADING)
-				.addGroup(gl_contentPanel.createSequentialGroup().addContainerGap()
-						.addGroup(gl_contentPanel.createParallelGroup(Alignment.LEADING, false)
-								.addGroup(gl_contentPanel.createSequentialGroup().addComponent(lblHeader)
-										.addPreferredGap(ComponentPlacement.RELATED).addComponent(lblMessage))
-								.addComponent(lblIcon))
-						.addPreferredGap(ComponentPlacement.RELATED)
-						.addComponent(scrollPane, GroupLayout.DEFAULT_SIZE, 263, Short.MAX_VALUE).addContainerGap()));
+		    .addGroup(gl_contentPanel.createSequentialGroup()
+		        .addContainerGap()
+		        .addGroup(gl_contentPanel.createParallelGroup(Alignment.LEADING, false)
+		            .addGroup(gl_contentPanel.createSequentialGroup()
+		                .addComponent(lblHeader)
+		                .addPreferredGap(ComponentPlacement.RELATED)
+		                .addComponent(lblMessage))
+		            .addComponent(lblIcon))
+		        .addPreferredGap(ComponentPlacement.RELATED)
+		        .addComponent(scrollPane, GroupLayout.DEFAULT_SIZE, 263, Short.MAX_VALUE)
+		        .addContainerGap()));
 
 		JTextArea txtException = new JTextArea(ExceptionUtils.getStackTrace(exception));
 		txtException.setFont(new Font("Monospaced", Font.PLAIN, 11));
@@ -133,9 +136,10 @@ public class ExceptionDialog extends JDialog {
 
 			}
 		}
-		getRootPane().getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW).put(KeyStroke.getKeyStroke(KeyEvent.VK_ESCAPE, 0),
-				"Close");
-		getRootPane().getActionMap().put("Close", disposeAction);
+		getRootPane().getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW)
+		    .put(KeyStroke.getKeyStroke(KeyEvent.VK_ESCAPE, 0), "Close");
+		getRootPane().getActionMap()
+		    .put("Close", disposeAction);
 		setVisible(true);
 	}
 }

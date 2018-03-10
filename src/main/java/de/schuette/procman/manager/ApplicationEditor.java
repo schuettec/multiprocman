@@ -130,9 +130,8 @@ public class ApplicationEditor extends JDialog {
 							g.drawImage(read, 0, 0, 24, newHeight, null);
 							lblIcon.setIcon(new ImageIcon(after));
 						} catch (IOException e1) {
-							JOptionPane.showMessageDialog(ApplicationEditor.this,
-									"Error while loading the selected image file.", "I/O error",
-									JOptionPane.ERROR_MESSAGE);
+							JOptionPane.showMessageDialog(ApplicationEditor.this, "Error while loading the selected image file.",
+							    "I/O error", JOptionPane.ERROR_MESSAGE);
 							e1.printStackTrace();
 						}
 					}
@@ -141,7 +140,7 @@ public class ApplicationEditor extends JDialog {
 		});
 
 		JLabel lblPleaseFillIn = new JLabel(
-				"<html>Please fill in the desired data for the new category. When selecting a category icon use 24x24px images, otherwise the images will be scaled automatically.</html>");
+		    "<html>Please fill in the desired data for the new category. When selecting a category icon use 24x24px images, otherwise the images will be scaled automatically.</html>");
 
 		JLabel lblWorkingDirectory = new JLabel("Working directory:");
 		lblWorkingDirectory.setHorizontalAlignment(SwingConstants.RIGHT);
@@ -215,84 +214,98 @@ public class ApplicationEditor extends JDialog {
 
 		GroupLayout gl_contentPanel = new GroupLayout(contentPanel);
 		gl_contentPanel.setHorizontalGroup(gl_contentPanel.createParallelGroup(Alignment.LEADING)
-				.addGroup(gl_contentPanel.createSequentialGroup().addContainerGap().addGroup(gl_contentPanel
-						.createParallelGroup(Alignment.LEADING).addComponent(lblPleaseFillIn)
-						.addGroup(gl_contentPanel.createSequentialGroup().addGroup(gl_contentPanel
-								.createParallelGroup(Alignment.LEADING, false)
-								.addGroup(gl_contentPanel.createSequentialGroup().addGap(1).addComponent(lblNewLabel,
-										GroupLayout.DEFAULT_SIZE, GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
-								.addComponent(lblName, GroupLayout.DEFAULT_SIZE, GroupLayout.DEFAULT_SIZE,
-										Short.MAX_VALUE)
-								.addComponent(lblForIcon, GroupLayout.DEFAULT_SIZE, 94, Short.MAX_VALUE)).addGap(2)
-								.addGroup(gl_contentPanel.createParallelGroup(Alignment.LEADING)
-										.addGroup(gl_contentPanel.createSequentialGroup()
-												.addPreferredGap(ComponentPlacement.RELATED).addComponent(scrollPane,
-														GroupLayout.DEFAULT_SIZE, 258, Short.MAX_VALUE))
-										.addGroup(gl_contentPanel.createSequentialGroup()
-												.addComponent(lblIcon, GroupLayout.PREFERRED_SIZE,
-														GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
-												.addPreferredGap(ComponentPlacement.RELATED, 41, Short.MAX_VALUE)
-												.addComponent(btnDefaultIcon)
-												.addPreferredGap(ComponentPlacement.RELATED).addComponent(btnFindIcon,
-														GroupLayout.PREFERRED_SIZE, 98, GroupLayout.PREFERRED_SIZE))
-										.addComponent(txtTitle, GroupLayout.DEFAULT_SIZE, 258, Short.MAX_VALUE)))
-						.addGroup(gl_contentPanel.createSequentialGroup()
-								.addGroup(gl_contentPanel.createParallelGroup(Alignment.TRAILING, false)
-										.addComponent(lblColorFor, Alignment.LEADING, GroupLayout.DEFAULT_SIZE,
-												GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-										.addComponent(lblWorkingDirectory, GroupLayout.DEFAULT_SIZE,
-												GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-										.addComponent(lblCharset, GroupLayout.DEFAULT_SIZE, 91, Short.MAX_VALUE))
-								.addPreferredGap(ComponentPlacement.RELATED)
-								.addGroup(gl_contentPanel.createParallelGroup(Alignment.LEADING, false)
-										.addComponent(btnFindWorkingDir, GroupLayout.PREFERRED_SIZE, 98,
-												GroupLayout.PREFERRED_SIZE)
-										.addGroup(gl_contentPanel.createSequentialGroup()
-												.addComponent(pnlColor, GroupLayout.PREFERRED_SIZE, 25,
-														GroupLayout.PREFERRED_SIZE)
-												.addPreferredGap(ComponentPlacement.RELATED, GroupLayout.DEFAULT_SIZE,
-														Short.MAX_VALUE)
-												.addComponent(btnSelectColor))
-										.addComponent(txtWorkingDir).addComponent(comboBox, 0, 259, Short.MAX_VALUE)))
-						.addComponent(btnFindApplication, Alignment.TRAILING, GroupLayout.PREFERRED_SIZE, 98,
-								GroupLayout.PREFERRED_SIZE))
-						.addContainerGap()));
-		gl_contentPanel.setVerticalGroup(gl_contentPanel.createParallelGroup(Alignment.LEADING).addGroup(gl_contentPanel
-				.createSequentialGroup().addGap(8).addComponent(lblPleaseFillIn)
-				.addPreferredGap(ComponentPlacement.RELATED)
-				.addGroup(gl_contentPanel.createParallelGroup(Alignment.TRAILING)
-						.addGroup(gl_contentPanel.createParallelGroup(Alignment.LEADING, false)
-								.addGroup(gl_contentPanel.createSequentialGroup().addGap(11).addComponent(lblIcon,
-										GroupLayout.DEFAULT_SIZE, GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
-								.addGroup(gl_contentPanel.createParallelGroup(Alignment.BASELINE)
-										.addComponent(btnFindIcon).addComponent(btnDefaultIcon)))
-						.addComponent(lblForIcon, GroupLayout.PREFERRED_SIZE, 38, GroupLayout.PREFERRED_SIZE))
-				.addPreferredGap(ComponentPlacement.RELATED)
-				.addGroup(gl_contentPanel.createParallelGroup(Alignment.LEADING)
-						.addComponent(txtTitle, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE,
-								GroupLayout.PREFERRED_SIZE)
-						.addComponent(lblName))
-				.addPreferredGap(ComponentPlacement.UNRELATED)
-				.addGroup(gl_contentPanel.createParallelGroup(Alignment.LEADING)
-						.addGroup(gl_contentPanel.createSequentialGroup()
-								.addComponent(scrollPane, GroupLayout.PREFERRED_SIZE, 130, GroupLayout.PREFERRED_SIZE)
-								.addPreferredGap(ComponentPlacement.RELATED).addComponent(btnFindApplication))
-						.addComponent(lblNewLabel))
-				.addPreferredGap(ComponentPlacement.RELATED)
-				.addGroup(gl_contentPanel.createParallelGroup(Alignment.BASELINE).addComponent(lblCharset).addComponent(
-						comboBox, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE))
-				.addPreferredGap(ComponentPlacement.RELATED)
-				.addGroup(gl_contentPanel.createParallelGroup(Alignment.LEADING).addComponent(lblWorkingDirectory)
-						.addComponent(txtWorkingDir, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE,
-								GroupLayout.PREFERRED_SIZE))
-				.addPreferredGap(ComponentPlacement.RELATED)
-				.addGroup(gl_contentPanel.createParallelGroup(Alignment.LEADING)
-						.addGroup(gl_contentPanel.createSequentialGroup().addGap(29).addComponent(lblColorFor))
-						.addGroup(gl_contentPanel.createParallelGroup(Alignment.TRAILING)
-								.addComponent(pnlColor, GroupLayout.PREFERRED_SIZE, 26, GroupLayout.PREFERRED_SIZE)
-								.addGroup(gl_contentPanel.createSequentialGroup().addComponent(btnFindWorkingDir)
-										.addPreferredGap(ComponentPlacement.RELATED).addComponent(btnSelectColor))))
-				.addContainerGap()));
+		    .addGroup(gl_contentPanel.createSequentialGroup()
+		        .addContainerGap()
+		        .addGroup(gl_contentPanel.createParallelGroup(Alignment.LEADING)
+		            .addComponent(lblPleaseFillIn)
+		            .addGroup(gl_contentPanel.createSequentialGroup()
+		                .addGroup(gl_contentPanel.createParallelGroup(Alignment.LEADING, false)
+		                    .addGroup(gl_contentPanel.createSequentialGroup()
+		                        .addGap(1)
+		                        .addComponent(lblNewLabel, GroupLayout.DEFAULT_SIZE, GroupLayout.DEFAULT_SIZE,
+		                            Short.MAX_VALUE))
+		                    .addComponent(lblName, GroupLayout.DEFAULT_SIZE, GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+		                    .addComponent(lblForIcon, GroupLayout.DEFAULT_SIZE, 94, Short.MAX_VALUE))
+		                .addGap(2)
+		                .addGroup(gl_contentPanel.createParallelGroup(Alignment.LEADING)
+		                    .addGroup(gl_contentPanel.createSequentialGroup()
+		                        .addPreferredGap(ComponentPlacement.RELATED)
+		                        .addComponent(scrollPane, GroupLayout.DEFAULT_SIZE, 258, Short.MAX_VALUE))
+		                    .addGroup(gl_contentPanel.createSequentialGroup()
+		                        .addComponent(lblIcon, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE,
+		                            GroupLayout.PREFERRED_SIZE)
+		                        .addPreferredGap(ComponentPlacement.RELATED, 41, Short.MAX_VALUE)
+		                        .addComponent(btnDefaultIcon)
+		                        .addPreferredGap(ComponentPlacement.RELATED)
+		                        .addComponent(btnFindIcon, GroupLayout.PREFERRED_SIZE, 98, GroupLayout.PREFERRED_SIZE))
+		                    .addComponent(txtTitle, GroupLayout.DEFAULT_SIZE, 258, Short.MAX_VALUE)))
+		            .addGroup(gl_contentPanel.createSequentialGroup()
+		                .addGroup(gl_contentPanel.createParallelGroup(Alignment.TRAILING, false)
+		                    .addComponent(lblColorFor, Alignment.LEADING, GroupLayout.DEFAULT_SIZE,
+		                        GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+		                    .addComponent(lblWorkingDirectory, GroupLayout.DEFAULT_SIZE, GroupLayout.DEFAULT_SIZE,
+		                        Short.MAX_VALUE)
+		                    .addComponent(lblCharset, GroupLayout.DEFAULT_SIZE, 91, Short.MAX_VALUE))
+		                .addPreferredGap(ComponentPlacement.RELATED)
+		                .addGroup(gl_contentPanel.createParallelGroup(Alignment.LEADING, false)
+		                    .addComponent(btnFindWorkingDir, GroupLayout.PREFERRED_SIZE, 98, GroupLayout.PREFERRED_SIZE)
+		                    .addGroup(gl_contentPanel.createSequentialGroup()
+		                        .addComponent(pnlColor, GroupLayout.PREFERRED_SIZE, 25, GroupLayout.PREFERRED_SIZE)
+		                        .addPreferredGap(ComponentPlacement.RELATED, GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+		                        .addComponent(btnSelectColor))
+		                    .addComponent(txtWorkingDir)
+		                    .addComponent(comboBox, 0, 259, Short.MAX_VALUE)))
+		            .addComponent(btnFindApplication, Alignment.TRAILING, GroupLayout.PREFERRED_SIZE, 98,
+		                GroupLayout.PREFERRED_SIZE))
+		        .addContainerGap()));
+		gl_contentPanel.setVerticalGroup(gl_contentPanel.createParallelGroup(Alignment.LEADING)
+		    .addGroup(gl_contentPanel.createSequentialGroup()
+		        .addGap(8)
+		        .addComponent(lblPleaseFillIn)
+		        .addPreferredGap(ComponentPlacement.RELATED)
+		        .addGroup(gl_contentPanel.createParallelGroup(Alignment.TRAILING)
+		            .addGroup(gl_contentPanel.createParallelGroup(Alignment.LEADING, false)
+		                .addGroup(gl_contentPanel.createSequentialGroup()
+		                    .addGap(11)
+		                    .addComponent(lblIcon, GroupLayout.DEFAULT_SIZE, GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+		                .addGroup(gl_contentPanel.createParallelGroup(Alignment.BASELINE)
+		                    .addComponent(btnFindIcon)
+		                    .addComponent(btnDefaultIcon)))
+		            .addComponent(lblForIcon, GroupLayout.PREFERRED_SIZE, 38, GroupLayout.PREFERRED_SIZE))
+		        .addPreferredGap(ComponentPlacement.RELATED)
+		        .addGroup(gl_contentPanel.createParallelGroup(Alignment.LEADING)
+		            .addComponent(txtTitle, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE,
+		                GroupLayout.PREFERRED_SIZE)
+		            .addComponent(lblName))
+		        .addPreferredGap(ComponentPlacement.UNRELATED)
+		        .addGroup(gl_contentPanel.createParallelGroup(Alignment.LEADING)
+		            .addGroup(gl_contentPanel.createSequentialGroup()
+		                .addComponent(scrollPane, GroupLayout.PREFERRED_SIZE, 130, GroupLayout.PREFERRED_SIZE)
+		                .addPreferredGap(ComponentPlacement.RELATED)
+		                .addComponent(btnFindApplication))
+		            .addComponent(lblNewLabel))
+		        .addPreferredGap(ComponentPlacement.RELATED)
+		        .addGroup(gl_contentPanel.createParallelGroup(Alignment.BASELINE)
+		            .addComponent(lblCharset)
+		            .addComponent(comboBox, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE,
+		                GroupLayout.PREFERRED_SIZE))
+		        .addPreferredGap(ComponentPlacement.RELATED)
+		        .addGroup(gl_contentPanel.createParallelGroup(Alignment.LEADING)
+		            .addComponent(lblWorkingDirectory)
+		            .addComponent(txtWorkingDir, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE,
+		                GroupLayout.PREFERRED_SIZE))
+		        .addPreferredGap(ComponentPlacement.RELATED)
+		        .addGroup(gl_contentPanel.createParallelGroup(Alignment.LEADING)
+		            .addGroup(gl_contentPanel.createSequentialGroup()
+		                .addGap(29)
+		                .addComponent(lblColorFor))
+		            .addGroup(gl_contentPanel.createParallelGroup(Alignment.TRAILING)
+		                .addComponent(pnlColor, GroupLayout.PREFERRED_SIZE, 26, GroupLayout.PREFERRED_SIZE)
+		                .addGroup(gl_contentPanel.createSequentialGroup()
+		                    .addComponent(btnFindWorkingDir)
+		                    .addPreferredGap(ComponentPlacement.RELATED)
+		                    .addComponent(btnSelectColor))))
+		        .addContainerGap()));
 
 		txtCommand = new JTextArea();
 		scrollPane.setViewportView(txtCommand);
@@ -308,10 +321,13 @@ public class ApplicationEditor extends JDialog {
 					@Override
 					public void actionPerformed(ActionEvent e) {
 						ApplicationEditor.this.processDescriptor.setIcon((ImageIcon) lblIcon.getIcon());
-						ApplicationEditor.this.processDescriptor.setTitle(txtTitle.getText().trim());
-						ApplicationEditor.this.processDescriptor.setCommand(txtCommand.getText().trim());
+						ApplicationEditor.this.processDescriptor.setTitle(txtTitle.getText()
+						    .trim());
+						ApplicationEditor.this.processDescriptor.setCommand(txtCommand.getText()
+						    .trim());
 						String workingDir = txtWorkingDir.getText();
-						if (workingDir.trim().isEmpty()) {
+						if (workingDir.trim()
+						    .isEmpty()) {
 							ApplicationEditor.this.processDescriptor.setExecutionDirectory(null);
 						} else {
 							ApplicationEditor.this.processDescriptor.setExecutionDirectory(new File(workingDir.trim()));
@@ -326,8 +342,9 @@ public class ApplicationEditor extends JDialog {
 				buttonPane.add(okButton);
 				getRootPane().setDefaultButton(okButton);
 				getRootPane().getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW)
-						.put(KeyStroke.getKeyStroke(KeyEvent.VK_ENTER, 0), "OK");
-				getRootPane().getActionMap().put("OK", okButton.getAction());
+				    .put(KeyStroke.getKeyStroke(KeyEvent.VK_ENTER, 0), "OK");
+				getRootPane().getActionMap()
+				    .put("OK", okButton.getAction());
 			}
 			{
 				JButton cancelButton = new JButton(new AbstractAction("Cancel") {
@@ -342,8 +359,9 @@ public class ApplicationEditor extends JDialog {
 				cancelButton.setActionCommand("Cancel");
 				buttonPane.add(cancelButton);
 				getRootPane().getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW)
-						.put(KeyStroke.getKeyStroke(KeyEvent.VK_ESCAPE, 0), "CANCEL");
-				getRootPane().getActionMap().put("CANCEL", cancelButton.getAction());
+				    .put(KeyStroke.getKeyStroke(KeyEvent.VK_ESCAPE, 0), "CANCEL");
+				getRootPane().getActionMap()
+				    .put("CANCEL", cancelButton.getAction());
 			}
 		}
 
