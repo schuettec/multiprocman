@@ -29,6 +29,7 @@ import de.schuette.procman.TextUtil;
 
 public class ConsolePreview extends JPanel implements AppendListener, ProcessListener {
 
+	private static final int MAX_COUNTER_VALUE = 99;
 	private static final int COUNTER_DIMENSIONS = 18;
 	/**
 	 *
@@ -130,7 +131,11 @@ public class ConsolePreview extends JPanel implements AppendListener, ProcessLis
 			g2d.fillOval(x, y, COUNTER_DIMENSIONS, COUNTER_DIMENSIONS);
 			g2d.setColor(Color.WHITE);
 			g2d.drawOval(x, y, COUNTER_DIMENSIONS, COUNTER_DIMENSIONS);
-			String countString = String.valueOf(counter.getCount());
+			int count = counter.getCount();
+			if (count >= MAX_COUNTER_VALUE) {
+				count = MAX_COUNTER_VALUE;
+			}
+			String countString = String.valueOf(count);
 			Rectangle2D stringBounds = g2d.getFontMetrics()
 			    .getStringBounds(countString, g2d);
 			int xStr = x + 1 + (int) ((COUNTER_DIMENSIONS - stringBounds.getWidth()) / 2.0);
