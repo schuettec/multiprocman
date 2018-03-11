@@ -60,6 +60,7 @@ public class ApplicationEditor extends JDialog {
 
 	private final JPanel mainPanel = new JPanel();
 	private final JPanel environmentPanel = new JPanel();
+	private final JPanel counterPanel = new JPanel();
 	private ProcessDescriptor processDescriptor;
 	private JTextField txtTitle;
 	private JTextField txtWorkingDir;
@@ -102,6 +103,22 @@ public class ApplicationEditor extends JDialog {
 		tabbedPane = new JTabbedPane();
 		tabbedPane.add("Application", mainPanel);
 		tabbedPane.add("Environment", environmentPanel);
+		tabbedPane.add("Counter expressions", counterPanel);
+
+		JLabel lblyouCanAdd = new JLabel(
+		    "<html>You can add regular expression patterns that will be counted while watching the application output. Up to 6 counter expressions are supported per application. Use the Java Regular Expression syntax for your counter expressions.</html>");
+		GroupLayout gl_counterPanel = new GroupLayout(counterPanel);
+		gl_counterPanel.setHorizontalGroup(gl_counterPanel.createParallelGroup(Alignment.LEADING)
+		    .addGroup(gl_counterPanel.createSequentialGroup()
+		        .addContainerGap()
+		        .addComponent(lblyouCanAdd)
+		        .addContainerGap(400, Short.MAX_VALUE)));
+		gl_counterPanel.setVerticalGroup(gl_counterPanel.createParallelGroup(Alignment.LEADING)
+		    .addGroup(gl_counterPanel.createSequentialGroup()
+		        .addContainerGap()
+		        .addComponent(lblyouCanAdd)
+		        .addContainerGap(398, Short.MAX_VALUE)));
+		counterPanel.setLayout(gl_counterPanel);
 
 		JLabel lblNewLabel_1 = new JLabel(
 		    "<html>The environment variables are inherited from this application. To override the environment variables for this application, fill the following key/value map. The variables are for this application runtime only.</html>");

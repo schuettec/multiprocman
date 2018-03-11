@@ -11,6 +11,7 @@ import java.nio.charset.Charset;
 import java.util.Map;
 import java.util.Objects;
 
+import javax.swing.DefaultListModel;
 import javax.swing.ImageIcon;
 
 public class ProcessDescriptor implements Serializable {
@@ -28,6 +29,8 @@ public class ProcessDescriptor implements Serializable {
 	private Charset charset;
 	private Map<String, String> environment;
 
+	private DefaultListModel<Counter> counters;
+
 	public ProcessDescriptor() {
 		super();
 		setCharset(Charset.defaultCharset());
@@ -37,6 +40,14 @@ public class ProcessDescriptor implements Serializable {
 
 	public boolean hasEnvironmentVariables() {
 		return nonNull(environment);
+	}
+
+	public DefaultListModel<Counter> getCounters() {
+		return counters;
+	}
+
+	public boolean hasCounters() {
+		return nonNull(counters) && !counters.isEmpty();
 	}
 
 	public ImageIcon getIcon() {
