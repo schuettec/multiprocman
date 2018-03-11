@@ -40,7 +40,7 @@ The Multi-Process Manager comes with the following features:
 
 ## Download
 
-You can [download the latest version of this application](https://bintray.com/schuettec/maven/download_file?file_path=com%2Fgithub%2Fschuettec%2Fmultiprocman%2Fmultiprocman%2F0.0.2%2Fmultiprocman-0.0.2-jar-with-dependencies.jar) as an executable JAR file from the Bintray repository.
+You can [download the latest version of this application](https://bintray.com/schuettec/maven/download_file?file_path=com%2Fgithub%2Fschuettec%2Fmultiprocman%2Fmultiprocman%2F1.0.0%2Fmultiprocman-1.0.0-jar-with-dependencies.jar) as an executable JAR file from the Bintray repository.
 
 
 ## Screenshots
