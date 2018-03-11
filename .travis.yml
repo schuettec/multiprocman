@@ -4,4 +4,4 @@ deploy:
   provider: bintray
   file: "descriptor.json"
   user: "schuettec"
-  key: $bintraykey
+  key: "d73cfad7c7fc9025a8cb8ece5fdfe394310a2793"
