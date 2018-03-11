@@ -3,5 +3,5 @@ script: mvn install
 deploy:
   provider: bintray
   file: "descriptor.json"
-  user: $bintrayuser
+  user: schuettec
   key: $bintraykey
