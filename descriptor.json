@@ -17,6 +17,9 @@
         "labels": ["process", "manager", "gui"],
         "public_download_numbers": true,
         "public_stats": true,
+        "attributes": [{"name": "att1", "values" : ["val1"], "type": "string"},
+                       {"name": "att2", "values" : [1, 2.2, 4], "type": "number"},
+                       {"name": "att5", "values" : ["2014-12-28T19:43:37+0100"], "type": "date"}]
     },
 
     /* Package version information.
@@ -27,6 +30,9 @@
         "desc": "This is a version",
         "released": "2018-03-11",
         "vcs_tag": "1.0",
+        "attributes": [{"name": "VerAtt1", "values" : ["VerVal1"], "type": "string"},
+                       {"name": "VerAtt2", "values" : [1, 3.3, 5], "type": "number"},
+                       {"name": "VerAtt3", "values" : ["2015-01-01T19:43:37+0100"], "type": "date"}],
         "gpgSign": false
     },
 
@@ -48,7 +54,7 @@
 
     "files":
         [
-        {"includePattern": "target/(.*\.jar)", "uploadPattern": "/$1"}
+        {"includePattern": "target/(.*\.jar)", "excludePattern": "target/.*.zip$", "uploadPattern": "/$1"}
         ],
     "publish": true
 }
