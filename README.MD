@@ -97,3 +97,7 @@ The output of `std\out` and `std\err` of any started application is captured by 
 In the above tab you can add a counter expression by specifying a name, a [Java Regular Expression](https://docs.oracle.com/javase/9/docs/api/java/util/regex/Pattern.html) and a color to easily recover the counter in the view.
 
 The first 6 counter expressions will be displayed in the log file overview. The whole set of counter expressions will be represented by a button in the toolbar. To reset a counter expression click on the corresponding button.
+
+![alt text](etc/screenshots/07.png)
+
+The above screenshot shows the overview window with an active counter expression watching the output for the string `INFO`. The overview shows a little circle showing the current number of matches. The button in the toolbar shows the current number of matches as well as the name of this counter expression.
