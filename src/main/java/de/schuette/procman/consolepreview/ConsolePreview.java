@@ -19,6 +19,7 @@ import javax.swing.JPanel;
 import javax.swing.plaf.BorderUIResource;
 
 import de.schuette.procman.AppendListener;
+import de.schuette.procman.Counter;
 import de.schuette.procman.ProcessController;
 import de.schuette.procman.ProcessController.State;
 import de.schuette.procman.ProcessDescriptor;
@@ -45,6 +46,7 @@ public class ConsolePreview extends JPanel implements AppendListener, ProcessLis
 	public static final int TITLE_SPACE_X = 14;
 	public static final int WIDTH = 120;
 	public static final int HEIGHT = 140;
+	public static final int MAX_COUNTERS = 6;
 
 	private BufferedImage bufferedImage;
 
@@ -55,6 +57,7 @@ public class ConsolePreview extends JPanel implements AppendListener, ProcessLis
 	private State processState;
 	private ProcessDescriptor descriptor;
 	private BufferedImage titleImage;
+	private int[] counters;
 
 	public ConsolePreview(ProcessDescriptor descriptor) {
 		super();
@@ -107,25 +110,32 @@ public class ConsolePreview extends JPanel implements AppendListener, ProcessLis
 		g2d.drawImage(bufferedImage, insets.left + TITLE_SPACE_X, insets.top, this);
 		drawTitle(g2d);
 		drawStateIcon(g2d);
-		// drawQueries(g2d);
+
+		if (descriptor.hasCounters()) {
+			drawCounters(g2d);
+		}
 	}
 
-	private void drawQueries(Graphics2D g2d) {
-		Insets insets = this.getInsets();
-		int y = 19;
-		int x = getWidth() - insets.right - COUNTER_DIMENSIONS - 2;
-		for (int i = 0; i < 6; i++) {
-			g2d.setColor(Color.RED);
-			g2d.fillOval(x, y, COUNTER_DIMENSIONS, COUNTER_DIMENSIONS);
-			g2d.setColor(Color.WHITE);
-			g2d.drawOval(x, y, COUNTER_DIMENSIONS, COUNTER_DIMENSIONS);
-			String counter = "99";
-			Rectangle2D stringBounds = g2d.getFontMetrics()
-			    .getStringBounds(counter, g2d);
-			int xStr = x + 1 + (int) ((COUNTER_DIMENSIONS - stringBounds.getWidth()) / 2.0);
-			int yStr = (int) (y + stringBounds.getHeight());
-			g2d.drawString(counter, xStr, yStr);
-			y += COUNTER_DIMENSIONS + 2;
+	private void drawCounters(Graphics2D g2d) {
+		if (counters != null) {
+			Insets insets = this.getInsets();
+			int y = 19;
+			int x = getWidth() - insets.right - COUNTER_DIMENSIONS - 2;
+			List<Counter> counterDescriptor = descriptor.getCounters();
+			for (int i = 0; i < counterDescriptor.size() && i < MAX_COUNTERS; i++) {
+				Counter counter = counterDescriptor.get(i);
+				g2d.setColor(counter.getColor());
+				g2d.fillOval(x, y, COUNTER_DIMENSIONS, COUNTER_DIMENSIONS);
+				g2d.setColor(Color.WHITE);
+				g2d.drawOval(x, y, COUNTER_DIMENSIONS, COUNTER_DIMENSIONS);
+				String countString = String.valueOf(counters[i]);
+				Rectangle2D stringBounds = g2d.getFontMetrics()
+				    .getStringBounds(countString, g2d);
+				int xStr = x + 1 + (int) ((COUNTER_DIMENSIONS - stringBounds.getWidth()) / 2.0);
+				int yStr = (int) (y + stringBounds.getHeight());
+				g2d.drawString(countString, xStr, yStr);
+				y += COUNTER_DIMENSIONS + 2;
+			}
 		}
 	}
 
@@ -166,10 +176,15 @@ public class ConsolePreview extends JPanel implements AppendListener, ProcessLis
 		g2d.drawImage(stateIcon, x, y, this);
 	}
 
+	public void clearCounters() {
+		this.counters = null;
+	}
+
 	@Override
 	public void append(Color c, String s) {
 
 		List<String> lines = Arrays.asList(s.split("\\\n|\\\r\\\n"));
+		processCounters(lines);
 		Iterator<String> it = lines.iterator();
 		while (it.hasNext()) {
 			int localCurY = HEIGHT - Y_INC;
@@ -193,6 +208,23 @@ public class ConsolePreview extends JPanel implements AppendListener, ProcessLis
 		}
 
 		this.repaint();
+	}
+
+	private void processCounters(List<String> lines) {
+		if (descriptor.hasCounters()) {
+			List<Counter> counterDescriptor = descriptor.getCounters();
+			if (counters == null) {
+				counters = new int[counterDescriptor.size()];
+			}
+			for (int i = 0; i < counterDescriptor.size() && i < MAX_COUNTERS; i++) {
+				Counter counter = counterDescriptor.get(i);
+				for (String line : lines) {
+					if (counter.matches(line)) {
+						counters[i]++;
+					}
+				}
+			}
+		}
 	}
 
 	private BufferedImage cropImage(BufferedImage oldImage) {

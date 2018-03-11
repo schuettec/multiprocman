@@ -1,17 +1,32 @@
 package de.schuette.procman;
 
+import java.awt.Color;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 public class Counter {
 	private String name;
 	private String regexp;
+	private Color color;
 	private transient Pattern pattern;
 
-	public Counter(String name, String regexp) {
+	public Counter() {
+		super();
+	}
+
+	public Counter(String name, String regexp, Color c) {
 		super();
 		this.name = name;
 		this.regexp = regexp;
+		this.color = c;
+	}
+
+	public Color getColor() {
+		return color;
+	}
+
+	public void setColor(Color color) {
+		this.color = color;
 	}
 
 	public boolean testRegexp() {
@@ -57,7 +72,7 @@ public class Counter {
 
 	@Override
 	public String toString() {
-		return "Counter [name=" + name + ", regexp=" + regexp + "]";
+		return "Counter [name=" + name + ", regexp=" + regexp + ", color=" + color + "]";
 	}
 
 }

@@ -228,6 +228,7 @@ public class ProcessController {
 	public void clearConsole() {
 		getTextPane().setText("");
 		getConsolePreview().clear();
+		getConsolePreview().clearCounters();
 	}
 
 }

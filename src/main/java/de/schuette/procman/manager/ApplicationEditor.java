@@ -5,6 +5,7 @@ import static java.util.Objects.nonNull;
 
 import java.awt.BorderLayout;
 import java.awt.Color;
+import java.awt.Component;
 import java.awt.Dimension;
 import java.awt.FlowLayout;
 import java.awt.Graphics2D;
@@ -17,6 +18,7 @@ import java.nio.charset.Charset;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
@@ -48,11 +50,15 @@ import javax.swing.SwingConstants;
 import javax.swing.border.BevelBorder;
 import javax.swing.border.EmptyBorder;
 import javax.swing.table.DefaultTableModel;
+import javax.swing.table.TableCellRenderer;
+import javax.swing.table.TableColumn;
 
+import de.schuette.procman.Counter;
 import de.schuette.procman.FileChooserCallback;
 import de.schuette.procman.FileUtil;
 import de.schuette.procman.ProcessDescriptor;
 import de.schuette.procman.Resources;
+import de.schuette.procman.consolepreview.ConsolePreview;
 import de.schuette.procman.themes.ThemeUtil;
 import javafx.stage.FileChooser.ExtensionFilter;
 
@@ -69,6 +75,8 @@ public class ApplicationEditor extends JDialog {
 	private JTabbedPane tabbedPane;
 	private JTable tblEnv;
 	private DefaultTableModel variables;
+	private JTable tblExpressions;
+	private DefaultTableModel expressions;
 
 	/**
 	 * Launch the application.
@@ -107,17 +115,86 @@ public class ApplicationEditor extends JDialog {
 
 		JLabel lblyouCanAdd = new JLabel(
 		    "<html>You can add regular expression patterns that will be counted while watching the application output. Up to 6 counter expressions are supported per application. Use the Java Regular Expression syntax for your counter expressions.</html>");
+
+		JScrollPane scrollPane_2 = new JScrollPane();
 		GroupLayout gl_counterPanel = new GroupLayout(counterPanel);
 		gl_counterPanel.setHorizontalGroup(gl_counterPanel.createParallelGroup(Alignment.LEADING)
 		    .addGroup(gl_counterPanel.createSequentialGroup()
 		        .addContainerGap()
-		        .addComponent(lblyouCanAdd)
-		        .addContainerGap(400, Short.MAX_VALUE)));
+		        .addGroup(gl_counterPanel.createParallelGroup(Alignment.LEADING)
+		            .addGroup(gl_counterPanel.createSequentialGroup()
+		                .addComponent(scrollPane_2, GroupLayout.DEFAULT_SIZE, 436, Short.MAX_VALUE)
+		                .addContainerGap())
+		            .addGroup(gl_counterPanel.createSequentialGroup()
+		                .addComponent(lblyouCanAdd, GroupLayout.DEFAULT_SIZE, GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+		                .addGap(0)))));
 		gl_counterPanel.setVerticalGroup(gl_counterPanel.createParallelGroup(Alignment.LEADING)
 		    .addGroup(gl_counterPanel.createSequentialGroup()
 		        .addContainerGap()
 		        .addComponent(lblyouCanAdd)
-		        .addContainerGap(398, Short.MAX_VALUE)));
+		        .addGap(8)
+		        .addComponent(scrollPane_2, GroupLayout.DEFAULT_SIZE, 379, Short.MAX_VALUE)
+		        .addContainerGap()));
+
+		tblExpressions = new JTable();
+		this.expressions = new DefaultTableModel(new Object[][] {}, new String[] {
+		    "Name", "Regular expressions", "Color"
+		});
+		tblExpressions.setModel(expressions);
+		TableColumn column = tblExpressions.getColumnModel()
+		    .getColumn(2);
+		column.setCellEditor(new ColorChooserCellEditor());
+		column.setCellRenderer(new TableCellRenderer() {
+
+			@Override
+			public Component getTableCellRendererComponent(JTable table, Object value, boolean isSelected, boolean hasFocus,
+			    int row, int column) {
+				JLabel label = new JLabel();
+				Color color = (Color) value;
+				label.setForeground(color);
+				label.setBackground(color);
+				label.setOpaque(true);
+				return label;
+			}
+		});
+		scrollPane_2.setViewportView(tblExpressions);
+
+		JToolBar toolBar_1 = new JToolBar();
+		toolBar_1.setFloatable(false);
+		toolBar_1.setRollover(true);
+		toolBar_1.setOrientation(SwingConstants.VERTICAL);
+		scrollPane_2.setRowHeaderView(toolBar_1);
+
+		JButton btnPlusExpression = new JButton(new AbstractAction(null, new ImageIcon(Resources.getPlus())) {
+
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				expressions.addRow(new Object[] {
+				    "", "", Color.GREEN
+				});
+			}
+		});
+		btnPlusExpression.setToolTipText("Add new counter expression.");
+		toolBar_1.add(btnPlusExpression);
+
+		JButton btnMinusExpression = new JButton(new AbstractAction(null, new ImageIcon(Resources.getMinus())) {
+
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				int row = tblExpressions.getSelectedRow();
+				if (row == -1) {
+					JOptionPane.showMessageDialog(ApplicationEditor.this, "Please select the expression to remove first.",
+					    "No selection", JOptionPane.WARNING_MESSAGE);
+				} else {
+					expressions.removeRow(row);
+					if (expressions.getRowCount() > 0) {
+						tblExpressions.setRowSelectionInterval(expressions.getRowCount() - 1, expressions.getRowCount() - 1);
+					}
+				}
+			}
+		});
+		btnMinusExpression.setToolTipText("Remove counter expression.");
+		toolBar_1.add(btnMinusExpression);
 		counterPanel.setLayout(gl_counterPanel);
 
 		JLabel lblNewLabel_1 = new JLabel(
@@ -158,9 +235,14 @@ public class ApplicationEditor extends JDialog {
 
 			@Override
 			public void actionPerformed(ActionEvent e) {
-				variables.addRow(new String[] {
-				    "", ""
-				});
+				if (variables.getRowCount() >= ConsolePreview.MAX_COUNTERS) {
+					JOptionPane.showMessageDialog(ApplicationEditor.this, "Only 6 counter expressions are supported.",
+					    "Too many counter expresions", JOptionPane.WARNING_MESSAGE);
+				} else {
+					variables.addRow(new String[] {
+					    "", ""
+					});
+				}
 			}
 		});
 		toolBar.add(btnPlus);
@@ -454,6 +536,17 @@ public class ApplicationEditor extends JDialog {
 							ApplicationEditor.this.processDescriptor.setEnvironment(vars);
 						}
 
+						List<Counter> counters = new LinkedList<>();
+						for (int i = 0; i < expressions.getRowCount(); i++) {
+							String name = ((String) expressions.getValueAt(i, 0)).trim();
+							String expression = ((String) expressions.getValueAt(i, 1)).trim();
+							Color color = (Color) expressions.getValueAt(i, 2);
+							if (!name.isEmpty() && !expression.isEmpty()) {
+								counters.add(new Counter(name, expression, color));
+							}
+						}
+						ApplicationEditor.this.processDescriptor.setCounters(counters);
+
 						dispose();
 					}
 				});
@@ -514,6 +607,14 @@ public class ApplicationEditor extends JDialog {
 						    key.trim(), value
 						});
 					}
+				}
+			}
+
+			if (processDescriptor.hasCounters()) {
+				for (Counter c : processDescriptor.getCounters()) {
+					expressions.addRow(new Object[] {
+					    c.getName(), c.getRegexp(), c.getColor()
+					});
 				}
 			}
 

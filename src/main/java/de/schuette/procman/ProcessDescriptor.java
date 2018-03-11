@@ -8,10 +8,10 @@ import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.Serializable;
 import java.nio.charset.Charset;
+import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 
-import javax.swing.DefaultListModel;
 import javax.swing.ImageIcon;
 
 public class ProcessDescriptor implements Serializable {
@@ -29,7 +29,7 @@ public class ProcessDescriptor implements Serializable {
 	private Charset charset;
 	private Map<String, String> environment;
 
-	private DefaultListModel<Counter> counters;
+	private List<Counter> counters;
 
 	public ProcessDescriptor() {
 		super();
@@ -42,7 +42,11 @@ public class ProcessDescriptor implements Serializable {
 		return nonNull(environment);
 	}
 
-	public DefaultListModel<Counter> getCounters() {
+	public void setCounters(List<Counter> counters) {
+		this.counters = counters;
+	}
+
+	public List<Counter> getCounters() {
 		return counters;
 	}
 
