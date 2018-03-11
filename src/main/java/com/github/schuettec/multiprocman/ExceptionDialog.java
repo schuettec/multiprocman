@@ -53,6 +53,7 @@ public class ExceptionDialog extends JDialog {
 	private ExceptionDialog(String message, Exception exception) {
 		requireNonNull(message, "Message must not be null.");
 		requireNonNull(exception, "Exception must not be null.");
+		setIconImage(Resources.getApplicationIcon());
 		setModal(true);
 		setTitle("Exception");
 		setAlwaysOnTop(true);
