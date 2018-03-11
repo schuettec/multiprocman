@@ -3,6 +3,9 @@ package de.schuette.procman;
 import java.awt.Color;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import java.util.regex.PatternSyntaxException;
+
+import javax.swing.JOptionPane;
 
 public class Counter {
 	private String name;
@@ -46,10 +49,13 @@ public class Counter {
 		try {
 			this.pattern = Pattern.compile(regexp);
 			return true;
-		} catch (Exception e) {
+		} catch (PatternSyntaxException e) {
 			if (raiseException) {
-				ExceptionDialog.showException(e, "Error while compiling regular expression: " + regexp);
+				JOptionPane.showMessageDialog(null,
+				    String.format("The expression %s is not a valid regular expression. %s", regexp, e.getMessage()),
+				    "Invalid expression", JOptionPane.ERROR_MESSAGE);
 			}
+			e.printStackTrace();
 			return false;
 		}
 	}

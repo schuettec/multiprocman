@@ -542,7 +542,12 @@ public class ApplicationEditor extends JDialog {
 							String expression = ((String) expressions.getValueAt(i, 1)).trim();
 							Color color = (Color) expressions.getValueAt(i, 2);
 							if (!name.isEmpty() && !expression.isEmpty()) {
-								counters.add(new Counter(name, expression, color));
+								Counter counterDescriptor = new Counter(name, expression, color);
+								boolean valid = counterDescriptor.testRegexp();
+								if (!valid) {
+									return;
+								}
+								counters.add(counterDescriptor);
 							}
 						}
 						ApplicationEditor.this.processDescriptor.setCounters(counters);
