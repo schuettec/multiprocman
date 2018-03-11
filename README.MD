@@ -43,3 +43,15 @@ You can [download the latest version of this application](https://bintray.com/sc
 ### The launch configuration editor
 
 ![alt text](etc/screenshots/01.png)
+
+### The category editor
+
+![alt text](etc/screenshots/02.png)
+
+### The launch configuration editor
+
+![alt text](etc/screenshots/03.png)
+
+### The application manager
+
+![alt text](etc/screenshots/04.png)
