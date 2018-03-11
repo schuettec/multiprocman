@@ -1,1 +1,7 @@
 language: java
+script: mvn install
+deploy:
+  provider: bintray
+  file: "descriptor.json"
+  user: $bintrayuser
+  key: $bintraykey
