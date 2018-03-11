@@ -6,6 +6,10 @@
 3. [Download](#download)
 4. [Screenshots](#screenshots)
 5. [Launch configurations](#launch-configurations)
+6. [Application](#application)
+7. [Environment](#environment)
+8. [Counter expressions](#counter-expressions)
+
 
 ## Long story short
 
@@ -76,4 +80,20 @@ __Charset__: The charset attribute is used to capture the application output usi
 
 __Working directory__: The working directory is the path to the folder within the application's process will be started. For example the Git executables may be available in `C:\Program Files\Git\bin` so this will be the path that must be set in the command. But if you want to run Git in your repository folder the working directory must be `C:\git\myRepo`.
 
-  
+### Environment
+
+![alt text](etc/screenshots/05.png)
+
+The environment tab lets you specify overriding variable values for the environment. Normally the started applications will inherit the environment variables from the running Multi-Process Manager. To specify another value for a variable, add the variable name in the list and specify a new value. This new value will only be visible for this application when started.
+
+The overriding values do not affect other processes on your system.
+
+### Counter expressions
+
+![alt text](etc/screenshots/06.png)
+
+The output of `std\out` and `std\err` of any started application is captured by the Multi-Process Manager. While the application's output is appended to the viewer the Multi-Process Manager enables you to count for matches of regular expressions. 
+
+In the above tab you can add a counter expression by specifying a name, a [Java Regular Expression](https://docs.oracle.com/javase/9/docs/api/java/util/regex/Pattern.html) and a color to easily recover the counter in the view.
+
+The first 6 counter expressions will be displayed in the log file overview. The whole set of counter expressions will be represented by a button in the toolbar. To reset a counter expression click on the corresponding button.
