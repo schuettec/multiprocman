@@ -3,7 +3,21 @@
 	<modelVersion>4.0.0</modelVersion>
 	<groupId>com.github.schuettec.multiprocman</groupId>
 	<artifactId>multiprocman</artifactId>
-	<version>0.0.1-SNAPSHOT</version>
+	<version>0.0.1</version>
+
+	<scm>
+		<connection>scm:git:https://github.com/schuettec/multiprocman.git</connection>
+		<developerConnection>scm:git:git@github.com:schuettec/multiprocman.git</developerConnection>
+		<url>https://github.com/schuettec/multiprocman.git</url>
+		<tag>HEAD</tag>
+	</scm>
+	<distributionManagement>
+		<repository>
+			<id>bintray-schuettec-maven</id>
+			<name>schuettec-maven</name>
+			<url>https://api.bintray.com/maven/schuettec/maven/com.github.schuettec.multiprocman/;publish=1</url>
+		</repository>
+	</distributionManagement>
 
 	<repositories>
 		<repository>
@@ -168,13 +182,6 @@
 						</configuration>
 					</execution>
 				</executions>
-			</plugin>
-			<plugin>
-				<groupId>org.apache.maven.plugins</groupId>
-				<artifactId>maven-release-plugin</artifactId>
-				<configuration>
-					<preparationGoals>clean install</preparationGoals>
-				</configuration>
 			</plugin>
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>

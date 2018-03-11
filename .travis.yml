@@ -1,7 +1,12 @@
 language: java
 script: mvn install
+
+before_install:
+- ./etc/before.sh
+
 deploy:
-  provider: bintray
-  file: "descriptor.json"
-  user: "schuettec"
-  key: "d73cfad7c7fc9025a8cb8ece5fdfe394310a2793"
+  skip_cleanup: true
+  provider: script
+  script: mvn deploy
+  on:
+    branch: master
