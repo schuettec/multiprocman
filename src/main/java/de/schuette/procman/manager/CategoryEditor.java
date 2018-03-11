@@ -34,7 +34,6 @@ import javax.swing.border.EmptyBorder;
 import de.schuette.procman.FileChooserCallback;
 import de.schuette.procman.FileUtil;
 import de.schuette.procman.Resources;
-import de.schuette.procman.themes.ThemeUtil;
 import javafx.stage.FileChooser.ExtensionFilter;
 
 public class CategoryEditor extends JDialog {
@@ -43,19 +42,6 @@ public class CategoryEditor extends JDialog {
 	private JTextField txtName;
 	private JTextField txtDescription;
 	private Category category;
-
-	/**
-	 * Launch the application.
-	 */
-	public static void main(String[] args) {
-		try {
-			ThemeUtil.setLookAndFeel();
-			Category category = CategoryEditor.newCategory();
-			System.out.println(category);
-		} catch (Exception e) {
-			e.printStackTrace();
-		}
-	}
 
 	/**
 	 * Create the dialog.

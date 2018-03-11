@@ -6,7 +6,6 @@ import java.awt.BorderLayout;
 import java.awt.Component;
 import java.awt.Cursor;
 import java.awt.Dimension;
-import java.awt.EventQueue;
 import java.awt.FlowLayout;
 import java.awt.datatransfer.DataFlavor;
 import java.awt.datatransfer.StringSelection;
@@ -17,6 +16,8 @@ import java.awt.event.KeyEvent;
 import java.awt.event.WindowEvent;
 import java.awt.event.WindowListener;
 import java.io.File;
+import java.util.Arrays;
+import java.util.List;
 
 import javax.swing.AbstractAction;
 import javax.swing.DefaultListModel;
@@ -51,7 +52,6 @@ import de.schuette.procman.console.ScrollableAnsiColorTextPaneContainer;
 import de.schuette.procman.console.SearchFieldListener;
 import de.schuette.procman.consolepreview.ConsolePreview;
 import de.schuette.procman.manager.ProcessManager;
-import de.schuette.procman.themes.ThemeUtil;
 import javafx.stage.FileChooser.ExtensionFilter;
 
 public class MainFrame extends JFrame implements WindowListener, ProcessListener, SearchFieldListener {
@@ -122,33 +122,9 @@ public class MainFrame extends JFrame implements WindowListener, ProcessListener
 	private JButton btnClear;
 	private JPanel panel;
 	private JButton btnSave;
-
 	private JButton btnClose;
 
-	/**
-	 * Launch the application.
-	 */
-	public static void main(String[] args) {
-		EventQueue.invokeLater(new Runnable() {
-			@Override
-			public void run() {
-				try {
-					ThemeUtil.setLookAndFeel();
-					final MainFrame frame = new MainFrame();
-					frame.setExtendedState(JFrame.MAXIMIZED_BOTH);
-					// ProcessDescriptor descriptor = new ProcessDescriptor();
-					// descriptor.setCommand("ping", "google.de", "-n", "10000");
-					// descriptor.setCharset(Charset.forName("ibm850"));
-					// descriptor.setTitle("Ping google.de");
-					// frame.addProcessController(new ProcessController(descriptor).start());
-					frame.setVisible(true);
-				} catch (Exception e) {
-					e.printStackTrace();
-				}
-			}
-		});
-
-	}
+	private List<Component> defaultToolbarButtons;
 
 	private static class Holder {
 		private static final MainFrame INSTANCE = new MainFrame();
@@ -274,6 +250,7 @@ public class MainFrame extends JFrame implements WindowListener, ProcessListener
 		panel.add(scrollPane);
 
 		toolBar = new JToolBar();
+		toolBar.setLayout(new FlowLayout(FlowLayout.LEFT, 2, 2));
 		toolBar.setRollover(true);
 		panel.add(toolBar, BorderLayout.SOUTH);
 		toolBar.setFloatable(false);
@@ -438,6 +415,10 @@ public class MainFrame extends JFrame implements WindowListener, ProcessListener
 		chckbxmntmAutoScrollTo = new JCheckBoxMenuItem("Auto scroll to bottom");
 		chckbxmntmAutoScrollTo.setModel(autoScrollToBottomToggleModel);
 		mnView.add(chckbxmntmAutoScrollTo);
+
+		this.defaultToolbarButtons = Arrays.asList(new Component[] {
+		    btnClose, btnSave, btnClear, btnStop, btnStopForcibly, btnRestart
+		});
 	}
 
 	private void selectConsole(ProcessController selectedValue) {
@@ -456,6 +437,7 @@ public class MainFrame extends JFrame implements WindowListener, ProcessListener
 
 		}
 
+		clearProcessToolbar();
 		disableProcessToolbar();
 
 		if (nonNull(selectedValue)) {
@@ -463,12 +445,30 @@ public class MainFrame extends JFrame implements WindowListener, ProcessListener
 			contentPane.add(consoleScroller, BorderLayout.CENTER);
 			consoleScroller.addAutoScrollToBottomListener(autoScrollToBottomToggleModel);
 			consoleScroller.addSearchFieldListener(this);
+
+			addCounterToToolbar(selectedValue.getCounterExpressions());
 		}
 		this.currentProcess = selectedValue;
 		processCurrentState();
 
 		this.revalidate();
 		this.repaint();
+	}
+
+	private void addCounterToToolbar(CounterExpressions counterExpressions) {
+		List<JButton> buttons = counterExpressions.getButtons();
+		for (JButton b : buttons) {
+			toolBar.add(b);
+		}
+	}
+
+	private void clearProcessToolbar() {
+		Component[] components = toolBar.getComponents();
+		for (Component c : components) {
+			if (!defaultToolbarButtons.contains(c)) {
+				toolBar.remove(c);
+			}
+		}
 	}
 
 	public void addProcessController(ProcessController processController) {
@@ -593,8 +593,8 @@ public class MainFrame extends JFrame implements WindowListener, ProcessListener
 	}
 
 	private void disableProcessToolbar() {
-		btnClose.setEnabled(false);
 		chckbxmntmFind.setEnabled(false);
+		btnClose.setEnabled(false);
 		btnSave.setEnabled(false);
 		btnClear.setEnabled(false);
 		btnStop.setEnabled(false);

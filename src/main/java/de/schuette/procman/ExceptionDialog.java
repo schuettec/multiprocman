@@ -28,8 +28,6 @@ import javax.swing.border.EmptyBorder;
 
 import org.apache.commons.lang3.exception.ExceptionUtils;
 
-import de.schuette.procman.themes.ThemeUtil;
-
 public class ExceptionDialog extends JDialog {
 
 	private final JPanel contentPanel = new JPanel();
@@ -40,15 +38,6 @@ public class ExceptionDialog extends JDialog {
 			ExceptionDialog.this.dispose();
 		}
 	};
-
-	/**
-	 * Launch the application.
-	 */
-	public static void main(String[] args) {
-		ThemeUtil.setLookAndFeel();
-		showException(new NullPointerException(),
-		    "Message Message Message Message Message Message Message Message Message Message Message Message Message Message Message Message ");
-	}
 
 	public static void showException(Exception exception, String messageFormat, Object... param) {
 		new ExceptionDialog(String.format(messageFormat, param), exception);

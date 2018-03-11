@@ -51,7 +51,7 @@ public class ProcessController {
 	private AnsiColorTextPane textPane;
 	private ConsolePreview consolePreview;
 	private ProcessDescriptor processDescriptor;
-
+	private CounterExpressions counterExpressions;
 	private Thread processObserver;
 
 	private Process process;
@@ -62,10 +62,17 @@ public class ProcessController {
 		this.textPane = new AnsiColorTextPane();
 		ThemeUtil.theme(textPane, AnsiColorTextPaneTheme.class);
 		this.consoleScroller = new ScrollableAnsiColorTextPaneContainer(textPane);
-		this.consolePreview = new ConsolePreview(processDescriptor);
+		this.consolePreview = new ConsolePreview(this);
 		this.textPane.addAppendListener(consolePreview);
 		processListener.addListener(consolePreview);
+		this.counterExpressions = new CounterExpressions(this);
+
+		this.textPane.addAppendListener(counterExpressions);
 		this.state = State.NOT_STARTED;
+	}
+
+	public ProcessDescriptor getProcessDescriptor() {
+		return processDescriptor;
 	}
 
 	public void addProcessListener(ProcessListener l) {
@@ -202,6 +209,11 @@ public class ProcessController {
 		return consolePreview;
 	}
 
+	public void updateListeners() {
+		processListener.fire()
+		    .processUpdate(ProcessController.this);
+	}
+
 	/**
 	 * Shuts down all available {@link ProcessController}s.
 	 */
@@ -228,7 +240,11 @@ public class ProcessController {
 	public void clearConsole() {
 		getTextPane().setText("");
 		getConsolePreview().clear();
-		getConsolePreview().clearCounters();
+		counterExpressions.clear();
+	}
+
+	public CounterExpressions getCounterExpressions() {
+		return counterExpressions;
 	}
 
 }

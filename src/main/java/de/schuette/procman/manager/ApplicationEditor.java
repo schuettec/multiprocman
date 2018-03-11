@@ -58,8 +58,6 @@ import de.schuette.procman.FileChooserCallback;
 import de.schuette.procman.FileUtil;
 import de.schuette.procman.ProcessDescriptor;
 import de.schuette.procman.Resources;
-import de.schuette.procman.consolepreview.ConsolePreview;
-import de.schuette.procman.themes.ThemeUtil;
 import javafx.stage.FileChooser.ExtensionFilter;
 
 public class ApplicationEditor extends JDialog {
@@ -77,21 +75,6 @@ public class ApplicationEditor extends JDialog {
 	private DefaultTableModel variables;
 	private JTable tblExpressions;
 	private DefaultTableModel expressions;
-
-	/**
-	 * Launch the application.
-	 */
-	public static void main(String[] args) {
-		try {
-			ThemeUtil.setLookAndFeel();
-			ProcessDescriptor d = new ProcessDescriptor();
-			d.setCharset(Charset.forName("ibm850"));
-			ApplicationEditor.editProcessDescriptor(d);
-			System.out.println(d);
-		} catch (Exception e) {
-			e.printStackTrace();
-		}
-	}
 
 	/**
 	 * Create the dialog.
@@ -235,14 +218,9 @@ public class ApplicationEditor extends JDialog {
 
 			@Override
 			public void actionPerformed(ActionEvent e) {
-				if (variables.getRowCount() >= ConsolePreview.MAX_COUNTERS) {
-					JOptionPane.showMessageDialog(ApplicationEditor.this, "Only 6 counter expressions are supported.",
-					    "Too many counter expresions", JOptionPane.WARNING_MESSAGE);
-				} else {
-					variables.addRow(new String[] {
-					    "", ""
-					});
-				}
+				variables.addRow(new String[] {
+				    "", ""
+				});
 			}
 		});
 		toolBar.add(btnPlus);
