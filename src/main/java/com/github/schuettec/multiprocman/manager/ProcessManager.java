@@ -11,6 +11,8 @@ import java.awt.datatransfer.Transferable;
 import java.awt.event.ActionEvent;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
+import java.awt.event.WindowEvent;
+import java.awt.event.WindowListener;
 import java.util.Arrays;
 import java.util.Iterator;
 import java.util.List;
@@ -23,7 +25,6 @@ import javax.swing.DropMode;
 import javax.swing.ImageIcon;
 import javax.swing.JButton;
 import javax.swing.JComponent;
-import javax.swing.JDialog;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JList;
@@ -200,7 +201,41 @@ public class ProcessManager extends JFrame {
 	public ProcessManager() {
 		setIconImage(Resources.getApplicationIcon());
 		setTitle("Application manager");
-		setDefaultCloseOperation(JDialog.DISPOSE_ON_CLOSE);
+		addWindowListener(new WindowListener() {
+
+			@Override
+			public void windowOpened(WindowEvent e) {
+			}
+
+			@Override
+			public void windowIconified(WindowEvent e) {
+			}
+
+			@Override
+			public void windowDeiconified(WindowEvent e) {
+			}
+
+			@Override
+			public void windowDeactivated(WindowEvent e) {
+			}
+
+			@Override
+			public void windowClosing(WindowEvent e) {
+				if (!MainFrame.getInstance()
+				    .isVisible()) {
+					ThemeUtil.stopJavaFX();
+				}
+				dispose();
+			}
+
+			@Override
+			public void windowClosed(WindowEvent e) {
+			}
+
+			@Override
+			public void windowActivated(WindowEvent e) {
+			}
+		});
 		setPreferredSize(new Dimension(640, 480));
 		setSize(new Dimension(640, 480));
 		setLocationRelativeTo(null);
@@ -336,6 +371,7 @@ public class ProcessManager extends JFrame {
 									    "No selection", JOptionPane.WARNING_MESSAGE);
 								} else {
 									MainFrame mainFrame = MainFrame.getInstance();
+									mainFrame.setVisible(true);
 									Category selected = lstCategories.getSelectedValue();
 									DefaultListModel<ProcessDescriptor> processTemplates = selected.getProcessTemplates();
 									ProcessDescriptor[] array = new ProcessDescriptor[processTemplates.size()];
@@ -433,6 +469,7 @@ public class ProcessManager extends JFrame {
 			    "No selection", JOptionPane.WARNING_MESSAGE);
 		} else {
 			MainFrame mainFrame = MainFrame.getInstance();
+			mainFrame.setVisible(true);
 			List<ProcessDescriptor> selected = lstProcesses.getSelectedValuesList();
 			Iterator<ProcessDescriptor> iterator = selected.iterator();
 			startAll(mainFrame, iterator);

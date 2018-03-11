@@ -10,7 +10,9 @@ import java.util.concurrent.Semaphore;
 import java.util.function.Consumer;
 
 import com.github.schuettec.multiprocman.themes.ThemeUtil;
+
 import javafx.collections.ObservableList;
+import javafx.stage.DirectoryChooser;
 import javafx.stage.FileChooser;
 import javafx.stage.FileChooser.ExtensionFilter;
 
@@ -59,7 +61,30 @@ public class FileUtil {
 			}
 		});
 		s.acquireUninterruptibly();
-		ThemeUtil.stopJavaFX();
+	}
+
+	public static void showDirectoryChooser(FileChooserCallback fileConsumer) {
+		requireNonNull(fileConsumer, "File consumer must not be null!");
+		ThemeUtil.startJavaFX();
+		Semaphore s = new Semaphore(1);
+		s.acquireUninterruptibly();
+		javafx.application.Platform.runLater(new Runnable() {
+			@Override
+			public void run() {
+				DirectoryChooser fileChooser = new DirectoryChooser();
+				fileChooser.setTitle("Find directory");
+				File selectedFile = null;
+				selectedFile = fileChooser.showDialog(null);
+				if (nonNull(selectedFile)) {
+					fileConsumer.fileSelected(selectedFile, null);
+				} else {
+					fileConsumer.noFile();
+				}
+				s.release();
+			}
+		});
+
+		s.acquireUninterruptibly();
 	}
 
 }

@@ -52,6 +52,8 @@ import com.github.schuettec.multiprocman.console.ScrollableAnsiColorTextPaneCont
 import com.github.schuettec.multiprocman.console.SearchFieldListener;
 import com.github.schuettec.multiprocman.consolepreview.ConsolePreview;
 import com.github.schuettec.multiprocman.manager.ProcessManager;
+import com.github.schuettec.multiprocman.themes.ThemeUtil;
+
 import javafx.stage.FileChooser.ExtensionFilter;
 
 public class MainFrame extends JFrame implements WindowListener, ProcessListener, SearchFieldListener {
@@ -131,7 +133,6 @@ public class MainFrame extends JFrame implements WindowListener, ProcessListener
 	}
 
 	public static MainFrame getInstance() {
-		Holder.INSTANCE.setVisible(true);
 		return Holder.INSTANCE;
 	}
 
@@ -516,7 +517,9 @@ public class MainFrame extends JFrame implements WindowListener, ProcessListener
 
 			@Override
 			public void run() {
+
 				ProcessController.shutdown();
+				ThemeUtil.stopJavaFX();
 				setVisible(false);
 				dispose();
 			}

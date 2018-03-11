@@ -58,6 +58,7 @@ import com.github.schuettec.multiprocman.FileChooserCallback;
 import com.github.schuettec.multiprocman.FileUtil;
 import com.github.schuettec.multiprocman.ProcessDescriptor;
 import com.github.schuettec.multiprocman.Resources;
+
 import javafx.stage.FileChooser.ExtensionFilter;
 
 public class ApplicationEditor extends JDialog {
@@ -310,7 +311,23 @@ public class ApplicationEditor extends JDialog {
 		txtWorkingDir = new JTextField();
 		txtWorkingDir.setColumns(10);
 
-		JButton btnFindWorkingDir = new JButton("Find...");
+		JButton btnFindWorkingDir = new JButton(new AbstractAction("Find...") {
+
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				FileUtil.showDirectoryChooser(new FileChooserCallback() {
+
+					@Override
+					public void noFile() {
+					}
+
+					@Override
+					public void fileSelected(File file, ExtensionFilter extension) {
+						txtWorkingDir.setText(file.getAbsolutePath());
+					}
+				});
+			}
+		});
 
 		JLabel lblColorFor = new JLabel("Color:");
 		lblColorFor.setHorizontalAlignment(SwingConstants.RIGHT);
@@ -352,7 +369,7 @@ public class ApplicationEditor extends JDialog {
 					@Override
 					public void fileSelected(File file, ExtensionFilter extension) {
 						txtCommand.setText(file.getName());
-						txtTitle.setText(file.getName());
+						txtTitle.setText(file.getAbsolutePath());
 						if (nonNull(file.getParent())) {
 							txtWorkingDir.setText(file.getParent());
 						}

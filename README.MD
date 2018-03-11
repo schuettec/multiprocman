@@ -1,20 +1,21 @@
-# Multi process manager
+# Multi-Process Manager
 
 # Table of Contents
 1. [Long story short](#long-story-short)
-5. [Features](#features)
-2. [Download](#download)
-3. [Screenshots](#screenshots)
+2. [Features](#features)
+3. [Download](#download)
+4. [Screenshots](#screenshots)
+5. [Launch configurations](#launch-configurations)
 
 ## Long story short
 
-The Multi-process manager is a Java Swing application that helps managing multiple running applications. It was designed to be used by developers that need to start a lot of processes producing logs like Spring Boot applications, Tomcat-, JBoss- or any other server process. 
+The Multi-Process Manager is a Java Swing application that helps managing multiple running applications. It was designed to be used by developers that need to start a lot of processes producing logs like Spring Boot applications, Tomcat-, JBoss- or any other server process. 
 
 This application manages launch configurations for you and allows starting multiple applications simultaneously. Any output of the running applications is captured and presented in a neat window providing an overview over the log file so far as well as the log file itself. The view allows to easliy navigate through the running application at any time. 
 
 ## Features
 
-The Multi-process manager comes with the following features:
+The Multi-Process Manager comes with the following features:
 * a new user interface making things super easy
 * storing all launch configurations per user
 * managing launch configurations within categories
@@ -55,3 +56,21 @@ You can [download the latest version of this application](https://bintray.com/sc
 ### The application manager
 
 ![alt text](etc/screenshots/04.png)
+
+## Launch configurations
+
+The launch configuration editor view enables you add all required information to run an application inside the Multi-Process Manager.
+
+![alt text](etc/screenshots/03.png)
+
+In the tab "application" you can specify an icon for this launch configuration. It is recommended to use 24x24px images for application icons. Images with other dimensions will be scaled.
+
+The title is a short description of this application that is displayed in the overview window.
+
+The command is the full command line to start the application. The command must include the full path to the application/script/batch file (except the binary programs shipped with your OS). __Use the "Find..." button to select a__
+
+The charset attribute is used to capture the application output using the correct encoding. For windows command line applications the charset "IBM850" should be used. In most cases (especially Java apps) UTF-8 may be suitable.
+
+The working directory is the path to the folder within the application's process will be started. For example the Git executables may be available in `C:\Program Files\Git\bin` so this will be the path that must be set in the command. But if you want to run Git in your repository folder the working directory must be `C:\git\myRepo`.
+
+  
