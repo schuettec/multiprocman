@@ -161,7 +161,7 @@ public class ProcessController {
 
 						@Override
 						public void run() {
-							consoleScroller.appendANSI(nextLine + "\n");
+							consoleScroller.appendANSI(nextLine);
 							processListener.fire()
 							    .processUpdate(ProcessController.this);
 						}

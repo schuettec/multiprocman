@@ -120,6 +120,7 @@ public class AnsiColorTextPane extends JTextPane implements Appendable {
 
 	@Override
 	public void appendANSI(String s) { // convert ANSI color codes first
+		System.out.println(s);
 		int aPos = 0; // current char position in addString
 		int aIndex = 0; // index of next Escape sequence
 		int mIndex = 0; // index of "m" terminating Escape sequence
