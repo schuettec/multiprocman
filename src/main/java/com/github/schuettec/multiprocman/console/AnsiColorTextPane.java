@@ -97,21 +97,42 @@ public class AnsiColorTextPane extends JTextPane implements Appendable {
 	}
 
 	@Override
-	public void append(Color c, String s) {
-		_append(c, s);
+	public void append(Color c, String s, boolean isSupportAsciiCodes) {
+		_append(c, s, isSupportAsciiCodes);
 		appendListener.fire()
 		    .append(c, s);
 	}
 
-	private void _append(Color c, String s) {
+	private void _append(Color c, String s, boolean isSupportAsciiCodes) {
 		StyleContext lastStyleContext = lastStyleContext();
 		AttributeSet aset = lastStyleContext.addAttribute(SimpleAttributeSet.EMPTY, StyleConstants.Foreground, c);
-		int len = getDocument().getLength();
-		appendString(s, aset, len);
+		for (int i = 0; i < s.length(); i++) {
+			char charAt = s.charAt(i);
+			if (isASCIICode(charAt)) {
+				processASCIICode(charAt);
+			} else {
+				appendString(String.valueOf(charAt), aset);
+			}
+		}
 	}
 
-	private void appendString(String s, AttributeSet aset, int len) {
+	private void processASCIICode(char charAt) {
+		if (charAt == 0x8) {
+			try {
+				getDocument().remove(getDocument().getLength() - 1, 1);
+			} catch (BadLocationException e) {
+				e.printStackTrace();
+			}
+		}
+	}
+
+	private boolean isASCIICode(char character) {
+		return character == 0x8;
+	}
+
+	private void appendString(String s, AttributeSet aset) {
 		try {
+			int len = getDocument().getLength();
 			getDocument().insertString(len, s, aset);
 		} catch (BadLocationException e) {
 			e.printStackTrace();
@@ -119,8 +140,7 @@ public class AnsiColorTextPane extends JTextPane implements Appendable {
 	}
 
 	@Override
-	public void appendANSI(String s) { // convert ANSI color codes first
-		System.out.println(s);
+	public void appendANSI(String s, boolean isSupportAsciiCodes) { // convert ANSI color codes first
 		int aPos = 0; // current char position in addString
 		int aIndex = 0; // index of next Escape sequence
 		int mIndex = 0; // index of "m" terminating Escape sequence
@@ -132,7 +152,7 @@ public class AnsiColorTextPane extends JTextPane implements Appendable {
 		if (addString.length() > 0) {
 			aIndex = addString.indexOf("\u001B"); // find first escape
 			if (aIndex == -1) { // no escape/color change in this string, so just send it with current color
-				_append(colorCurrent, addString);
+				_append(colorCurrent, addString, isSupportAsciiCodes);
 				appendListener.fire()
 				    .append(colorCurrent, addString);
 				return;
@@ -141,7 +161,7 @@ public class AnsiColorTextPane extends JTextPane implements Appendable {
 
 			if (aIndex > 0) { // Escape is not first char, so send text up to first escape
 				tmpString = addString.substring(0, aIndex);
-				_append(colorCurrent, tmpString);
+				_append(colorCurrent, tmpString, isSupportAsciiCodes);
 				appendListener.fire()
 				    .append(colorCurrent, tmpString);
 				aPos = aIndex;
@@ -166,7 +186,7 @@ public class AnsiColorTextPane extends JTextPane implements Appendable {
 
 				if (aIndex == -1) { // if that was the last sequence of the input, send remaining text
 					tmpString = addString.substring(aPos, addString.length());
-					_append(colorCurrent, tmpString);
+					_append(colorCurrent, tmpString, isSupportAsciiCodes);
 					appendListener.fire()
 					    .append(colorCurrent, tmpString);
 					stillSearching = false;
@@ -177,7 +197,7 @@ public class AnsiColorTextPane extends JTextPane implements Appendable {
 				// the next
 				tmpString = addString.substring(aPos, aIndex);
 				aPos = aIndex;
-				_append(colorCurrent, tmpString);
+				_append(colorCurrent, tmpString, isSupportAsciiCodes);
 				appendListener.fire()
 				    .append(colorCurrent, tmpString);
 			} // while there's text in the input buffer

@@ -161,7 +161,7 @@ public class ProcessController {
 
 						@Override
 						public void run() {
-							consoleScroller.appendANSI(nextLine);
+							consoleScroller.appendANSI(nextLine, processDescriptor.isSupportAsciiCodes());
 							processListener.fire()
 							    .processUpdate(ProcessController.this);
 						}

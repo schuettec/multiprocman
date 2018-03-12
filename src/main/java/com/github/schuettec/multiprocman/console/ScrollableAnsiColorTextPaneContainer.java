@@ -302,17 +302,17 @@ public class ScrollableAnsiColorTextPaneContainer extends JScrollPane
 	}
 
 	@Override
-	public void append(Color c, String s) {
+	public void append(Color c, String s, boolean isSupportAsciiCodes) {
 		ignoreAdjustment = true;
-		textPane.append(c, s);
+		textPane.append(c, s, isSupportAsciiCodes);
 		scrollToBottomOnDemand();
 		ignoreAdjustment = false;
 	}
 
 	@Override
-	public void appendANSI(String s) {
+	public void appendANSI(String s, boolean isSupportAsciiCodes) {
 		ignoreAdjustment = true;
-		textPane.appendANSI(s);
+		textPane.appendANSI(s, isSupportAsciiCodes);
 		scrollToBottomOnDemand();
 		ignoreAdjustment = false;
 	}

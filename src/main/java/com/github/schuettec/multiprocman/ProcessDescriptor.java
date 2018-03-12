@@ -17,7 +17,7 @@ import javax.swing.ImageIcon;
 public class ProcessDescriptor implements Serializable {
 
 	/**
-	 * 
+	 *
 	 */
 	private static final long serialVersionUID = 1L;
 
@@ -28,6 +28,7 @@ public class ProcessDescriptor implements Serializable {
 	private Color color;
 	private Charset charset;
 	private Map<String, String> environment;
+	private boolean supportAsciiCodes;
 
 	private List<Counter> counters;
 
@@ -135,6 +136,14 @@ public class ProcessDescriptor implements Serializable {
 	public String toString() {
 		return "ProcessDescriptor [title=" + title + ", command=" + command + ", executionDirectory=" + executionDirectory
 		    + ", color=" + color + ", charset=" + charset + "]";
+	}
+
+	public boolean isSupportAsciiCodes() {
+		return supportAsciiCodes;
+	}
+
+	public void setSupportAsciiCodes(boolean supportAsciiCodes) {
+		this.supportAsciiCodes = supportAsciiCodes;
 	}
 
 }
