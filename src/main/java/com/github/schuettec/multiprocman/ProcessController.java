@@ -3,13 +3,13 @@ package com.github.schuettec.multiprocman;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
+import java.nio.charset.Charset;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Queue;
-import java.util.Scanner;
 import java.util.concurrent.ConcurrentLinkedQueue;
 
 import javax.swing.SwingUtilities;
@@ -124,23 +124,11 @@ public class ProcessController {
 					final InputStream inputStream = process.getInputStream();
 					final InputStream errorStream = process.getErrorStream();
 
-					try (Scanner input1 = new Scanner(inputStream, processDescriptor.getCharset()
-					    .name());
-					    Scanner input2 = new Scanner(errorStream, processDescriptor.getCharset()
-					        .name())) {
+					Charset charset = processDescriptor.getCharset();
+					try {
 						do {
-							if (inputStream.available() > 0) {
-								while (input1.hasNextLine()) {
-									String nextLine = input1.nextLine();
-									appendInEDT(nextLine);
-								}
-							}
-							if (errorStream.available() > 0) {
-								while (input2.hasNextLine()) {
-									String nextLine = input2.nextLine();
-									appendInEDT(nextLine);
-								}
-							}
+							readNext(charset, inputStream);
+							readNext(charset, errorStream);
 						} while (process.isAlive());
 					} catch (Exception e) {
 						updateState(State.ABANDONED);
@@ -155,6 +143,15 @@ public class ProcessController {
 						controllers.remove(ProcessController.this);
 					} catch (InterruptedException e) {
 					}
+				}
+			}
+
+			private void readNext(Charset charset, InputStream stream) throws IOException {
+				int available = 0;
+				if ((available = stream.available()) > 0) {
+					byte[] data = new byte[available];
+					int amount = stream.read(data);
+					appendInEDT(new String(data, 0, amount, charset));
 				}
 			}
 
