@@ -31,6 +31,7 @@ import javax.swing.GroupLayout;
 import javax.swing.GroupLayout.Alignment;
 import javax.swing.ImageIcon;
 import javax.swing.JButton;
+import javax.swing.JCheckBox;
 import javax.swing.JColorChooser;
 import javax.swing.JComboBox;
 import javax.swing.JComponent;
@@ -76,10 +77,11 @@ public class ApplicationEditor extends JDialog {
 	private DefaultTableModel variables;
 	private JTable tblExpressions;
 	private DefaultTableModel expressions;
+	private JCheckBox chckbxEnablesExperimentalAscii;
 
 	/**
 	 * Create the dialog.
-	 * 
+	 *
 	 * @param category
 	 */
 	private ApplicationEditor(ProcessDescriptor process) {
@@ -88,7 +90,7 @@ public class ApplicationEditor extends JDialog {
 		setTitle("Application");
 		setDefaultCloseOperation(JDialog.DISPOSE_ON_CLOSE);
 		this.setPreferredSize(new Dimension(430, 200));
-		this.setSize(new Dimension(477, 523));
+		this.setSize(new Dimension(487, 593));
 		this.setLocationRelativeTo(null);
 		getContentPane().setLayout(new BorderLayout());
 
@@ -386,13 +388,19 @@ public class ApplicationEditor extends JDialog {
 			}
 		});
 
+		JLabel lblAsciiCodeSupport = new JLabel("ASCII code support:");
+
+		this.chckbxEnablesExperimentalAscii = new JCheckBox(
+		    "<html>Enables experimental ASCII code support for formatted application output.</html>");
+
 		GroupLayout gl_contentPanel = new GroupLayout(mainPanel);
 		gl_contentPanel.setHorizontalGroup(gl_contentPanel.createParallelGroup(Alignment.LEADING)
-		    .addGroup(gl_contentPanel.createSequentialGroup()
+		    .addGroup(Alignment.TRAILING, gl_contentPanel.createSequentialGroup()
 		        .addContainerGap()
-		        .addGroup(gl_contentPanel.createParallelGroup(Alignment.LEADING)
-		            .addComponent(lblPleaseFillIn)
-		            .addGroup(gl_contentPanel.createSequentialGroup()
+		        .addGroup(gl_contentPanel.createParallelGroup(Alignment.TRAILING)
+		            .addComponent(btnFindWorkingDir, GroupLayout.PREFERRED_SIZE, 98, GroupLayout.PREFERRED_SIZE)
+		            .addComponent(lblPleaseFillIn, Alignment.LEADING)
+		            .addGroup(Alignment.LEADING, gl_contentPanel.createSequentialGroup()
 		                .addGroup(gl_contentPanel.createParallelGroup(Alignment.LEADING, false)
 		                    .addGroup(gl_contentPanel.createSequentialGroup()
 		                        .addGap(1)
@@ -404,33 +412,36 @@ public class ApplicationEditor extends JDialog {
 		                .addGroup(gl_contentPanel.createParallelGroup(Alignment.LEADING)
 		                    .addGroup(gl_contentPanel.createSequentialGroup()
 		                        .addPreferredGap(ComponentPlacement.RELATED)
-		                        .addComponent(scrollPane, GroupLayout.DEFAULT_SIZE, 258, Short.MAX_VALUE))
+		                        .addComponent(scrollPane, GroupLayout.DEFAULT_SIZE, 340, Short.MAX_VALUE))
 		                    .addGroup(gl_contentPanel.createSequentialGroup()
 		                        .addComponent(lblIcon, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE,
 		                            GroupLayout.PREFERRED_SIZE)
-		                        .addPreferredGap(ComponentPlacement.RELATED, 41, Short.MAX_VALUE)
+		                        .addPreferredGap(ComponentPlacement.RELATED, 123, Short.MAX_VALUE)
 		                        .addComponent(btnDefaultIcon)
 		                        .addPreferredGap(ComponentPlacement.RELATED)
 		                        .addComponent(btnFindIcon, GroupLayout.PREFERRED_SIZE, 98, GroupLayout.PREFERRED_SIZE))
-		                    .addComponent(txtTitle, GroupLayout.DEFAULT_SIZE, 258, Short.MAX_VALUE)))
-		            .addGroup(gl_contentPanel.createSequentialGroup()
+		                    .addComponent(txtTitle, GroupLayout.DEFAULT_SIZE, 340, Short.MAX_VALUE)))
+		            .addGroup(Alignment.LEADING, gl_contentPanel.createSequentialGroup()
 		                .addGroup(gl_contentPanel.createParallelGroup(Alignment.TRAILING, false)
 		                    .addComponent(lblColorFor, Alignment.LEADING, GroupLayout.DEFAULT_SIZE,
 		                        GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
 		                    .addComponent(lblWorkingDirectory, GroupLayout.DEFAULT_SIZE, GroupLayout.DEFAULT_SIZE,
 		                        Short.MAX_VALUE)
-		                    .addComponent(lblCharset, GroupLayout.DEFAULT_SIZE, 91, Short.MAX_VALUE))
+		                    .addComponent(lblCharset, GroupLayout.DEFAULT_SIZE, 91, Short.MAX_VALUE)
+		                    .addComponent(lblAsciiCodeSupport))
 		                .addPreferredGap(ComponentPlacement.RELATED)
 		                .addGroup(gl_contentPanel.createParallelGroup(Alignment.LEADING)
-		                    .addComponent(btnFindWorkingDir, GroupLayout.PREFERRED_SIZE, 98, GroupLayout.PREFERRED_SIZE)
+		                    .addGroup(gl_contentPanel.createSequentialGroup()
+		                        .addComponent(chckbxEnablesExperimentalAscii, GroupLayout.DEFAULT_SIZE, 338,
+		                            Short.MAX_VALUE)
+		                        .addPreferredGap(ComponentPlacement.RELATED))
 		                    .addGroup(gl_contentPanel.createSequentialGroup()
 		                        .addComponent(pnlColor, GroupLayout.PREFERRED_SIZE, 25, GroupLayout.PREFERRED_SIZE)
-		                        .addPreferredGap(ComponentPlacement.RELATED, GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+		                        .addPreferredGap(ComponentPlacement.RELATED, 217, Short.MAX_VALUE)
 		                        .addComponent(btnSelectColor))
-		                    .addComponent(txtWorkingDir)
-		                    .addComponent(comboBox, 0, 259, Short.MAX_VALUE)))
-		            .addComponent(btnFindApplication, Alignment.TRAILING, GroupLayout.PREFERRED_SIZE, 98,
-		                GroupLayout.PREFERRED_SIZE))
+		                    .addComponent(txtWorkingDir, 341, 341, 341)
+		                    .addComponent(comboBox, 0, 341, Short.MAX_VALUE)))
+		            .addComponent(btnFindApplication, GroupLayout.PREFERRED_SIZE, 98, GroupLayout.PREFERRED_SIZE))
 		        .addGap(0)));
 		gl_contentPanel.setVerticalGroup(gl_contentPanel.createParallelGroup(Alignment.LEADING)
 		    .addGroup(gl_contentPanel.createSequentialGroup()
@@ -454,7 +465,7 @@ public class ApplicationEditor extends JDialog {
 		        .addPreferredGap(ComponentPlacement.UNRELATED)
 		        .addGroup(gl_contentPanel.createParallelGroup(Alignment.LEADING)
 		            .addGroup(gl_contentPanel.createSequentialGroup()
-		                .addComponent(scrollPane, GroupLayout.DEFAULT_SIZE, 130, Short.MAX_VALUE)
+		                .addComponent(scrollPane, GroupLayout.DEFAULT_SIZE, 134, Short.MAX_VALUE)
 		                .addPreferredGap(ComponentPlacement.RELATED)
 		                .addComponent(btnFindApplication))
 		            .addComponent(lblNewLabel))
@@ -473,13 +484,18 @@ public class ApplicationEditor extends JDialog {
 		            .addGroup(gl_contentPanel.createSequentialGroup()
 		                .addGap(29)
 		                .addComponent(lblColorFor))
-		            .addGroup(gl_contentPanel.createParallelGroup(Alignment.TRAILING)
-		                .addComponent(pnlColor, GroupLayout.PREFERRED_SIZE, 26, GroupLayout.PREFERRED_SIZE)
-		                .addGroup(gl_contentPanel.createSequentialGroup()
-		                    .addComponent(btnFindWorkingDir)
-		                    .addPreferredGap(ComponentPlacement.RELATED)
+		            .addGroup(gl_contentPanel.createSequentialGroup()
+		                .addComponent(btnFindWorkingDir)
+		                .addGap(3)
+		                .addGroup(gl_contentPanel.createParallelGroup(Alignment.TRAILING)
+		                    .addComponent(pnlColor, GroupLayout.PREFERRED_SIZE, 26, GroupLayout.PREFERRED_SIZE)
 		                    .addComponent(btnSelectColor))))
-		        .addGap(23)));
+		        .addPreferredGap(ComponentPlacement.UNRELATED)
+		        .addGroup(gl_contentPanel.createParallelGroup(Alignment.BASELINE)
+		            .addComponent(lblAsciiCodeSupport)
+		            .addComponent(chckbxEnablesExperimentalAscii, GroupLayout.PREFERRED_SIZE, 30,
+		                GroupLayout.PREFERRED_SIZE))
+		        .addGap(7)));
 
 		txtCommand = new JTextArea();
 		scrollPane.setViewportView(txtCommand);
@@ -546,6 +562,7 @@ public class ApplicationEditor extends JDialog {
 							}
 						}
 						ApplicationEditor.this.processDescriptor.setCounters(counters);
+						ApplicationEditor.this.processDescriptor.setSupportAsciiCodes(chckbxEnablesExperimentalAscii.isSelected());
 
 						dispose();
 					}
@@ -617,6 +634,8 @@ public class ApplicationEditor extends JDialog {
 					});
 				}
 			}
+
+			chckbxEnablesExperimentalAscii.setSelected(processDescriptor.isSupportAsciiCodes());
 
 		}
 
