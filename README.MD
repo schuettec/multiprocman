@@ -101,3 +101,13 @@ The first 6 counter expressions will be displayed in the log file overview. The 
 ![alt text](etc/screenshots/07.png)
 
 The above screenshot shows the overview window with an active counter expression watching the output for the string `INFO`. The overview shows a little circle showing the current number of matches. The button in the toolbar shows the current number of matches as well as the name of this counter expression.
+
+# How to run Gradle builds
+
+Launching Gradle builds using the Gradle wrapper needs a little more configuration than just calling the Gradle Wrapper Sh-/Batch-Script. The problem is that Gradle the script forks another JVM process. When stopping the task with the Multi-Process Manager only the script process terminates. The Gradle build will be running in background.
+
+Here is how to setup a Gradle Wrapper launch configuration:
+* Set the working directory to the Gradle project folder to work with
+* Use the charset UTF-8
+* Use the following command - customize the parts in `<>`
+  * __Command__: `java.exe -Dorg.gradle.appname=<APP-NAME> -classpath ".\gradle\wrapper\gradle-wrapper.jar"  org.gradle.wrapper.GradleWrapperMain <TASK-AND-OTHER-COMMAND-LINE-OPTIONS>`.
