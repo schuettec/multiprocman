@@ -98,12 +98,16 @@ public class AnsiColorTextPane extends JTextPane implements Appendable {
 
 	@Override
 	public void append(Color c, String s) {
+		_append(c, s);
+		appendListener.fire()
+		    .append(c, s);
+	}
+
+	private void _append(Color c, String s) {
 		StyleContext lastStyleContext = lastStyleContext();
 		AttributeSet aset = lastStyleContext.addAttribute(SimpleAttributeSet.EMPTY, StyleConstants.Foreground, c);
 		int len = getDocument().getLength();
 		appendString(s, aset, len);
-		appendListener.fire()
-		    .append(c, s);
 	}
 
 	private void appendString(String s, AttributeSet aset, int len) {
@@ -127,14 +131,18 @@ public class AnsiColorTextPane extends JTextPane implements Appendable {
 		if (addString.length() > 0) {
 			aIndex = addString.indexOf("\u001B"); // find first escape
 			if (aIndex == -1) { // no escape/color change in this string, so just send it with current color
-				append(colorCurrent, addString);
+				_append(colorCurrent, addString);
+				appendListener.fire()
+				    .append(colorCurrent, addString);
 				return;
 			}
 			// otherwise There is an escape character in the string, so we must process it
 
 			if (aIndex > 0) { // Escape is not first char, so send text up to first escape
 				tmpString = addString.substring(0, aIndex);
-				append(colorCurrent, tmpString);
+				_append(colorCurrent, tmpString);
+				appendListener.fire()
+				    .append(colorCurrent, tmpString);
 				aPos = aIndex;
 			}
 			// aPos is now at the beginning of the first escape sequence
@@ -157,7 +165,9 @@ public class AnsiColorTextPane extends JTextPane implements Appendable {
 
 				if (aIndex == -1) { // if that was the last sequence of the input, send remaining text
 					tmpString = addString.substring(aPos, addString.length());
-					append(colorCurrent, tmpString);
+					_append(colorCurrent, tmpString);
+					appendListener.fire()
+					    .append(colorCurrent, tmpString);
 					stillSearching = false;
 					continue; // jump out of loop early, as the whole string has been sent now
 				}
@@ -166,8 +176,9 @@ public class AnsiColorTextPane extends JTextPane implements Appendable {
 				// the next
 				tmpString = addString.substring(aPos, aIndex);
 				aPos = aIndex;
-				append(colorCurrent, tmpString);
-
+				_append(colorCurrent, tmpString);
+				appendListener.fire()
+				    .append(colorCurrent, tmpString);
 			} // while there's text in the input buffer
 		}
 	}

@@ -189,21 +189,17 @@ public class ConsolePreview extends JPanel implements AppendListener, ProcessLis
 		while (it.hasNext()) {
 			int localCurY = HEIGHT - Y_INC;
 			String line = it.next();
-			int length = line.length();
-			int endX = length * X_INC;
-			Graphics2D g = (Graphics2D) bufferedImage.getGraphics();
-			g.setColor(c);
-			g.setStroke(new BasicStroke(Y_INC - 1));
-			g.drawLine(curX, localCurY, curX + endX, localCurY);
-			curX += endX;
-			if (it.hasNext()) {
+			if (line.isEmpty()) {
 				bufferedImage = cropImage(bufferedImage);
 				curX = INITIAL_X;
 			} else {
-				if (s.endsWith("\n") || s.endsWith("\r\n")) {
-					bufferedImage = cropImage(bufferedImage);
-					curX = INITIAL_X;
-				}
+				int length = line.length();
+				int endX = length * X_INC;
+				Graphics2D g = (Graphics2D) bufferedImage.getGraphics();
+				g.setColor(c);
+				g.setStroke(new BasicStroke(Y_INC - 1));
+				g.drawLine(curX, localCurY, curX + endX, localCurY);
+				curX += endX;
 			}
 		}
 
@@ -211,7 +207,7 @@ public class ConsolePreview extends JPanel implements AppendListener, ProcessLis
 	}
 
 	private BufferedImage cropImage(BufferedImage oldImage) {
-		BufferedImage img = oldImage.getSubimage(0, INITIAL_Y + Y_INC, WIDTH, HEIGHT - INITIAL_Y - Y_INC);
+		BufferedImage img = oldImage.getSubimage(0, INITIAL_Y + 1, WIDTH, HEIGHT - INITIAL_Y - 1);
 		BufferedImage newImage = new BufferedImage(WIDTH, HEIGHT, BufferedImage.TYPE_INT_RGB);
 		Graphics g = newImage.getGraphics();
 		g.setColor(Color.BLACK);

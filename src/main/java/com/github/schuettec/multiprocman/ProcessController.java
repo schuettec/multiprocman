@@ -130,12 +130,16 @@ public class ProcessController {
 					        .name())) {
 						do {
 							if (inputStream.available() > 0) {
-								String nextLine = input1.nextLine();
-								appendInEDT(nextLine);
+								while (input1.hasNextLine()) {
+									String nextLine = input1.nextLine();
+									appendInEDT(nextLine);
+								}
 							}
 							if (errorStream.available() > 0) {
-								String nextLine = input2.nextLine();
-								appendInEDT(nextLine);
+								while (input2.hasNextLine()) {
+									String nextLine = input2.nextLine();
+									appendInEDT(nextLine);
+								}
 							}
 						} while (process.isAlive());
 					} catch (Exception e) {
@@ -155,15 +159,19 @@ public class ProcessController {
 			}
 
 			private void appendInEDT(String nextLine) {
-				SwingUtilities.invokeLater(new Runnable() {
+				try {
+					SwingUtilities.invokeAndWait(new Runnable() {
 
-					@Override
-					public void run() {
-						consoleScroller.appendANSI(nextLine + "\n");
-						processListener.fire()
-						    .processUpdate(ProcessController.this);
-					}
-				});
+						@Override
+						public void run() {
+							consoleScroller.appendANSI(nextLine + "\n");
+							processListener.fire()
+							    .processUpdate(ProcessController.this);
+						}
+					});
+				} catch (Exception e) {
+					e.printStackTrace();
+				}
 			}
 		});
 		processObserver.start();
@@ -241,6 +249,7 @@ public class ProcessController {
 		getTextPane().setText("");
 		getConsolePreview().clear();
 		counterExpressions.clear();
+		updateListeners();
 	}
 
 	public CounterExpressions getCounterExpressions() {
