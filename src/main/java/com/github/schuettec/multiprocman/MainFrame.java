@@ -487,6 +487,7 @@ public class MainFrame extends JFrame implements WindowListener, ProcessListener
 		if (this.processes.isEmpty()) {
 			new ProcessManager();
 			setVisible(false);
+			dispose();
 		}
 	}
 
