@@ -11,6 +11,8 @@ import java.awt.FlowLayout;
 import java.awt.Graphics2D;
 import java.awt.event.ActionEvent;
 import java.awt.event.KeyEvent;
+import java.awt.event.WindowEvent;
+import java.awt.event.WindowListener;
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
@@ -88,7 +90,37 @@ public class ApplicationEditor extends JDialog {
 		setIconImage(Resources.getApplicationIcon());
 		setModal(true);
 		setTitle("Application");
-		setDefaultCloseOperation(JDialog.DISPOSE_ON_CLOSE);
+		addWindowListener(new WindowListener() {
+
+			@Override
+			public void windowOpened(WindowEvent e) {
+			}
+
+			@Override
+			public void windowIconified(WindowEvent e) {
+			}
+
+			@Override
+			public void windowDeiconified(WindowEvent e) {
+			}
+
+			@Override
+			public void windowDeactivated(WindowEvent e) {
+			}
+
+			@Override
+			public void windowClosing(WindowEvent e) {
+				performCancel();
+			}
+
+			@Override
+			public void windowClosed(WindowEvent e) {
+			}
+
+			@Override
+			public void windowActivated(WindowEvent e) {
+			}
+		});
 		this.setPreferredSize(new Dimension(430, 200));
 		this.setSize(new Dimension(487, 593));
 		this.setLocationRelativeTo(null);
@@ -370,8 +402,8 @@ public class ApplicationEditor extends JDialog {
 
 					@Override
 					public void fileSelected(File file, ExtensionFilter extension) {
-						txtCommand.setText(file.getName());
-						txtTitle.setText(file.getAbsolutePath());
+						txtTitle.setText(file.getName());
+						txtCommand.setText(file.getAbsolutePath());
 						if (nonNull(file.getParent())) {
 							txtWorkingDir.setText(file.getParent());
 						}
@@ -510,62 +542,9 @@ public class ApplicationEditor extends JDialog {
 
 					@Override
 					public void actionPerformed(ActionEvent e) {
-						ApplicationEditor.this.processDescriptor.setIcon((ImageIcon) lblIcon.getIcon());
-						String title = txtTitle.getText()
-						    .trim();
-						if (title.isEmpty()) {
-							JOptionPane.showMessageDialog(ApplicationEditor.this, "Title must not be empty!", "Title not set",
-							    JOptionPane.WARNING_MESSAGE);
-							return;
-						}
-						ApplicationEditor.this.processDescriptor.setTitle(title);
-						String command = txtCommand.getText()
-						    .trim();
-						if (command.isEmpty()) {
-							JOptionPane.showMessageDialog(ApplicationEditor.this, "Command must not be empty!", "Command not set",
-							    JOptionPane.WARNING_MESSAGE);
-
-						}
-						ApplicationEditor.this.processDescriptor.setCommand(command);
-						String workingDir = txtWorkingDir.getText();
-						if (workingDir.trim()
-						    .isEmpty()) {
-							ApplicationEditor.this.processDescriptor.setExecutionDirectory(null);
-						} else {
-							ApplicationEditor.this.processDescriptor.setExecutionDirectory(new File(workingDir.trim()));
-						}
-						ApplicationEditor.this.processDescriptor.setColor(pnlColor.getBackground());
-						ApplicationEditor.this.processDescriptor.setCharset((Charset) comboBox.getSelectedItem());
-
-						Map<String, String> vars = new HashMap<>();
-						for (int i = 0; i < variables.getRowCount(); i++) {
-							String key = (String) variables.getValueAt(i, 0);
-							String value = (String) variables.getValueAt(i, 1);
-							vars.put(key, value);
-						}
-						if (!vars.isEmpty()) {
-							ApplicationEditor.this.processDescriptor.setEnvironment(vars);
-						}
-
-						List<Counter> counters = new LinkedList<>();
-						for (int i = 0; i < expressions.getRowCount(); i++) {
-							String name = ((String) expressions.getValueAt(i, 0)).trim();
-							String expression = ((String) expressions.getValueAt(i, 1)).trim();
-							Color color = (Color) expressions.getValueAt(i, 2);
-							if (!name.isEmpty() && !expression.isEmpty()) {
-								Counter counterDescriptor = new Counter(name, expression, color);
-								boolean valid = counterDescriptor.testRegexp();
-								if (!valid) {
-									return;
-								}
-								counters.add(counterDescriptor);
-							}
-						}
-						ApplicationEditor.this.processDescriptor.setCounters(counters);
-						ApplicationEditor.this.processDescriptor.setSupportAsciiCodes(chckbxEnablesExperimentalAscii.isSelected());
-
-						dispose();
+						performOk(lblIcon, pnlColor);
 					}
+
 				});
 				okButton.setPreferredSize(new Dimension(91, 23));
 				okButton.setActionCommand("OK");
@@ -581,9 +560,9 @@ public class ApplicationEditor extends JDialog {
 
 					@Override
 					public void actionPerformed(ActionEvent e) {
-						ApplicationEditor.this.processDescriptor = null;
-						dispose();
+						performCancel();
 					}
+
 				});
 				cancelButton.setPreferredSize(new Dimension(91, 23));
 				cancelButton.setActionCommand("Cancel");
@@ -640,6 +619,69 @@ public class ApplicationEditor extends JDialog {
 		}
 
 		setVisible(true);
+	}
+
+	private void performCancel() {
+		ApplicationEditor.this.processDescriptor = null;
+		dispose();
+	}
+
+	private void performOk(JLabel lblIcon, JPanel pnlColor) {
+		ApplicationEditor.this.processDescriptor.setIcon((ImageIcon) lblIcon.getIcon());
+		String title = txtTitle.getText()
+		    .trim();
+		if (title.isEmpty()) {
+			JOptionPane.showMessageDialog(ApplicationEditor.this, "Title must not be empty!", "Title not set",
+			    JOptionPane.WARNING_MESSAGE);
+			return;
+		}
+		ApplicationEditor.this.processDescriptor.setTitle(title);
+		String command = txtCommand.getText()
+		    .trim();
+		if (command.isEmpty()) {
+			JOptionPane.showMessageDialog(ApplicationEditor.this, "Command must not be empty!", "Command not set",
+			    JOptionPane.WARNING_MESSAGE);
+
+		}
+		ApplicationEditor.this.processDescriptor.setCommand(command);
+		String workingDir = txtWorkingDir.getText();
+		if (workingDir.trim()
+		    .isEmpty()) {
+			ApplicationEditor.this.processDescriptor.setExecutionDirectory(null);
+		} else {
+			ApplicationEditor.this.processDescriptor.setExecutionDirectory(new File(workingDir.trim()));
+		}
+		ApplicationEditor.this.processDescriptor.setColor(pnlColor.getBackground());
+		ApplicationEditor.this.processDescriptor.setCharset((Charset) comboBox.getSelectedItem());
+
+		Map<String, String> vars = new HashMap<>();
+		for (int i = 0; i < variables.getRowCount(); i++) {
+			String key = (String) variables.getValueAt(i, 0);
+			String value = (String) variables.getValueAt(i, 1);
+			vars.put(key, value);
+		}
+		if (!vars.isEmpty()) {
+			ApplicationEditor.this.processDescriptor.setEnvironment(vars);
+		}
+
+		List<Counter> counters = new LinkedList<>();
+		for (int i = 0; i < expressions.getRowCount(); i++) {
+			String name = ((String) expressions.getValueAt(i, 0)).trim();
+			String expression = ((String) expressions.getValueAt(i, 1)).trim();
+			Color color = (Color) expressions.getValueAt(i, 2);
+			if (!name.isEmpty() && !expression.isEmpty()) {
+				Counter counterDescriptor = new Counter(name, expression, color);
+				boolean valid = counterDescriptor.testRegexp();
+				if (!valid) {
+					return;
+				}
+				counters.add(counterDescriptor);
+			}
+		}
+		ApplicationEditor.this.processDescriptor.setCounters(counters);
+		ApplicationEditor.this.processDescriptor.setSupportAsciiCodes(chckbxEnablesExperimentalAscii.isSelected());
+
+		dispose();
 	}
 
 	public static ProcessDescriptor newProcess() {
