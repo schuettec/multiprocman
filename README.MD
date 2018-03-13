@@ -9,6 +9,7 @@
 6. [Application](#application)
 7. [Environment](#environment)
 8. [Counter expressions](#counter-expressions)
+9. [Variable substitutions](#variable-substitutions)
 
 
 ## Long story short
@@ -111,3 +112,13 @@ Here is how to setup a Gradle Wrapper launch configuration:
 * Use the charset UTF-8
 * Use the following command - customize the parts in `<>`
   * __Command__: `java.exe -Dorg.gradle.appname=<APP-NAME> -classpath ".\gradle\wrapper\gradle-wrapper.jar"  org.gradle.wrapper.GradleWrapperMain <TASK-AND-OTHER-COMMAND-LINE-OPTIONS>`.
+
+
+## Variable substitutions
+When specifying the command for the launch configuration the variable substitution can be used to insert environment variable values before starting executing command:
+* Check "Enable environment variable substitution"
+* Use placeholders in the command string like: `${variablename}`
+	* __The variable name is case-sensitive__
+	* Use the "Insert variable" button to select from a list of known OS variables
+	* Test the variable substitution using the button "Show substitution"
+* __Note: The environment variables configured in tab "Environment" do not have an effect on the substitution.__ The substitution only uses the current environment variables seen by the running Multi-Process Manager instance.
