@@ -61,6 +61,7 @@ import com.github.schuettec.multiprocman.FileChooserCallback;
 import com.github.schuettec.multiprocman.FileUtil;
 import com.github.schuettec.multiprocman.ProcessDescriptor;
 import com.github.schuettec.multiprocman.Resources;
+import com.github.schuettec.multiprocman.themes.ThemeUtil;
 
 import javafx.stage.FileChooser.ExtensionFilter;
 
@@ -90,6 +91,8 @@ public class ApplicationEditor extends JDialog {
 		setIconImage(Resources.getApplicationIcon());
 		setModal(true);
 		setTitle("Application");
+		ThemeUtil.loadWindowState(this);
+		ThemeUtil.installListeners(this);
 		addWindowListener(new WindowListener() {
 
 			@Override
@@ -121,9 +124,7 @@ public class ApplicationEditor extends JDialog {
 			public void windowActivated(WindowEvent e) {
 			}
 		});
-		this.setPreferredSize(new Dimension(430, 200));
-		this.setSize(new Dimension(487, 593));
-		this.setLocationRelativeTo(null);
+
 		getContentPane().setLayout(new BorderLayout());
 
 		tabbedPane = new JTabbedPane();
@@ -619,6 +620,12 @@ public class ApplicationEditor extends JDialog {
 		}
 
 		setVisible(true);
+	}
+
+	@Override
+	public void dispose() {
+		ThemeUtil.deinstallListeners(this);
+		super.dispose();
 	}
 
 	private void performCancel() {

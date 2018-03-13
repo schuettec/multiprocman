@@ -49,7 +49,7 @@ import com.github.schuettec.multiprocman.themes.ThemeUtil;
 public class ProcessManager extends JFrame {
 
 	/**
-	 * 
+	 *
 	 */
 	private static final long serialVersionUID = 1L;
 	private final JPanel contentPanel = new JPanel();
@@ -72,7 +72,7 @@ public class ProcessManager extends JFrame {
 	private Action newCategory = new AbstractAction(null, new ImageIcon(Resources.getFolderPlus())) {
 
 		/**
-		 * 
+		 *
 		 */
 		private static final long serialVersionUID = 1L;
 
@@ -87,7 +87,7 @@ public class ProcessManager extends JFrame {
 	private Action editCategory = new AbstractAction(null, new ImageIcon(Resources.getEdit())) {
 
 		/**
-		 * 
+		 *
 		 */
 		private static final long serialVersionUID = 1L;
 
@@ -108,7 +108,7 @@ public class ProcessManager extends JFrame {
 	private Action removeCategory = new AbstractAction(null, new ImageIcon(Resources.getFolderMinus())) {
 
 		/**
-		 * 
+		 *
 		 */
 		private static final long serialVersionUID = 1L;
 
@@ -127,7 +127,7 @@ public class ProcessManager extends JFrame {
 	private Action newApplication = new AbstractAction(null, new ImageIcon(Resources.getFolderPlus())) {
 
 		/**
-		 * 
+		 *
 		 */
 		private static final long serialVersionUID = 1L;
 
@@ -152,7 +152,7 @@ public class ProcessManager extends JFrame {
 	private Action editApplication = new AbstractAction(null, new ImageIcon(Resources.getEdit())) {
 
 		/**
-		 * 
+		 *
 		 */
 		private static final long serialVersionUID = 1L;
 
@@ -173,7 +173,7 @@ public class ProcessManager extends JFrame {
 	private Action removeApplication = new AbstractAction(null, new ImageIcon(Resources.getFolderMinus())) {
 
 		/**
-		 * 
+		 *
 		 */
 		private static final long serialVersionUID = 1L;
 
@@ -201,6 +201,8 @@ public class ProcessManager extends JFrame {
 	public ProcessManager() {
 		setIconImage(Resources.getApplicationIcon());
 		setTitle("Application manager");
+		ThemeUtil.loadWindowState(this);
+		ThemeUtil.installListeners(this);
 		addWindowListener(new WindowListener() {
 
 			@Override
@@ -236,9 +238,6 @@ public class ProcessManager extends JFrame {
 			public void windowActivated(WindowEvent e) {
 			}
 		});
-		setPreferredSize(new Dimension(640, 480));
-		setSize(new Dimension(640, 480));
-		setLocationRelativeTo(null);
 		getContentPane().setLayout(new BorderLayout());
 		contentPanel.setBorder(new EmptyBorder(5, 5, 5, 5));
 		getContentPane().add(contentPanel, BorderLayout.CENTER);
@@ -273,7 +272,7 @@ public class ProcessManager extends JFrame {
 
 			lstCategories.setTransferHandler(new TransferHandler() {
 				/**
-				 * 
+				 *
 				 */
 				private static final long serialVersionUID = 1L;
 				private int index;
@@ -460,6 +459,12 @@ public class ProcessManager extends JFrame {
 		lstCategories.setSelectedIndex(0);
 		lstProcesses.setSelectedIndex(0);
 		setVisible(true);
+	}
+
+	@Override
+	public void dispose() {
+		ThemeUtil.deinstallListeners(this);
+		super.dispose();
 	}
 
 	private void runSelectedApplication() {

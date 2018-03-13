@@ -144,9 +144,8 @@ public class MainFrame extends JFrame implements WindowListener, ProcessListener
 		setIconImage(Resources.getApplicationIcon());
 		setDefaultCloseOperation(JFrame.DO_NOTHING_ON_CLOSE);
 		addWindowListener(this);
-		setPreferredSize(new Dimension(480, 640));
-		setSize(new Dimension(480, 640));
-		setLocationRelativeTo(null);
+		ThemeUtil.loadWindowState(this);
+		ThemeUtil.installListeners(this);
 
 		contentPane = new JPanel();
 		contentPane.setBorder(new EmptyBorder(5, 5, 5, 5));
@@ -420,6 +419,12 @@ public class MainFrame extends JFrame implements WindowListener, ProcessListener
 		this.defaultToolbarButtons = Arrays.asList(new Component[] {
 		    btnClose, btnSave, btnClear, btnStop, btnStopForcibly, btnRestart
 		});
+	}
+
+	@Override
+	public void dispose() {
+		ThemeUtil.deinstallListeners(this);
+		super.dispose();
 	}
 
 	private void selectConsole(ProcessController selectedValue) {
