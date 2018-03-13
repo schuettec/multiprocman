@@ -9,7 +9,8 @@
 6. [Application](#application)
 7. [Environment](#environment)
 8. [Counter expressions](#counter-expressions)
-
+9. [Variable substitutions](#variable-substitutions)
+10. [How to run Gradle builds](#how-to-run-gradle-builds)
 
 ## Long story short
 
@@ -102,6 +103,15 @@ The first 6 counter expressions will be displayed in the log file overview. The 
 
 The above screenshot shows the overview window with an active counter expression watching the output for the string `INFO`. The overview shows a little circle showing the current number of matches. The button in the toolbar shows the current number of matches as well as the name of this counter expression.
 
+## Variable substitutions
+When specifying the command for the launch configuration the variable substitution can be used to insert environment variable values before starting executing command:
+* Check "Enable environment variable substitution"
+* Use placeholders in the command string like: `${variablename}`
+	* __The variable name is case-sensitive__
+	* Use the "Insert variable" button to select from a list of known OS variables
+	* Test the variable substitution using the button "Show substitution"
+* __Note: The environment variables configured in tab "Environment" do not have an effect on the substitution.__ The substitution only uses the current environment variables seen by the running Multi-Process Manager instance.
+
 # How to run Gradle builds
 
 Launching Gradle builds using the Gradle wrapper needs a little more configuration than just calling the Gradle Wrapper Sh-/Batch-Script. The problem is that Gradle the script forks another JVM process. When stopping the task with the Multi-Process Manager only the script process terminates. The Gradle build will be running in background.
@@ -111,3 +121,5 @@ Here is how to setup a Gradle Wrapper launch configuration:
 * Use the charset UTF-8
 * Use the following command - customize the parts in `<>`
   * __Command__: `java.exe -Dorg.gradle.appname=<APP-NAME> -classpath ".\gradle\wrapper\gradle-wrapper.jar"  org.gradle.wrapper.GradleWrapperMain <TASK-AND-OTHER-COMMAND-LINE-OPTIONS>`.
+
+

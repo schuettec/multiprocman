@@ -101,8 +101,9 @@ public class ProcessController {
 					env[i] = next.getKey() + "=" + next.getValue();
 				}
 			}
+			String command = processDescriptor.getCommandForExecution();
 			this.process = Runtime.getRuntime()
-			    .exec(processDescriptor.getCommand(), env, workingDir);
+			    .exec(command, env, workingDir);
 			startProcessObserver();
 		} catch (IOException e) {
 			ExceptionDialog.showException(e, "Error while starting the application.");
