@@ -57,7 +57,7 @@ public class CategoryEditor extends JDialog {
 		setResizable(false);
 		setDefaultCloseOperation(JDialog.DISPOSE_ON_CLOSE);
 		this.setPreferredSize(new Dimension(430, 200));
-		ThemeUtil.loadWindowState(this);
+		ThemeUtil.loadWindow(this);
 		ThemeUtil.installListeners(this);
 
 		getContentPane().setLayout(new BorderLayout());

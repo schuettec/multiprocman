@@ -25,11 +25,10 @@ import javafx.embed.swing.JFXPanel;
 
 public class ThemeUtil {
 
-	public static boolean disableSettings = false;
 	private static final WindowStateListener windowStateListener = new WindowStateListener() {
 		@Override
 		public void windowStateChanged(WindowEvent e) {
-			saveWindowState(e.getWindow());
+			saveWindow(e.getWindow());
 		}
 
 	};
@@ -42,12 +41,12 @@ public class ThemeUtil {
 
 		@Override
 		public void componentResized(ComponentEvent e) {
-			saveWindowState((Window) e.getComponent());
+			saveWindow((Window) e.getComponent());
 		}
 
 		@Override
 		public void componentMoved(ComponentEvent e) {
-			saveWindowState((Window) e.getComponent());
+			saveWindow((Window) e.getComponent());
 		}
 
 		@Override
@@ -59,27 +58,27 @@ public class ThemeUtil {
 
 		@Override
 		public void windowOpened(WindowEvent e) {
-			saveWindowState(e.getWindow());
+			saveWindow(e.getWindow());
 		}
 
 		@Override
 		public void windowIconified(WindowEvent e) {
-			saveWindowState(e.getWindow());
+			saveWindow(e.getWindow());
 		}
 
 		@Override
 		public void windowDeiconified(WindowEvent e) {
-			saveWindowState(e.getWindow());
+			saveWindow(e.getWindow());
 		}
 
 		@Override
 		public void windowDeactivated(WindowEvent e) {
-			saveWindowState(e.getWindow());
+			saveWindow(e.getWindow());
 		}
 
 		@Override
 		public void windowClosing(WindowEvent e) {
-			saveWindowState(e.getWindow());
+			saveWindow(e.getWindow());
 		}
 
 		@Override
@@ -89,66 +88,79 @@ public class ThemeUtil {
 
 		@Override
 		public void windowActivated(WindowEvent e) {
-			saveWindowState(e.getWindow());
+			saveWindow(e.getWindow());
 		}
 	};
 
-	public static void saveWindowState(Window window) {
+	public static void saveWindow(Window window) {
 		Preferences prefs = Preferences.userNodeForPackage(window.getClass())
 		    .node(window.getClass()
 		        .getSimpleName());
 		if (window instanceof JFrame) {
-			ThemeUtil.saveWindowLocation(prefs, (JFrame) window);
+			JFrame jFrame = (JFrame) window;
+			savePosition(prefs, jFrame);
+			saveDimension(prefs, jFrame);
+			saveWindowState(prefs, jFrame);
 		} else if (window instanceof JDialog) {
 			JDialog jDialog = (JDialog) window;
-			ThemeUtil.saveWindowLocation(prefs, jDialog);
+			savePosition(prefs, jDialog);
+			saveDimension(prefs, jDialog);
 		} else {
-			ThemeUtil.saveWindowLocation(prefs, window);
+			savePosition(prefs, window);
+			saveDimension(prefs, window);
 		}
 	}
 
-	public static void loadWindowState(Window window) {
+	public static void loadWindow(Window window) {
 		Preferences prefs = Preferences.userNodeForPackage(window.getClass())
 		    .node(window.getClass()
 		        .getSimpleName());
 		if (window instanceof JFrame) {
-			ThemeUtil.loadWindowLocation(prefs, (JFrame) window);
+			JFrame jFrame = (JFrame) window;
+			loadPosition(prefs, jFrame);
+			loadDimension(prefs, jFrame);
+			loadWindow(prefs, jFrame);
 		} else if (window instanceof JDialog) {
 			JDialog jDialog = (JDialog) window;
-			ThemeUtil.loadWindowLocation(prefs, jDialog);
+			loadPosition(prefs, jDialog);
+			loadDimension(prefs, jDialog);
 		} else {
-			ThemeUtil.loadWindowLocation(prefs, window);
+			loadPosition(prefs, window);
+			loadDimension(prefs, window);
 		}
 	}
 
-	private static void saveWindowLocation(Preferences prefs, JFrame frame) {
-		saveWindowLocation(prefs, (Window) frame);
+	private static void resetDimension(Preferences prefs) {
+		prefs.putInt("width", -1);
+		prefs.putInt("height", -1);
+	}
+
+	private static void saveWindowState(Preferences prefs, JFrame frame) {
 		int extendedState = frame.getExtendedState();
+		if (extendedState == JFrame.MAXIMIZED_BOTH) {
+			resetDimension(prefs);
+		}
 		prefs.putInt("extendedWindowState", extendedState);
 	}
 
-	private static void loadWindowLocation(Preferences prefs, JFrame frame) {
-		if (disableSettings) {
-			return;
-		}
-		loadWindowLocation(prefs, (Window) frame);
-		int extendedState = prefs.getInt("extendedWindowState", frame.getExtendedState());
-		frame.setExtendedState(extendedState);
-	}
-
-	private static void saveWindowLocation(Preferences prefs, Window window) {
-		Point location = window.getLocation();
-		prefs.putInt("x", location.x);
-		prefs.putInt("y", location.y);
+	private static void saveDimension(Preferences prefs, Window window) {
 		Dimension size = window.getSize();
 		prefs.putInt("width", size.width);
 		prefs.putInt("height", size.height);
 	}
 
-	private static void loadWindowLocation(Preferences prefs, Window window) {
-		if (disableSettings) {
-			return;
-		}
+	private static void savePosition(Preferences prefs, Window window) {
+		Point location = window.getLocation();
+		prefs.putInt("x", location.x);
+		prefs.putInt("y", location.y);
+	}
+
+	private static void loadWindow(Preferences prefs, JFrame frame) {
+		int extendedState = prefs.getInt("extendedWindowState", frame.getExtendedState());
+		frame.setExtendedState(extendedState);
+	}
+
+	private static void loadDimension(Preferences prefs, Window window) {
 		int width = prefs.getInt("width", -1);
 		int height = prefs.getInt("height", -1);
 		if (width == -1 || height == -1) {
@@ -156,7 +168,9 @@ public class ThemeUtil {
 		} else {
 			window.setSize(new Dimension(width, height));
 		}
+	}
 
+	private static void loadPosition(Preferences prefs, Window window) {
 		int x = prefs.getInt("x", -1);
 		int y = prefs.getInt("y", -1);
 		if (x == -1 || y == -1) {
@@ -164,7 +178,6 @@ public class ThemeUtil {
 		} else {
 			window.setLocation(new Point(x, y));
 		}
-
 	}
 
 	public static <C extends JComponent> void theme(C component, Class<? extends Theme<C>> service) {
