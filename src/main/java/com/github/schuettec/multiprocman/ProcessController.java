@@ -11,7 +11,9 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Queue;
 import java.util.concurrent.ConcurrentLinkedQueue;
+import java.util.concurrent.TimeUnit;
 
+import javax.swing.JOptionPane;
 import javax.swing.SwingUtilities;
 
 import org.apache.commons.lang3.event.EventListenerSupport;
@@ -85,31 +87,35 @@ public class ProcessController {
 
 	public boolean start() {
 		try {
-			File workingDir = null;
-			if (processDescriptor.hasExecutionDirectory()) {
-				workingDir = processDescriptor.getExecutionDirectory();
-			}
-			String[] env = null;
-			if (processDescriptor.hasEnvironmentVariables()) {
-				Map<String, String> environment = processDescriptor.getEnvironment();
-				env = new String[environment.size()];
-				Iterator<Entry<String, String>> it = environment.entrySet()
-				    .iterator();
-				int i = 0;
-				while (it.hasNext()) {
-					Entry<String, String> next = it.next();
-					env[i] = next.getKey() + "=" + next.getValue();
-				}
-			}
 			String command = processDescriptor.getCommandForExecution();
-			this.process = Runtime.getRuntime()
-			    .exec(command, env, workingDir);
+			this.process = executeCommand(command);
 			startProcessObserver();
 		} catch (IOException e) {
 			ExceptionDialog.showException(e, "Error while starting the application.");
 			return false;
 		}
 		return true;
+	}
+
+	private Process executeCommand(String command) throws IOException {
+		File workingDir = null;
+		if (processDescriptor.hasExecutionDirectory()) {
+			workingDir = processDescriptor.getExecutionDirectory();
+		}
+		String[] env = null;
+		if (processDescriptor.hasEnvironmentVariables()) {
+			Map<String, String> environment = processDescriptor.getEnvironment();
+			env = new String[environment.size()];
+			Iterator<Entry<String, String>> it = environment.entrySet()
+			    .iterator();
+			int i = 0;
+			while (it.hasNext()) {
+				Entry<String, String> next = it.next();
+				env[i] = next.getKey() + "=" + next.getValue();
+			}
+		}
+		return Runtime.getRuntime()
+		    .exec(command, env, workingDir);
 	}
 
 	private void startProcessObserver() {
@@ -183,13 +189,50 @@ public class ProcessController {
 
 	public void stop(boolean waitFor) {
 		updateState(State.STOPPING);
-		this.process.destroy();
+		_stopProcess(false);
 		waitForOnDemand(waitFor);
+	}
+
+	private void _stopProcess(boolean force) {
+		if (force) {
+			this.process.destroyForcibly();
+		} else {
+			if (processDescriptor.isUseTerminationCommand()) {
+				executeTermination();
+			} else {
+				this.process.destroy();
+			}
+		}
+	}
+
+	private void executeTermination() {
+		Thread termination = new Thread(new Runnable() {
+			@Override
+			public void run() {
+				String terminationCommand = processDescriptor.getTerminationCommandForExecution();
+				try {
+					Process process = executeCommand(terminationCommand);
+					boolean terminated = process.waitFor(8000, TimeUnit.MILLISECONDS);
+					if (!terminated) {
+						stopForce(false);
+						JOptionPane.showMessageDialog(textPane,
+						    "The application %s was stopped with the termination command but the command did not respond. The applicationwas killed to force termination.",
+						    "Termination command", JOptionPane.ERROR_MESSAGE);
+					}
+				} catch (Exception e) {
+					stopForce(false);
+					JOptionPane.showMessageDialog(textPane,
+					    "The application %s was stopped with the termination command but the command threw an error. A kill signal is used to force termination.",
+					    "Termination command", JOptionPane.ERROR_MESSAGE);
+				}
+			}
+		});
+		termination.start();
 	}
 
 	public void stopForce(boolean waitFor) {
 		updateState(State.STOPPING);
-		this.process.destroyForcibly();
+		_stopProcess(true);
 		waitForOnDemand(waitFor);
 	}
 

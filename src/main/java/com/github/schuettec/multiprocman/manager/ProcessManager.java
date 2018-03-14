@@ -16,7 +16,6 @@ import java.awt.event.WindowListener;
 import java.util.Arrays;
 import java.util.Iterator;
 import java.util.List;
-import java.util.function.Consumer;
 
 import javax.swing.AbstractAction;
 import javax.swing.Action;
@@ -52,6 +51,15 @@ public class ProcessManager extends JFrame {
 	 *
 	 */
 	private static final long serialVersionUID = 1L;
+
+	private static class Holder {
+		private static final ProcessManager INSTANCE = new ProcessManager();
+	}
+
+	public static ProcessManager getInstance() {
+		return Holder.INSTANCE;
+	}
+
 	private final JPanel contentPanel = new JPanel();
 	private JList<Category> lstCategories;
 	private JList<ProcessDescriptor> lstProcesses;
@@ -198,7 +206,7 @@ public class ProcessManager extends JFrame {
 	/**
 	 * Create the dialog.
 	 */
-	public ProcessManager() {
+	private ProcessManager() {
 		setIconImage(Resources.getApplicationIcon());
 		setTitle("Application manager");
 		setPreferredSize(new Dimension(640, 480));
@@ -227,8 +235,9 @@ public class ProcessManager extends JFrame {
 				if (!MainFrame.getInstance()
 				    .isVisible()) {
 					ThemeUtil.stopJavaFX();
+					dispose();
 				}
-				dispose();
+				setVisible(false);
 			}
 
 			@Override
@@ -378,7 +387,7 @@ public class ProcessManager extends JFrame {
 									processTemplates.copyInto(array);
 									startAll(mainFrame, Arrays.asList(array)
 									    .iterator());
-									dispose();
+									setVisible(false);
 								}
 							}
 						});
@@ -479,7 +488,7 @@ public class ProcessManager extends JFrame {
 			List<ProcessDescriptor> selected = lstProcesses.getSelectedValuesList();
 			Iterator<ProcessDescriptor> iterator = selected.iterator();
 			startAll(mainFrame, iterator);
-			dispose();
+			setVisible(false);
 		}
 	}
 
@@ -489,13 +498,6 @@ public class ProcessManager extends JFrame {
 			ProcessController c = new ProcessController(descriptor);
 			mainFrame.addProcessController(c);
 			c.start();
-		}
-	}
-
-	private void modifyApplications(Consumer<DefaultListModel<ProcessDescriptor>> applicationsModificator) {
-		if (nonNull(currentCategory)) {
-			applicationsModificator.accept(currentCategory.getProcessTemplates());
-			categories.saveToPreferences();
 		}
 	}
 

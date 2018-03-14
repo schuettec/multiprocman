@@ -29,6 +29,7 @@ import java.util.Vector;
 
 import javax.imageio.ImageIO;
 import javax.swing.AbstractAction;
+import javax.swing.ButtonGroup;
 import javax.swing.DefaultComboBoxModel;
 import javax.swing.GroupLayout;
 import javax.swing.GroupLayout.Alignment;
@@ -145,8 +146,12 @@ public class ApplicationEditor extends JDialog {
 
 		JRadioButton rdbtnUseDefaultProcess = new JRadioButton("Use default process termination signal");
 		rdbtnUseDefaultProcess.setSelected(true);
-
 		rdbtnUseCustomCommand = new JRadioButton("Use custom command to terminate application");
+		ButtonGroup group = new ButtonGroup();
+		group.add(rdbtnUseDefaultProcess);
+		group.add(rdbtnUseCustomCommand);
+
+		txtTermCommand = new JTextArea();
 
 		JScrollPane scrollPane_3 = new JScrollPane();
 
@@ -209,7 +214,6 @@ public class ApplicationEditor extends JDialog {
 		            .addComponent(btnTermShowSubstitution))
 		        .addGap(19)));
 
-		txtTermCommand = new JTextArea();
 		scrollPane_3.setViewportView(txtTermCommand);
 		terminatePanel.setLayout(gl_terminatePanel);
 		tabbedPane.add("Environment", environmentPanel);
@@ -507,10 +511,10 @@ public class ApplicationEditor extends JDialog {
 		this.chckbxEnablesExperimentalAscii = new JCheckBox(
 		    "<html>Enables experimental ASCII code support for formatted application output.</html>");
 
+		txtCommand = new JTextArea();
 		JButton btnInsertVariable = new JButton(insertVariableAction(txtCommand));
 
 		chckbxSubsitution = new JCheckBox("Enable environment variable substitution");
-
 		JButton btnShowSubstitution = new JButton(showSubstitutionAction(txtCommand));
 
 		GroupLayout gl_contentPanel = new GroupLayout(mainPanel);
@@ -638,7 +642,6 @@ public class ApplicationEditor extends JDialog {
 		        .addPreferredGap(ComponentPlacement.UNRELATED)
 		        .addComponent(chckbxEnablesExperimentalAscii, GroupLayout.PREFERRED_SIZE, 37, GroupLayout.PREFERRED_SIZE)));
 
-		txtCommand = new JTextArea();
 		scrollPane.setViewportView(txtCommand);
 		mainPanel.setLayout(gl_contentPanel);
 
@@ -718,6 +721,7 @@ public class ApplicationEditor extends JDialog {
 				jop.add(jcd);
 
 				JDialog diag = new JDialog(ApplicationEditor.this, "Select variable");
+				// ThemeUtil.loadWindow(diag);
 
 				JPanel contentPane = new JPanel(new BorderLayout());
 				contentPane.add(jop, BorderLayout.CENTER);
@@ -725,10 +729,11 @@ public class ApplicationEditor extends JDialog {
 
 					@Override
 					public void actionPerformed(ActionEvent e) {
+						// ThemeUtil.deinstallListeners(diag);
 						diag.dispose();
 						String variable = (String) jcd.getSelectedItem();
 						String placeholder = ProcessDescriptor.getVariablePlaceholder(variable);
-						textComponent.insert(placeholder, txtCommand.getCaretPosition());
+						textComponent.insert(placeholder, textComponent.getCaretPosition());
 					}
 				});
 				JPanel buttonPanel = new JPanel();
@@ -736,11 +741,11 @@ public class ApplicationEditor extends JDialog {
 				contentPane.add(buttonPanel, BorderLayout.SOUTH);
 
 				// create a JDialog and add JOptionPane to it
-
-				diag.setLocationRelativeTo(null);
+				// ThemeUtil.installListeners(diag);
 				diag.setModal(true);
 				diag.setContentPane(contentPane);
 				diag.pack();
+				diag.setLocationRelativeTo(ApplicationEditor.this);
 				diag.setVisible(true);
 
 			}

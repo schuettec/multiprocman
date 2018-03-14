@@ -355,7 +355,8 @@ public class MainFrame extends JFrame implements WindowListener, ProcessListener
 
 			@Override
 			public void actionPerformed(ActionEvent e) {
-				new ProcessManager();
+				ProcessManager.getInstance()
+				    .setVisible(true);
 			}
 		});
 
@@ -491,7 +492,8 @@ public class MainFrame extends JFrame implements WindowListener, ProcessListener
 		processController.removeProcessListener(this);
 		this.processes.removeElement(processController);
 		if (this.processes.isEmpty()) {
-			new ProcessManager();
+			ProcessManager.getInstance()
+			    .setVisible(true);
 			setVisible(false);
 			dispose();
 		}
