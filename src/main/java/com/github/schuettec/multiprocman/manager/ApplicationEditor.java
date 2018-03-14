@@ -42,6 +42,7 @@ import javax.swing.JDialog;
 import javax.swing.JLabel;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
+import javax.swing.JRadioButton;
 import javax.swing.JScrollPane;
 import javax.swing.JTabbedPane;
 import javax.swing.JTable;
@@ -56,6 +57,7 @@ import javax.swing.border.EmptyBorder;
 import javax.swing.table.DefaultTableModel;
 import javax.swing.table.TableCellRenderer;
 import javax.swing.table.TableColumn;
+import javax.swing.text.JTextComponent;
 
 import com.github.schuettec.multiprocman.Counter;
 import com.github.schuettec.multiprocman.FileChooserCallback;
@@ -68,6 +70,7 @@ import javafx.stage.FileChooser.ExtensionFilter;
 
 public class ApplicationEditor extends JDialog {
 
+	private final JPanel terminatePanel = new JPanel();
 	private final JPanel mainPanel = new JPanel();
 	private final JPanel environmentPanel = new JPanel();
 	private final JPanel counterPanel = new JPanel();
@@ -86,6 +89,9 @@ public class ApplicationEditor extends JDialog {
 	private JPanel pnlColor;
 	private JCheckBox chckbxSubsitution;
 	private DefaultComboBoxModel<Charset> charsets;
+	private JTextArea txtTermCommand;
+	private JRadioButton rdbtnUseCustomCommand;
+	private JCheckBox chckbxTermUseVariableSubst;
 
 	/**
 	 * Create the dialog.
@@ -134,7 +140,78 @@ public class ApplicationEditor extends JDialog {
 		getContentPane().setLayout(new BorderLayout());
 
 		tabbedPane = new JTabbedPane();
-		tabbedPane.add("Application", mainPanel);
+		tabbedPane.add("Launch", mainPanel);
+		tabbedPane.add("Terminate", terminatePanel);
+
+		JRadioButton rdbtnUseDefaultProcess = new JRadioButton("Use default process termination signal");
+		rdbtnUseDefaultProcess.setSelected(true);
+
+		rdbtnUseCustomCommand = new JRadioButton("Use custom command to terminate application");
+
+		JScrollPane scrollPane_3 = new JScrollPane();
+
+		JButton btnTermFind = new JButton(new AbstractAction("Find...") {
+
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				FileUtil.showFileChooser(FileUtil.Type.OPEN, new FileChooserCallback() {
+
+					@Override
+					public void fileSelected(File file, ExtensionFilter extension) {
+						txtTermCommand.setText(file.getAbsolutePath());
+					}
+				});
+			}
+		});
+
+		JButton btnTermInsertVariable = new JButton(insertVariableAction(txtTermCommand));
+
+		JButton btnTermShowSubstitution = new JButton(showSubstitutionAction(txtTermCommand));
+
+		chckbxTermUseVariableSubst = new JCheckBox("Enable environment variable substitution");
+		GroupLayout gl_terminatePanel = new GroupLayout(terminatePanel);
+		gl_terminatePanel.setHorizontalGroup(gl_terminatePanel.createParallelGroup(Alignment.LEADING)
+		    .addGroup(gl_terminatePanel.createSequentialGroup()
+		        .addGroup(gl_terminatePanel.createParallelGroup(Alignment.LEADING)
+		            .addGroup(Alignment.TRAILING, gl_terminatePanel.createSequentialGroup()
+		                .addContainerGap(103, Short.MAX_VALUE)
+		                .addComponent(btnTermShowSubstitution)
+		                .addPreferredGap(ComponentPlacement.RELATED)
+		                .addComponent(btnTermInsertVariable)
+		                .addPreferredGap(ComponentPlacement.RELATED)
+		                .addComponent(btnTermFind, GroupLayout.PREFERRED_SIZE, 84, GroupLayout.PREFERRED_SIZE))
+		            .addGroup(gl_terminatePanel.createSequentialGroup()
+		                .addGap(29)
+		                .addGroup(gl_terminatePanel.createParallelGroup(Alignment.LEADING)
+		                    .addComponent(chckbxTermUseVariableSubst, GroupLayout.DEFAULT_SIZE, 390, Short.MAX_VALUE)
+		                    .addComponent(scrollPane_3, GroupLayout.DEFAULT_SIZE, 390, Short.MAX_VALUE)))
+		            .addGroup(gl_terminatePanel.createSequentialGroup()
+		                .addContainerGap()
+		                .addComponent(rdbtnUseCustomCommand, GroupLayout.DEFAULT_SIZE, 413, Short.MAX_VALUE))
+		            .addGroup(gl_terminatePanel.createSequentialGroup()
+		                .addContainerGap()
+		                .addComponent(rdbtnUseDefaultProcess, GroupLayout.DEFAULT_SIZE, 413, Short.MAX_VALUE)))
+		        .addContainerGap()));
+		gl_terminatePanel.setVerticalGroup(gl_terminatePanel.createParallelGroup(Alignment.LEADING)
+		    .addGroup(gl_terminatePanel.createSequentialGroup()
+		        .addContainerGap()
+		        .addComponent(rdbtnUseDefaultProcess)
+		        .addPreferredGap(ComponentPlacement.RELATED)
+		        .addComponent(rdbtnUseCustomCommand)
+		        .addGap(5)
+		        .addComponent(scrollPane_3, GroupLayout.DEFAULT_SIZE, 100, Short.MAX_VALUE)
+		        .addGap(3)
+		        .addComponent(chckbxTermUseVariableSubst)
+		        .addPreferredGap(ComponentPlacement.UNRELATED)
+		        .addGroup(gl_terminatePanel.createParallelGroup(Alignment.BASELINE)
+		            .addComponent(btnTermFind)
+		            .addComponent(btnTermInsertVariable)
+		            .addComponent(btnTermShowSubstitution))
+		        .addGap(19)));
+
+		txtTermCommand = new JTextArea();
+		scrollPane_3.setViewportView(txtTermCommand);
+		terminatePanel.setLayout(gl_terminatePanel);
 		tabbedPane.add("Environment", environmentPanel);
 		tabbedPane.add("Counter expressions", counterPanel);
 
@@ -430,62 +507,11 @@ public class ApplicationEditor extends JDialog {
 		this.chckbxEnablesExperimentalAscii = new JCheckBox(
 		    "<html>Enables experimental ASCII code support for formatted application output.</html>");
 
-		JButton btnInsertVariable = new JButton(new AbstractAction("Insert variable") {
-
-			@Override
-			public void actionPerformed(ActionEvent e) {
-				Vector keys = new Vector<>(System.getenv()
-				    .keySet());
-				JComboBox jcd = new JComboBox(keys);
-
-				// create a JOptionPane
-				JOptionPane jop = new JOptionPane("Please Select a variable to insert:", JOptionPane.QUESTION_MESSAGE,
-				    JOptionPane.DEFAULT_OPTION, null, new Object[] {}, null);
-
-				// add combos to JOptionPane
-				jop.add(jcd);
-
-				JDialog diag = new JDialog(ApplicationEditor.this, "Select variable");
-
-				JPanel contentPane = new JPanel(new BorderLayout());
-				contentPane.add(jop, BorderLayout.CENTER);
-				JButton okButton = new JButton(new AbstractAction("OK") {
-
-					@Override
-					public void actionPerformed(ActionEvent e) {
-						diag.dispose();
-						String variable = (String) jcd.getSelectedItem();
-						String placeholder = ProcessDescriptor.getVariablePlaceholder(variable);
-						txtCommand.insert(placeholder, txtCommand.getCaretPosition());
-					}
-				});
-				JPanel buttonPanel = new JPanel();
-				buttonPanel.add(okButton);
-				contentPane.add(buttonPanel, BorderLayout.SOUTH);
-
-				// create a JDialog and add JOptionPane to it
-
-				diag.setLocationRelativeTo(null);
-				diag.setModal(true);
-				diag.setContentPane(contentPane);
-				diag.pack();
-				diag.setVisible(true);
-
-			}
-		});
+		JButton btnInsertVariable = new JButton(insertVariableAction(txtCommand));
 
 		chckbxSubsitution = new JCheckBox("Enable environment variable substitution");
 
-		JButton btnShowSubstitution = new JButton(new AbstractAction("Show substitution") {
-
-			@Override
-			public void actionPerformed(ActionEvent e) {
-				JOptionPane.showMessageDialog(ApplicationEditor.this,
-				    "<html><body><p style='width: 640px;'>The following command will be substituted:<br/><br/><tt>"
-				        + ProcessDescriptor.substituteCommand(txtCommand.getText()) + "</tt></p></body></html>",
-				    "Command substitution", JOptionPane.INFORMATION_MESSAGE);
-			}
-		});
+		JButton btnShowSubstitution = new JButton(showSubstitutionAction(txtCommand));
 
 		GroupLayout gl_contentPanel = new GroupLayout(mainPanel);
 		gl_contentPanel.setHorizontalGroup(gl_contentPanel.createParallelGroup(Alignment.TRAILING)
@@ -662,6 +688,65 @@ public class ApplicationEditor extends JDialog {
 		setVisible(true);
 	}
 
+	private AbstractAction showSubstitutionAction(JTextComponent textComp) {
+		return new AbstractAction("Show substitution") {
+
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				JOptionPane.showMessageDialog(ApplicationEditor.this,
+				    "<html><body><p style='width: 640px;'>The following command will be substituted:<br/><br/><tt>"
+				        + ProcessDescriptor.substituteCommand(textComp.getText()) + "</tt></p></body></html>",
+				    "Command substitution", JOptionPane.INFORMATION_MESSAGE);
+			}
+		};
+	}
+
+	private AbstractAction insertVariableAction(final JTextArea textComponent) {
+		return new AbstractAction("Insert variable") {
+
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				Vector keys = new Vector<>(System.getenv()
+				    .keySet());
+				JComboBox jcd = new JComboBox(keys);
+
+				// create a JOptionPane
+				JOptionPane jop = new JOptionPane("Please Select a variable to insert:", JOptionPane.QUESTION_MESSAGE,
+				    JOptionPane.DEFAULT_OPTION, null, new Object[] {}, null);
+
+				// add combos to JOptionPane
+				jop.add(jcd);
+
+				JDialog diag = new JDialog(ApplicationEditor.this, "Select variable");
+
+				JPanel contentPane = new JPanel(new BorderLayout());
+				contentPane.add(jop, BorderLayout.CENTER);
+				JButton okButton = new JButton(new AbstractAction("OK") {
+
+					@Override
+					public void actionPerformed(ActionEvent e) {
+						diag.dispose();
+						String variable = (String) jcd.getSelectedItem();
+						String placeholder = ProcessDescriptor.getVariablePlaceholder(variable);
+						textComponent.insert(placeholder, txtCommand.getCaretPosition());
+					}
+				});
+				JPanel buttonPanel = new JPanel();
+				buttonPanel.add(okButton);
+				contentPane.add(buttonPanel, BorderLayout.SOUTH);
+
+				// create a JDialog and add JOptionPane to it
+
+				diag.setLocationRelativeTo(null);
+				diag.setModal(true);
+				diag.setContentPane(contentPane);
+				diag.pack();
+				diag.setVisible(true);
+
+			}
+		};
+	}
+
 	private void setProcessDescriptor(ProcessDescriptor process) {
 		if (isNull(process)) {
 			this.processDescriptor = new ProcessDescriptor();
@@ -705,6 +790,11 @@ public class ApplicationEditor extends JDialog {
 
 			chckbxEnablesExperimentalAscii.setSelected(processDescriptor.isSupportAsciiCodes());
 			chckbxSubsitution.setSelected(processDescriptor.isVariableSubstitution());
+
+			rdbtnUseCustomCommand.setSelected(processDescriptor.isUseTerminationCommand());
+			chckbxTermUseVariableSubst.setSelected(processDescriptor.isTerminationVariableSubstitution());
+			txtTermCommand.setText(processDescriptor.getTerminationCommand());
+
 		}
 	}
 
@@ -774,6 +864,11 @@ public class ApplicationEditor extends JDialog {
 		ApplicationEditor.this.processDescriptor.setCounters(counters);
 		ApplicationEditor.this.processDescriptor.setSupportAsciiCodes(chckbxEnablesExperimentalAscii.isSelected());
 		ApplicationEditor.this.processDescriptor.setVariableSubstitution(chckbxSubsitution.isSelected());
+
+		ApplicationEditor.this.processDescriptor.setUseTerminationCommand(rdbtnUseCustomCommand.isSelected());
+		ApplicationEditor.this.processDescriptor
+		    .setTerminationVariableSubstitution(chckbxTermUseVariableSubst.isSelected());
+		ApplicationEditor.this.processDescriptor.setTerminationCommand(txtTermCommand.getText());
 
 		dispose();
 	}

@@ -34,6 +34,9 @@ public class ProcessDescriptor implements Serializable {
 	private Map<String, String> environment;
 	private boolean supportAsciiCodes;
 	private boolean variableSubstitution;
+	private boolean terminationVariableSubstitution;
+	private boolean useTerminationCommand;
+	private String terminationCommand;
 
 	private List<Counter> counters;
 
@@ -182,6 +185,42 @@ public class ProcessDescriptor implements Serializable {
 		} else {
 			return command;
 		}
+	}
+
+	/**
+	 * @return Returns the substituted command if environment variable substitution was enabled. Otherwise the command is
+	 *         returned without any modification.
+	 */
+	public String getTerminationCommandForExecution() {
+		if (terminationVariableSubstitution) {
+			return substituteCommand(terminationCommand);
+		} else {
+			return terminationCommand;
+		}
+	}
+
+	public boolean isTerminationVariableSubstitution() {
+		return terminationVariableSubstitution;
+	}
+
+	public void setTerminationVariableSubstitution(boolean terminationVariableSubstitution) {
+		this.terminationVariableSubstitution = terminationVariableSubstitution;
+	}
+
+	public boolean isUseTerminationCommand() {
+		return useTerminationCommand;
+	}
+
+	public void setUseTerminationCommand(boolean useTerminationCommand) {
+		this.useTerminationCommand = useTerminationCommand;
+	}
+
+	public String getTerminationCommand() {
+		return terminationCommand;
+	}
+
+	public void setTerminationCommand(String terminationCommand) {
+		this.terminationCommand = terminationCommand;
 	}
 
 	public static String getVariablePlaceholder(String variable) {
