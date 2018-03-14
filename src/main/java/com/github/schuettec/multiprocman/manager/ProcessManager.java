@@ -201,6 +201,7 @@ public class ProcessManager extends JFrame {
 	public ProcessManager() {
 		setIconImage(Resources.getApplicationIcon());
 		setTitle("Application manager");
+		setPreferredSize(new Dimension(640, 480));
 		ThemeUtil.loadWindowState(this);
 		ThemeUtil.installListeners(this);
 		addWindowListener(new WindowListener() {

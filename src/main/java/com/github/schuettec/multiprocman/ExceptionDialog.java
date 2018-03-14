@@ -61,7 +61,7 @@ public class ExceptionDialog extends JDialog {
 		setAlwaysOnTop(true);
 		setAutoRequestFocus(true);
 		setDefaultCloseOperation(JDialog.DISPOSE_ON_CLOSE);
-
+		setPreferredSize(new Dimension(480, 420));
 		ThemeUtil.loadWindowState(this);
 		ThemeUtil.installListeners(this);
 

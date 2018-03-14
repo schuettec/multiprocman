@@ -96,6 +96,7 @@ public class ApplicationEditor extends JDialog {
 		setIconImage(Resources.getApplicationIcon());
 		setModal(true);
 		setTitle("Application");
+		this.setPreferredSize(new Dimension(430, 200));
 		ThemeUtil.loadWindowState(this);
 		ThemeUtil.installListeners(this);
 		addWindowListener(new WindowListener() {

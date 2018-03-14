@@ -144,6 +144,7 @@ public class MainFrame extends JFrame implements WindowListener, ProcessListener
 		setIconImage(Resources.getApplicationIcon());
 		setDefaultCloseOperation(JFrame.DO_NOTHING_ON_CLOSE);
 		addWindowListener(this);
+		setPreferredSize(new Dimension(480, 640));
 		ThemeUtil.loadWindowState(this);
 		ThemeUtil.installListeners(this);
 

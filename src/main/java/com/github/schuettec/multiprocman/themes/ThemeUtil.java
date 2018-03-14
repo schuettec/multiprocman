@@ -94,46 +94,46 @@ public class ThemeUtil {
 	};
 
 	public static void saveWindowState(Window window) {
+		Preferences prefs = Preferences.userNodeForPackage(window.getClass())
+		    .node(window.getClass()
+		        .getSimpleName());
 		if (window instanceof JFrame) {
-			ThemeUtil.saveWindowLocation((JFrame) window);
+			ThemeUtil.saveWindowLocation(prefs, (JFrame) window);
 		} else if (window instanceof JDialog) {
 			JDialog jDialog = (JDialog) window;
-			ThemeUtil.saveWindowLocation(jDialog);
+			ThemeUtil.saveWindowLocation(prefs, jDialog);
 		} else {
-			ThemeUtil.saveWindowLocation(window);
+			ThemeUtil.saveWindowLocation(prefs, window);
 		}
 	}
 
 	public static void loadWindowState(Window window) {
+		Preferences prefs = Preferences.userNodeForPackage(window.getClass())
+		    .node(window.getClass()
+		        .getSimpleName());
 		if (window instanceof JFrame) {
-			ThemeUtil.loadWindowLocation((JFrame) window);
+			ThemeUtil.loadWindowLocation(prefs, (JFrame) window);
 		} else if (window instanceof JDialog) {
 			JDialog jDialog = (JDialog) window;
-			ThemeUtil.loadWindowLocation(jDialog);
+			ThemeUtil.loadWindowLocation(prefs, jDialog);
 		} else {
-			ThemeUtil.loadWindowLocation(window);
+			ThemeUtil.loadWindowLocation(prefs, window);
 		}
 	}
 
-	private static void saveWindowLocation(JFrame frame) {
-		Preferences prefs = Preferences.userNodeForPackage(frame.getClass());
-		saveWindowLocation(prefs, frame);
+	private static void saveWindowLocation(Preferences prefs, JFrame frame) {
+		saveWindowLocation(prefs, (Window) frame);
 		int extendedState = frame.getExtendedState();
 		prefs.putInt("extendedWindowState", extendedState);
 	}
 
-	private static void loadWindowLocation(JFrame frame) {
+	private static void loadWindowLocation(Preferences prefs, JFrame frame) {
 		if (disableSettings) {
 			return;
 		}
-		Preferences prefs = Preferences.userNodeForPackage(frame.getClass());
-		loadWindowLocation(prefs, frame);
+		loadWindowLocation(prefs, (Window) frame);
 		int extendedState = prefs.getInt("extendedWindowState", frame.getExtendedState());
 		frame.setExtendedState(extendedState);
-	}
-
-	private static void saveWindowLocation(Window window) {
-		saveWindowLocation(Preferences.userNodeForPackage(window.getClass()), window);
 	}
 
 	private static void saveWindowLocation(Preferences prefs, Window window) {
@@ -145,28 +145,26 @@ public class ThemeUtil {
 		prefs.putInt("height", size.height);
 	}
 
-	private static void loadWindowLocation(Window window) {
-		loadWindowLocation(Preferences.userNodeForPackage(window.getClass()), window);
-	}
-
 	private static void loadWindowLocation(Preferences prefs, Window window) {
 		if (disableSettings) {
 			return;
 		}
+		int width = prefs.getInt("width", -1);
+		int height = prefs.getInt("height", -1);
+		if (width == -1 || height == -1) {
+			window.setSize(new Dimension(window.getPreferredSize()));
+		} else {
+			window.setSize(new Dimension(width, height));
+		}
+
 		int x = prefs.getInt("x", -1);
 		int y = prefs.getInt("y", -1);
-
 		if (x == -1 || y == -1) {
 			window.setLocationRelativeTo(null);
 		} else {
 			window.setLocation(new Point(x, y));
 		}
 
-		int width = prefs.getInt("width", -1);
-		int height = prefs.getInt("height", -1);
-		if (x > -1 && y > -1) {
-			window.setSize(new Dimension(width, height));
-		}
 	}
 
 	public static <C extends JComponent> void theme(C component, Class<? extends Theme<C>> service) {
