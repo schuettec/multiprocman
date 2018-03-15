@@ -55,7 +55,8 @@ public class ProcessDescriptor implements Serializable {
 		while (it.hasNext()) {
 			Entry<String, String> entry = it.next();
 			String substitution = getVariablePlaceholder(entry.getKey());
-			substitute = substitute.replaceAll(Pattern.quote(substitution), Matcher.quoteReplacement(entry.getValue()));
+			substitute = substitute.replaceAll("(?i)" + Pattern.quote(substitution),
+			    Matcher.quoteReplacement(entry.getValue()));
 		}
 		return substitute;
 	}
