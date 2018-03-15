@@ -523,14 +523,13 @@ public class MainFrame extends JFrame implements WindowListener, ProcessListener
 
 	private void _exit() {
 		SwingUtilities.invokeLater(new Runnable() {
-
 			@Override
 			public void run() {
-
 				ProcessController.shutdown();
 				ThemeUtil.stopJavaFX();
 				setVisible(false);
 				dispose();
+				System.exit(0);
 			}
 		});
 	}

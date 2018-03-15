@@ -239,6 +239,7 @@ public class ProcessManager extends JFrame {
 				    .isVisible()) {
 					ThemeUtil.stopJavaFX();
 					dispose();
+					System.exit(0);
 				}
 				setVisible(false);
 			}
