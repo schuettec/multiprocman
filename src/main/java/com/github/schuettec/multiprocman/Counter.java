@@ -7,6 +7,8 @@ import java.util.regex.PatternSyntaxException;
 
 import javax.swing.JOptionPane;
 
+import com.github.schuettec.multiprocman.manager.ProcessManager;
+
 public class Counter {
 	private String name;
 	private String regexp;
@@ -51,7 +53,7 @@ public class Counter {
 			return true;
 		} catch (PatternSyntaxException e) {
 			if (raiseException) {
-				JOptionPane.showMessageDialog(null,
+				JOptionPane.showMessageDialog(ProcessManager.getInstance(),
 				    String.format("The expression %s is not a valid regular expression. %s", regexp, e.getMessage()),
 				    "Invalid expression", JOptionPane.ERROR_MESSAGE);
 			}

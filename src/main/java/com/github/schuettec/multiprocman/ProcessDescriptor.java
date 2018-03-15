@@ -8,9 +8,13 @@ import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.Serializable;
 import java.nio.charset.Charset;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Objects;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import javax.swing.ImageIcon;
 
@@ -29,6 +33,10 @@ public class ProcessDescriptor implements Serializable {
 	private Charset charset;
 	private Map<String, String> environment;
 	private boolean supportAsciiCodes;
+	private boolean variableSubstitution;
+	private boolean terminationVariableSubstitution;
+	private boolean useTerminationCommand;
+	private String terminationCommand;
 
 	private List<Counter> counters;
 
@@ -37,6 +45,27 @@ public class ProcessDescriptor implements Serializable {
 		setCharset(Charset.defaultCharset());
 		setIcon(Resources.getTerminal());
 		setColor(Color.GREEN);
+	}
+
+	public static String substituteCommand(String command) {
+		Map<String, String> getenv = System.getenv();
+		Iterator<Entry<String, String>> it = getenv.entrySet()
+		    .iterator();
+		String substitute = command;
+		while (it.hasNext()) {
+			Entry<String, String> entry = it.next();
+			String substitution = getVariablePlaceholder(entry.getKey());
+			substitute = substitute.replaceAll(Pattern.quote(substitution), Matcher.quoteReplacement(entry.getValue()));
+		}
+		return substitute;
+	}
+
+	public boolean isVariableSubstitution() {
+		return variableSubstitution;
+	}
+
+	public void setVariableSubstitution(boolean variableSubstitution) {
+		this.variableSubstitution = variableSubstitution;
 	}
 
 	public boolean hasEnvironmentVariables() {
@@ -144,6 +173,58 @@ public class ProcessDescriptor implements Serializable {
 
 	public void setSupportAsciiCodes(boolean supportAsciiCodes) {
 		this.supportAsciiCodes = supportAsciiCodes;
+	}
+
+	/**
+	 * @return Returns the substituted command if environment variable substitution was enabled. Otherwise the command is
+	 *         returned without any modification.
+	 */
+	public String getCommandForExecution() {
+		if (variableSubstitution) {
+			return substituteCommand(command);
+		} else {
+			return command;
+		}
+	}
+
+	/**
+	 * @return Returns the substituted command if environment variable substitution was enabled. Otherwise the command is
+	 *         returned without any modification.
+	 */
+	public String getTerminationCommandForExecution() {
+		if (terminationVariableSubstitution) {
+			return substituteCommand(terminationCommand);
+		} else {
+			return terminationCommand;
+		}
+	}
+
+	public boolean isTerminationVariableSubstitution() {
+		return terminationVariableSubstitution;
+	}
+
+	public void setTerminationVariableSubstitution(boolean terminationVariableSubstitution) {
+		this.terminationVariableSubstitution = terminationVariableSubstitution;
+	}
+
+	public boolean isUseTerminationCommand() {
+		return useTerminationCommand;
+	}
+
+	public void setUseTerminationCommand(boolean useTerminationCommand) {
+		this.useTerminationCommand = useTerminationCommand;
+	}
+
+	public String getTerminationCommand() {
+		return terminationCommand;
+	}
+
+	public void setTerminationCommand(String terminationCommand) {
+		this.terminationCommand = terminationCommand;
+	}
+
+	public static String getVariablePlaceholder(String variable) {
+		return "${" + variable + "}";
 	}
 
 }

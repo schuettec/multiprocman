@@ -16,7 +16,6 @@ import java.awt.event.WindowListener;
 import java.util.Arrays;
 import java.util.Iterator;
 import java.util.List;
-import java.util.function.Consumer;
 
 import javax.swing.AbstractAction;
 import javax.swing.Action;
@@ -49,9 +48,18 @@ import com.github.schuettec.multiprocman.themes.ThemeUtil;
 public class ProcessManager extends JFrame {
 
 	/**
-	 * 
+	 *
 	 */
 	private static final long serialVersionUID = 1L;
+
+	private static class Holder {
+		private static final ProcessManager INSTANCE = new ProcessManager();
+	}
+
+	public static ProcessManager getInstance() {
+		return Holder.INSTANCE;
+	}
+
 	private final JPanel contentPanel = new JPanel();
 	private JList<Category> lstCategories;
 	private JList<ProcessDescriptor> lstProcesses;
@@ -72,7 +80,7 @@ public class ProcessManager extends JFrame {
 	private Action newCategory = new AbstractAction(null, new ImageIcon(Resources.getFolderPlus())) {
 
 		/**
-		 * 
+		 *
 		 */
 		private static final long serialVersionUID = 1L;
 
@@ -87,7 +95,7 @@ public class ProcessManager extends JFrame {
 	private Action editCategory = new AbstractAction(null, new ImageIcon(Resources.getEdit())) {
 
 		/**
-		 * 
+		 *
 		 */
 		private static final long serialVersionUID = 1L;
 
@@ -108,7 +116,7 @@ public class ProcessManager extends JFrame {
 	private Action removeCategory = new AbstractAction(null, new ImageIcon(Resources.getFolderMinus())) {
 
 		/**
-		 * 
+		 *
 		 */
 		private static final long serialVersionUID = 1L;
 
@@ -127,7 +135,7 @@ public class ProcessManager extends JFrame {
 	private Action newApplication = new AbstractAction(null, new ImageIcon(Resources.getFolderPlus())) {
 
 		/**
-		 * 
+		 *
 		 */
 		private static final long serialVersionUID = 1L;
 
@@ -152,7 +160,7 @@ public class ProcessManager extends JFrame {
 	private Action editApplication = new AbstractAction(null, new ImageIcon(Resources.getEdit())) {
 
 		/**
-		 * 
+		 *
 		 */
 		private static final long serialVersionUID = 1L;
 
@@ -173,7 +181,7 @@ public class ProcessManager extends JFrame {
 	private Action removeApplication = new AbstractAction(null, new ImageIcon(Resources.getFolderMinus())) {
 
 		/**
-		 * 
+		 *
 		 */
 		private static final long serialVersionUID = 1L;
 
@@ -198,9 +206,12 @@ public class ProcessManager extends JFrame {
 	/**
 	 * Create the dialog.
 	 */
-	public ProcessManager() {
+	private ProcessManager() {
 		setIconImage(Resources.getApplicationIcon());
 		setTitle("Application manager");
+		setPreferredSize(new Dimension(640, 480));
+		ThemeUtil.loadWindow(this);
+		ThemeUtil.installListeners(this);
 		addWindowListener(new WindowListener() {
 
 			@Override
@@ -224,8 +235,9 @@ public class ProcessManager extends JFrame {
 				if (!MainFrame.getInstance()
 				    .isVisible()) {
 					ThemeUtil.stopJavaFX();
+					dispose();
 				}
-				dispose();
+				setVisible(false);
 			}
 
 			@Override
@@ -236,9 +248,6 @@ public class ProcessManager extends JFrame {
 			public void windowActivated(WindowEvent e) {
 			}
 		});
-		setPreferredSize(new Dimension(640, 480));
-		setSize(new Dimension(640, 480));
-		setLocationRelativeTo(null);
 		getContentPane().setLayout(new BorderLayout());
 		contentPanel.setBorder(new EmptyBorder(5, 5, 5, 5));
 		getContentPane().add(contentPanel, BorderLayout.CENTER);
@@ -273,7 +282,7 @@ public class ProcessManager extends JFrame {
 
 			lstCategories.setTransferHandler(new TransferHandler() {
 				/**
-				 * 
+				 *
 				 */
 				private static final long serialVersionUID = 1L;
 				private int index;
@@ -378,7 +387,7 @@ public class ProcessManager extends JFrame {
 									processTemplates.copyInto(array);
 									startAll(mainFrame, Arrays.asList(array)
 									    .iterator());
-									dispose();
+									setVisible(false);
 								}
 							}
 						});
@@ -462,6 +471,12 @@ public class ProcessManager extends JFrame {
 		setVisible(true);
 	}
 
+	@Override
+	public void dispose() {
+		ThemeUtil.deinstallListeners(this);
+		super.dispose();
+	}
+
 	private void runSelectedApplication() {
 		int selectedIndex = lstProcesses.getSelectedIndex();
 		if (selectedIndex == -1) {
@@ -473,7 +488,7 @@ public class ProcessManager extends JFrame {
 			List<ProcessDescriptor> selected = lstProcesses.getSelectedValuesList();
 			Iterator<ProcessDescriptor> iterator = selected.iterator();
 			startAll(mainFrame, iterator);
-			dispose();
+			setVisible(false);
 		}
 	}
 
@@ -483,13 +498,6 @@ public class ProcessManager extends JFrame {
 			ProcessController c = new ProcessController(descriptor);
 			mainFrame.addProcessController(c);
 			c.start();
-		}
-	}
-
-	private void modifyApplications(Consumer<DefaultListModel<ProcessDescriptor>> applicationsModificator) {
-		if (nonNull(currentCategory)) {
-			applicationsModificator.accept(currentCategory.getProcessTemplates());
-			categories.saveToPreferences();
 		}
 	}
 

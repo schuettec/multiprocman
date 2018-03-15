@@ -28,6 +28,8 @@ import javax.swing.border.EmptyBorder;
 
 import org.apache.commons.lang3.exception.ExceptionUtils;
 
+import com.github.schuettec.multiprocman.themes.ThemeUtil;
+
 public class ExceptionDialog extends JDialog {
 
 	private final JPanel contentPanel = new JPanel();
@@ -58,10 +60,11 @@ public class ExceptionDialog extends JDialog {
 		setTitle("Exception");
 		setAlwaysOnTop(true);
 		setAutoRequestFocus(true);
-		setPreferredSize(new Dimension(480, 420));
-		setSize(new Dimension(480, 420));
-		setLocationRelativeTo(null);
 		setDefaultCloseOperation(JDialog.DISPOSE_ON_CLOSE);
+		setPreferredSize(new Dimension(480, 420));
+		ThemeUtil.loadWindow(this);
+		ThemeUtil.installListeners(this);
+
 		getContentPane().setLayout(new BorderLayout());
 		contentPanel.setBorder(new EmptyBorder(5, 5, 5, 5));
 		getContentPane().add(contentPanel, BorderLayout.CENTER);
@@ -131,5 +134,11 @@ public class ExceptionDialog extends JDialog {
 		getRootPane().getActionMap()
 		    .put("Close", disposeAction);
 		setVisible(true);
+	}
+
+	@Override
+	public void dispose() {
+		ThemeUtil.deinstallListeners(this);
+		super.dispose();
 	}
 }

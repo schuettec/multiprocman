@@ -34,6 +34,8 @@ import javax.swing.border.EmptyBorder;
 import com.github.schuettec.multiprocman.FileChooserCallback;
 import com.github.schuettec.multiprocman.FileUtil;
 import com.github.schuettec.multiprocman.Resources;
+import com.github.schuettec.multiprocman.themes.ThemeUtil;
+
 import javafx.stage.FileChooser.ExtensionFilter;
 
 public class CategoryEditor extends JDialog {
@@ -45,7 +47,7 @@ public class CategoryEditor extends JDialog {
 
 	/**
 	 * Create the dialog.
-	 * 
+	 *
 	 * @param category
 	 */
 	private CategoryEditor(Category category) {
@@ -55,8 +57,9 @@ public class CategoryEditor extends JDialog {
 		setResizable(false);
 		setDefaultCloseOperation(JDialog.DISPOSE_ON_CLOSE);
 		this.setPreferredSize(new Dimension(430, 200));
-		this.setSize(new Dimension(325, 221));
-		this.setLocationRelativeTo(null);
+		ThemeUtil.loadWindow(this);
+		ThemeUtil.installListeners(this);
+
 		getContentPane().setLayout(new BorderLayout());
 		contentPanel.setBorder(new EmptyBorder(5, 5, 5, 5));
 		getContentPane().add(contentPanel, BorderLayout.CENTER);
@@ -240,6 +243,12 @@ public class CategoryEditor extends JDialog {
 
 	private Category getCategory() {
 		return this.category;
+	}
+
+	@Override
+	public void dispose() {
+		ThemeUtil.deinstallListeners(this);
+		super.dispose();
 	}
 
 }

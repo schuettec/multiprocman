@@ -145,8 +145,8 @@ public class MainFrame extends JFrame implements WindowListener, ProcessListener
 		setDefaultCloseOperation(JFrame.DO_NOTHING_ON_CLOSE);
 		addWindowListener(this);
 		setPreferredSize(new Dimension(480, 640));
-		setSize(new Dimension(480, 640));
-		setLocationRelativeTo(null);
+		ThemeUtil.loadWindow(this);
+		ThemeUtil.installListeners(this);
 
 		contentPane = new JPanel();
 		contentPane.setBorder(new EmptyBorder(5, 5, 5, 5));
@@ -355,7 +355,8 @@ public class MainFrame extends JFrame implements WindowListener, ProcessListener
 
 			@Override
 			public void actionPerformed(ActionEvent e) {
-				new ProcessManager();
+				ProcessManager.getInstance()
+				    .setVisible(true);
 			}
 		});
 
@@ -422,6 +423,12 @@ public class MainFrame extends JFrame implements WindowListener, ProcessListener
 		});
 	}
 
+	@Override
+	public void dispose() {
+		ThemeUtil.deinstallListeners(this);
+		super.dispose();
+	}
+
 	private void selectConsole(ProcessController selectedValue) {
 		if (this.currentProcess != null) {
 			// Deregister everything
@@ -485,7 +492,8 @@ public class MainFrame extends JFrame implements WindowListener, ProcessListener
 		processController.removeProcessListener(this);
 		this.processes.removeElement(processController);
 		if (this.processes.isEmpty()) {
-			new ProcessManager();
+			ProcessManager.getInstance()
+			    .setVisible(true);
 			setVisible(false);
 			dispose();
 		}
