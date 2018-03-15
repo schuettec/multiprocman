@@ -117,16 +117,16 @@ public class ThemeUtil {
 		        .getSimpleName());
 		if (window instanceof JFrame) {
 			JFrame jFrame = (JFrame) window;
-			loadPosition(prefs, jFrame);
 			loadDimension(prefs, jFrame);
+			loadPosition(prefs, jFrame);
 			loadWindow(prefs, jFrame);
 		} else if (window instanceof JDialog) {
 			JDialog jDialog = (JDialog) window;
-			loadPosition(prefs, jDialog);
 			loadDimension(prefs, jDialog);
+			loadPosition(prefs, jDialog);
 		} else {
-			loadPosition(prefs, window);
 			loadDimension(prefs, window);
+			loadPosition(prefs, window);
 		}
 	}
 
