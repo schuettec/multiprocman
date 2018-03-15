@@ -89,7 +89,7 @@ public class ProcessManager extends JFrame {
 
 		@Override
 		public void actionPerformed(ActionEvent e) {
-			Category newCategory = CategoryEditor.newCategory();
+			Category newCategory = CategoryEditor.newCategory(ProcessManager.this);
 			if (nonNull(newCategory)) {
 				categories.addElement(newCategory);
 			}
@@ -109,7 +109,7 @@ public class ProcessManager extends JFrame {
 				JOptionPane.showMessageDialog(ProcessManager.this, "Please select the category to edit first.", "No selection",
 				    JOptionPane.WARNING_MESSAGE);
 			} else {
-				CategoryEditor.editCategory(categories.get(selectedIndex));
+				CategoryEditor.editCategory(categories.get(selectedIndex), ProcessManager.this);
 				categories.saveToPreferences();
 				lstCategories.repaint();
 			}

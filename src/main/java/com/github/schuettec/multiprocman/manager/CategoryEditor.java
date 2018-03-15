@@ -3,6 +3,7 @@ package com.github.schuettec.multiprocman.manager;
 import static java.util.Objects.isNull;
 
 import java.awt.BorderLayout;
+import java.awt.Component;
 import java.awt.Dimension;
 import java.awt.FlowLayout;
 import java.awt.Graphics2D;
@@ -49,12 +50,14 @@ public class CategoryEditor extends JDialog {
 	 * Create the dialog.
 	 *
 	 * @param category
+	 * @param owner
 	 */
-	private CategoryEditor(Category category) {
+	private CategoryEditor(Category category, Component owner) {
 		setIconImage(Resources.getApplicationIcon());
 		setModal(true);
 		setTitle("Category");
 		setResizable(false);
+		setLocationRelativeTo(owner);
 		setDefaultCloseOperation(JDialog.DISPOSE_ON_CLOSE);
 		this.setPreferredSize(new Dimension(430, 200));
 		ThemeUtil.loadWindow(this);
@@ -232,13 +235,14 @@ public class CategoryEditor extends JDialog {
 		setVisible(true);
 	}
 
-	public static Category newCategory() {
-		CategoryEditor editor = new CategoryEditor(null);
+	public static Category newCategory(Component owner) {
+		CategoryEditor editor = new CategoryEditor(null, owner);
+		editor.setLocationRelativeTo(owner);
 		return editor.getCategory();
 	}
 
-	public static void editCategory(Category category) {
-		new CategoryEditor(category);
+	public static void editCategory(Category category, Component owner) {
+		new CategoryEditor(category, owner);
 	}
 
 	private Category getCategory() {
