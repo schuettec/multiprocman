@@ -4,6 +4,7 @@ import static java.util.Objects.isNull;
 import static java.util.Objects.nonNull;
 
 import java.awt.BorderLayout;
+import java.awt.Component;
 import java.awt.Dimension;
 import java.awt.datatransfer.DataFlavor;
 import java.awt.datatransfer.StringSelection;
@@ -27,8 +28,10 @@ import javax.swing.JComponent;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JList;
+import javax.swing.JMenuItem;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
+import javax.swing.JPopupMenu;
 import javax.swing.JScrollPane;
 import javax.swing.JSplitPane;
 import javax.swing.JToolBar;
@@ -468,7 +471,30 @@ public class ProcessManager extends JFrame {
 		}
 		lstCategories.setSelectedIndex(0);
 		lstProcesses.setSelectedIndex(0);
+		{
+			JPopupMenu popupMenu = new JPopupMenu();
+			addPopup(lstProcesses, popupMenu);
+			{
+				JMenuItem newApp = new JMenuItem(new TitledAction("New...", newApplication));
+				JMenuItem editApp = new JMenuItem(new TitledAction("Edit...", editApplication));
+				JMenuItem removeApp = new JMenuItem(new TitledAction("Remove", removeApplication));
+				popupMenu.add(newApp);
+				popupMenu.add(editApp);
+				popupMenu.add(removeApp);
+			}
+		}
+		{
+			JPopupMenu popupMenu = new JPopupMenu();
+			addPopup(lstCategories, popupMenu);
+			JMenuItem newApp = new JMenuItem(new TitledAction("New...", newCategory));
+			JMenuItem editApp = new JMenuItem(new TitledAction("Edit...", editCategory));
+			JMenuItem removeApp = new JMenuItem(new TitledAction("Remove", removeCategory));
+			popupMenu.add(newApp);
+			popupMenu.add(editApp);
+			popupMenu.add(removeApp);
+		}
 		setVisible(true);
+
 	}
 
 	@Override
@@ -501,4 +527,30 @@ public class ProcessManager extends JFrame {
 		}
 	}
 
+	private static void addPopup(Component component, final JPopupMenu popup) {
+		component.addMouseListener(new MouseAdapter() {
+			@Override
+			public void mousePressed(MouseEvent e) {
+				if (e.isPopupTrigger()) {
+					showMenu(e);
+				}
+			}
+
+			@Override
+			public void mouseReleased(MouseEvent e) {
+				if (e.isPopupTrigger()) {
+					showMenu(e);
+				}
+			}
+
+			private void showMenu(MouseEvent e) {
+				Object source = e.getSource();
+				if (source instanceof JList) {
+					JList list = (JList) source;
+					list.setSelectedIndex(list.locationToIndex(e.getPoint())); // select the item
+				}
+				popup.show(e.getComponent(), e.getX(), e.getY());
+			}
+		});
+	}
 }
