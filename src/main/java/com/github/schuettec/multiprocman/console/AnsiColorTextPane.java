@@ -237,7 +237,7 @@ public class AnsiColorTextPane extends JTextPane implements Appendable {
 			JOptionPane.showMessageDialog(this, "The document was not saved due to an I/O error.", "I/O error",
 			    JOptionPane.ERROR_MESSAGE);
 		} catch (BadLocationException e) {
-			ExceptionDialog.showException(e, "Bad location while saving the document.");
+			ExceptionDialog.showException(this, e, "Bad location while saving the document.");
 		}
 	}
 

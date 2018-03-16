@@ -56,7 +56,7 @@ public class Resources {
 			plus = ImageIO.read(getResource("/plus.png"));
 			minus = ImageIO.read(getResource("/minus.png"));
 		} catch (IOException e) {
-			ExceptionDialog.showException(e, "Some application resources could not be found!");
+			ExceptionDialog.showException(null, e, "Some application resources could not be found!");
 		}
 
 	}

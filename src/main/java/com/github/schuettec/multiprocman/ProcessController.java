@@ -91,7 +91,7 @@ public class ProcessController {
 			this.process = executeCommand(command);
 			startProcessObserver();
 		} catch (IOException e) {
-			ExceptionDialog.showException(e, "Error while starting the application.");
+			ExceptionDialog.showException(textPane, e, "Error while starting the application.");
 			return false;
 		}
 		return true;
@@ -100,7 +100,7 @@ public class ProcessController {
 	private Process executeCommand(String command) throws IOException {
 		File workingDir = null;
 		if (processDescriptor.hasExecutionDirectory()) {
-			workingDir = processDescriptor.getExecutionDirectory();
+			workingDir = new File(processDescriptor.getExecutionDirectoryForExecution());
 		}
 		String[] env = null;
 		if (processDescriptor.hasEnvironmentVariables()) {

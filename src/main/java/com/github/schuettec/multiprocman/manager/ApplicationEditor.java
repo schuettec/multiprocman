@@ -65,7 +65,6 @@ import com.github.schuettec.multiprocman.FileChooserCallback;
 import com.github.schuettec.multiprocman.FileUtil;
 import com.github.schuettec.multiprocman.ProcessDescriptor;
 import com.github.schuettec.multiprocman.Resources;
-import com.github.schuettec.multiprocman.themes.ThemeUtil;
 
 import javafx.stage.FileChooser.ExtensionFilter;
 
@@ -97,15 +96,17 @@ public class ApplicationEditor extends JDialog {
 	/**
 	 * Create the dialog.
 	 *
+	 * @param parent
+	 *
 	 * @param category
 	 */
-	private ApplicationEditor(ProcessDescriptor process) {
+	private ApplicationEditor(ProcessDescriptor process, Component parent) {
 		setIconImage(Resources.getApplicationIcon());
 		setModal(true);
 		setTitle("Application");
-		this.setPreferredSize(new Dimension(640, 600));
-		ThemeUtil.loadWindow(this);
-		ThemeUtil.installListeners(this);
+		this.setPreferredSize(new Dimension(540, 580));
+		this.setSize(new Dimension(540, 580));
+		this.setLocationRelativeTo(parent);
 		addWindowListener(new WindowListener() {
 
 			@Override
@@ -510,6 +511,7 @@ public class ApplicationEditor extends JDialog {
 
 		this.chckbxEnablesExperimentalAscii = new JCheckBox(
 		    "<html>Enables experimental ASCII code support for formatted application output.</html>");
+		chckbxEnablesExperimentalAscii.setVerticalAlignment(SwingConstants.TOP);
 
 		txtCommand = new JTextArea();
 		JButton btnInsertVariable = new JButton(insertVariableAction(txtCommand));
@@ -518,76 +520,70 @@ public class ApplicationEditor extends JDialog {
 		JButton btnShowSubstitution = new JButton(showSubstitutionAction(txtCommand));
 
 		GroupLayout gl_contentPanel = new GroupLayout(mainPanel);
-		gl_contentPanel.setHorizontalGroup(gl_contentPanel.createParallelGroup(Alignment.TRAILING)
+		gl_contentPanel.setHorizontalGroup(gl_contentPanel.createParallelGroup(Alignment.LEADING)
 		    .addGroup(gl_contentPanel.createSequentialGroup()
 		        .addContainerGap()
-		        .addGroup(gl_contentPanel.createParallelGroup(Alignment.TRAILING)
-		            .addComponent(lblPleaseFillIn, GroupLayout.DEFAULT_SIZE, 436, Short.MAX_VALUE)
+		        .addGroup(gl_contentPanel.createParallelGroup(Alignment.LEADING)
 		            .addGroup(gl_contentPanel.createSequentialGroup()
-		                .addGroup(gl_contentPanel.createParallelGroup(Alignment.LEADING)
-		                    .addGroup(gl_contentPanel.createParallelGroup(Alignment.TRAILING, false)
-		                        .addComponent(lblName, GroupLayout.DEFAULT_SIZE, GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-		                        .addComponent(lblForIcon, GroupLayout.DEFAULT_SIZE, 94, Short.MAX_VALUE))
-		                    .addComponent(lblNewLabel, GroupLayout.PREFERRED_SIZE, 95, GroupLayout.PREFERRED_SIZE))
-		                .addGroup(gl_contentPanel.createParallelGroup(Alignment.LEADING)
+		                .addGroup(gl_contentPanel.createParallelGroup(Alignment.TRAILING)
+		                    .addComponent(lblPleaseFillIn, GroupLayout.DEFAULT_SIZE, 489, Short.MAX_VALUE)
 		                    .addGroup(gl_contentPanel.createSequentialGroup()
-		                        .addPreferredGap(ComponentPlacement.RELATED)
+		                        .addGroup(gl_contentPanel.createParallelGroup(Alignment.LEADING)
+		                            .addGroup(gl_contentPanel.createParallelGroup(Alignment.TRAILING, false)
+		                                .addComponent(lblName, GroupLayout.DEFAULT_SIZE, GroupLayout.DEFAULT_SIZE,
+		                                    Short.MAX_VALUE)
+		                                .addComponent(lblForIcon, GroupLayout.DEFAULT_SIZE, 94, Short.MAX_VALUE))
+		                            .addComponent(lblNewLabel, GroupLayout.PREFERRED_SIZE, 95, GroupLayout.PREFERRED_SIZE))
 		                        .addGroup(gl_contentPanel.createParallelGroup(Alignment.LEADING)
 		                            .addGroup(gl_contentPanel.createSequentialGroup()
-		                                .addComponent(lblIcon, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE,
-		                                    GroupLayout.PREFERRED_SIZE)
-		                                .addPreferredGap(ComponentPlacement.RELATED, 118, Short.MAX_VALUE)
-		                                .addComponent(btnDefaultIcon)
 		                                .addPreferredGap(ComponentPlacement.RELATED)
-		                                .addComponent(btnFindIcon, GroupLayout.PREFERRED_SIZE, 98,
-		                                    GroupLayout.PREFERRED_SIZE))
-		                            .addComponent(txtTitle, GroupLayout.DEFAULT_SIZE, 335, Short.MAX_VALUE)))
-		                    .addGroup(gl_contentPanel.createSequentialGroup()
-		                        .addGap(6)
-		                        .addComponent(scrollPane, GroupLayout.DEFAULT_SIZE, 335, Short.MAX_VALUE))))
+		                                .addGroup(gl_contentPanel.createParallelGroup(Alignment.LEADING)
+		                                    .addGroup(gl_contentPanel.createSequentialGroup()
+		                                        .addComponent(lblIcon, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE,
+		                                            GroupLayout.PREFERRED_SIZE)
+		                                        .addPreferredGap(ComponentPlacement.RELATED, 171, Short.MAX_VALUE)
+		                                        .addComponent(btnDefaultIcon)
+		                                        .addPreferredGap(ComponentPlacement.RELATED)
+		                                        .addComponent(btnFindIcon, GroupLayout.PREFERRED_SIZE, 98,
+		                                            GroupLayout.PREFERRED_SIZE))
+		                                    .addComponent(txtTitle, GroupLayout.DEFAULT_SIZE, 388, Short.MAX_VALUE)))
+		                            .addGroup(gl_contentPanel.createSequentialGroup()
+		                                .addGap(6)
+		                                .addGroup(gl_contentPanel.createParallelGroup(Alignment.LEADING)
+		                                    .addComponent(scrollPane, GroupLayout.DEFAULT_SIZE, 388, Short.MAX_VALUE)
+		                                    .addGroup(gl_contentPanel.createSequentialGroup()
+		                                        .addComponent(btnShowSubstitution)
+		                                        .addPreferredGap(ComponentPlacement.RELATED)
+		                                        .addComponent(btnInsertVariable, GroupLayout.PREFERRED_SIZE, 111,
+		                                            GroupLayout.PREFERRED_SIZE)
+		                                        .addPreferredGap(ComponentPlacement.RELATED, 64, Short.MAX_VALUE)
+		                                        .addComponent(btnFindApplication, GroupLayout.PREFERRED_SIZE, 90,
+		                                            GroupLayout.PREFERRED_SIZE)
+		                                        .addPreferredGap(ComponentPlacement.RELATED)))))))
+		                .addGap(10))
 		            .addGroup(gl_contentPanel.createSequentialGroup()
-		                .addGroup(gl_contentPanel.createParallelGroup(Alignment.TRAILING, false)
-		                    .addComponent(lblCharset, Alignment.LEADING, GroupLayout.DEFAULT_SIZE, GroupLayout.DEFAULT_SIZE,
-		                        Short.MAX_VALUE)
-		                    .addComponent(lblColorFor, Alignment.LEADING, GroupLayout.DEFAULT_SIZE,
-		                        GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-		                    .addComponent(lblWorkingDirectory, GroupLayout.DEFAULT_SIZE, GroupLayout.DEFAULT_SIZE,
-		                        Short.MAX_VALUE))
+		                .addGroup(gl_contentPanel.createParallelGroup(Alignment.TRAILING)
+		                    .addGroup(gl_contentPanel.createParallelGroup(Alignment.LEADING, false)
+		                        .addComponent(lblColorFor, Alignment.TRAILING, GroupLayout.DEFAULT_SIZE,
+		                            GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+		                        .addComponent(lblCharset, Alignment.TRAILING, GroupLayout.DEFAULT_SIZE, 95,
+		                            Short.MAX_VALUE))
+		                    .addComponent(lblWorkingDirectory, GroupLayout.PREFERRED_SIZE, 96, GroupLayout.PREFERRED_SIZE))
 		                .addPreferredGap(ComponentPlacement.RELATED)
 		                .addGroup(gl_contentPanel.createParallelGroup(Alignment.TRAILING)
+		                    .addComponent(txtWorkingDir, GroupLayout.DEFAULT_SIZE, 389, Short.MAX_VALUE)
+		                    .addComponent(chckbxEnablesExperimentalAscii, GroupLayout.DEFAULT_SIZE, 389, Short.MAX_VALUE)
+		                    .addComponent(comboBox, 0, 389, Short.MAX_VALUE)
 		                    .addGroup(gl_contentPanel.createSequentialGroup()
-		                        .addGap(2)
-		                        .addGroup(gl_contentPanel.createParallelGroup(Alignment.TRAILING)
-		                            .addComponent(comboBox, Alignment.LEADING, 0, GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-		                            .addComponent(txtWorkingDir, Alignment.LEADING, GroupLayout.DEFAULT_SIZE, 341,
-		                                Short.MAX_VALUE)))
+		                        .addComponent(chckbxSubsitution, GroupLayout.DEFAULT_SIZE, 295, Short.MAX_VALUE)
+		                        .addPreferredGap(ComponentPlacement.UNRELATED)
+		                        .addComponent(btnFindWorkingDir, GroupLayout.PREFERRED_SIZE, 88,
+		                            GroupLayout.PREFERRED_SIZE))
 		                    .addGroup(gl_contentPanel.createSequentialGroup()
 		                        .addComponent(pnlColor, GroupLayout.PREFERRED_SIZE, 25, GroupLayout.PREFERRED_SIZE)
-		                        .addPreferredGap(ComponentPlacement.RELATED, 219, Short.MAX_VALUE)
-		                        .addGroup(gl_contentPanel.createParallelGroup(Alignment.LEADING, false)
-		                            .addComponent(btnFindWorkingDir, Alignment.TRAILING, GroupLayout.DEFAULT_SIZE,
-		                                GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-		                            .addComponent(btnSelectColor, Alignment.TRAILING, GroupLayout.DEFAULT_SIZE,
-		                                GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)))))
-		            .addGroup(gl_contentPanel.createSequentialGroup()
-		                .addGap(100)
-		                .addGroup(gl_contentPanel.createParallelGroup(Alignment.TRAILING)
-		                    .addGroup(gl_contentPanel.createSequentialGroup()
-		                        .addGap(1)
-		                        .addComponent(chckbxSubsitution, GroupLayout.DEFAULT_SIZE, 335, Short.MAX_VALUE))
-		                    .addGroup(gl_contentPanel.createSequentialGroup()
-		                        .addComponent(btnShowSubstitution)
-		                        .addPreferredGap(ComponentPlacement.RELATED)
-		                        .addComponent(btnInsertVariable, GroupLayout.PREFERRED_SIZE, 111,
-		                            GroupLayout.PREFERRED_SIZE)
-		                        .addGap(6)
-		                        .addComponent(btnFindApplication, GroupLayout.DEFAULT_SIZE, 96, Short.MAX_VALUE)))
-		                .addPreferredGap(ComponentPlacement.RELATED)))
-		        .addGap(10))
-		    .addGroup(gl_contentPanel.createSequentialGroup()
-		        .addGap(107)
-		        .addComponent(chckbxEnablesExperimentalAscii, GroupLayout.DEFAULT_SIZE, 343, Short.MAX_VALUE)
-		        .addContainerGap()));
+		                        .addPreferredGap(ComponentPlacement.RELATED, 265, Short.MAX_VALUE)
+		                        .addComponent(btnSelectColor)))
+		                .addContainerGap()))));
 		gl_contentPanel.setVerticalGroup(gl_contentPanel.createParallelGroup(Alignment.LEADING)
 		    .addGroup(gl_contentPanel.createSequentialGroup()
 		        .addGap(8)
@@ -610,37 +606,35 @@ public class ApplicationEditor extends JDialog {
 		        .addPreferredGap(ComponentPlacement.UNRELATED)
 		        .addGroup(gl_contentPanel.createParallelGroup(Alignment.LEADING)
 		            .addComponent(lblNewLabel)
-		            .addComponent(scrollPane, GroupLayout.DEFAULT_SIZE, 154, Short.MAX_VALUE))
-		        .addPreferredGap(ComponentPlacement.RELATED)
-		        .addComponent(chckbxSubsitution)
+		            .addComponent(scrollPane, GroupLayout.DEFAULT_SIZE, 162, Short.MAX_VALUE))
 		        .addPreferredGap(ComponentPlacement.RELATED)
 		        .addGroup(gl_contentPanel.createParallelGroup(Alignment.BASELINE)
-		            .addComponent(btnFindApplication)
 		            .addComponent(btnShowSubstitution)
-		            .addComponent(btnInsertVariable))
+		            .addComponent(btnInsertVariable)
+		            .addComponent(btnFindApplication))
+		        .addPreferredGap(ComponentPlacement.RELATED)
+		        .addGroup(gl_contentPanel.createParallelGroup(Alignment.BASELINE)
+		            .addComponent(txtWorkingDir, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE,
+		                GroupLayout.PREFERRED_SIZE)
+		            .addComponent(lblWorkingDirectory))
+		        .addPreferredGap(ComponentPlacement.RELATED)
+		        .addGroup(gl_contentPanel.createParallelGroup(Alignment.LEADING)
+		            .addComponent(chckbxSubsitution)
+		            .addComponent(btnFindWorkingDir))
 		        .addPreferredGap(ComponentPlacement.UNRELATED)
 		        .addGroup(gl_contentPanel.createParallelGroup(Alignment.BASELINE)
-		            .addComponent(lblCharset)
 		            .addComponent(comboBox, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE,
-		                GroupLayout.PREFERRED_SIZE))
-		        .addPreferredGap(ComponentPlacement.RELATED)
-		        .addGroup(gl_contentPanel.createParallelGroup(Alignment.LEADING)
-		            .addComponent(lblWorkingDirectory)
-		            .addComponent(txtWorkingDir, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE,
-		                GroupLayout.PREFERRED_SIZE))
-		        .addPreferredGap(ComponentPlacement.RELATED)
-		        .addGroup(gl_contentPanel.createParallelGroup(Alignment.LEADING)
-		            .addGroup(gl_contentPanel.createSequentialGroup()
-		                .addGap(29)
-		                .addComponent(lblColorFor))
-		            .addGroup(gl_contentPanel.createSequentialGroup()
-		                .addComponent(btnFindWorkingDir)
-		                .addPreferredGap(ComponentPlacement.RELATED)
-		                .addGroup(gl_contentPanel.createParallelGroup(Alignment.TRAILING)
-		                    .addComponent(pnlColor, GroupLayout.PREFERRED_SIZE, 26, GroupLayout.PREFERRED_SIZE)
-		                    .addComponent(btnSelectColor))))
+		                GroupLayout.PREFERRED_SIZE)
+		            .addComponent(lblCharset))
 		        .addPreferredGap(ComponentPlacement.UNRELATED)
-		        .addComponent(chckbxEnablesExperimentalAscii, GroupLayout.PREFERRED_SIZE, 37, GroupLayout.PREFERRED_SIZE)));
+		        .addGroup(gl_contentPanel.createParallelGroup(Alignment.TRAILING)
+		            .addGroup(gl_contentPanel.createParallelGroup(Alignment.BASELINE)
+		                .addComponent(btnSelectColor)
+		                .addComponent(lblColorFor))
+		            .addComponent(pnlColor, GroupLayout.PREFERRED_SIZE, 26, GroupLayout.PREFERRED_SIZE))
+		        .addPreferredGap(ComponentPlacement.RELATED)
+		        .addComponent(chckbxEnablesExperimentalAscii, GroupLayout.PREFERRED_SIZE, 37, GroupLayout.PREFERRED_SIZE)
+		        .addGap(0)));
 
 		scrollPane.setViewportView(txtCommand);
 		mainPanel.setLayout(gl_contentPanel);
@@ -698,7 +692,9 @@ public class ApplicationEditor extends JDialog {
 			public void actionPerformed(ActionEvent e) {
 				JOptionPane.showMessageDialog(ApplicationEditor.this,
 				    "<html><body><p style='width: 640px;'>The following command will be substituted:<br/><br/><tt>"
-				        + ProcessDescriptor.substituteCommand(textComp.getText()) + "</tt></p></body></html>",
+				        + ProcessDescriptor.substituteCommand(textComp.getText())
+				        + "</tt></p><br/><br/>The following workind directory will be substituted:<br/><br><tt>"
+				        + ProcessDescriptor.substituteCommand(txtWorkingDir.getText()) + "</tt></body></html>",
 				    "Command substitution", JOptionPane.INFORMATION_MESSAGE);
 			}
 		};
@@ -721,7 +717,6 @@ public class ApplicationEditor extends JDialog {
 				jop.add(jcd);
 
 				JDialog diag = new JDialog(ApplicationEditor.this, "Select variable");
-				// ThemeUtil.loadWindow(diag);
 
 				JPanel contentPane = new JPanel(new BorderLayout());
 				contentPane.add(jop, BorderLayout.CENTER);
@@ -729,7 +724,6 @@ public class ApplicationEditor extends JDialog {
 
 					@Override
 					public void actionPerformed(ActionEvent e) {
-						// ThemeUtil.deinstallListeners(diag);
 						diag.dispose();
 						String variable = (String) jcd.getSelectedItem();
 						String placeholder = ProcessDescriptor.getVariablePlaceholder(variable);
@@ -741,7 +735,6 @@ public class ApplicationEditor extends JDialog {
 				contentPane.add(buttonPanel, BorderLayout.SOUTH);
 
 				// create a JDialog and add JOptionPane to it
-				// ThemeUtil.installListeners(diag);
 				diag.setModal(true);
 				diag.setContentPane(contentPane);
 				diag.pack();
@@ -761,8 +754,7 @@ public class ApplicationEditor extends JDialog {
 			txtTitle.setText(processDescriptor.getTitle());
 			txtCommand.setText(processDescriptor.getCommand());
 			if (processDescriptor.hasExecutionDirectory()) {
-				File executionDirectory = processDescriptor.getExecutionDirectory();
-				txtWorkingDir.setText(executionDirectory.getAbsolutePath());
+				txtWorkingDir.setText(processDescriptor.getExecutionDirectory());
 			}
 			pnlColor.setBackground(processDescriptor.getColor());
 			int charsetIndex = charsets.getIndexOf(processDescriptor.getCharset());
@@ -805,7 +797,6 @@ public class ApplicationEditor extends JDialog {
 
 	@Override
 	public void dispose() {
-		ThemeUtil.deinstallListeners(this);
 		super.dispose();
 	}
 
@@ -837,7 +828,7 @@ public class ApplicationEditor extends JDialog {
 		    .isEmpty()) {
 			ApplicationEditor.this.processDescriptor.setExecutionDirectory(null);
 		} else {
-			ApplicationEditor.this.processDescriptor.setExecutionDirectory(new File(workingDir.trim()));
+			ApplicationEditor.this.processDescriptor.setExecutionDirectory(workingDir.trim());
 		}
 		ApplicationEditor.this.processDescriptor.setColor(pnlColor.getBackground());
 		ApplicationEditor.this.processDescriptor.setCharset((Charset) comboBox.getSelectedItem());
@@ -878,13 +869,13 @@ public class ApplicationEditor extends JDialog {
 		dispose();
 	}
 
-	public static ProcessDescriptor newProcess() {
-		ApplicationEditor editor = new ApplicationEditor(null);
+	public static ProcessDescriptor newProcess(Component parent) {
+		ApplicationEditor editor = new ApplicationEditor(null, parent);
 		return editor.getProcessDescriptor();
 	}
 
-	public static void editProcessDescriptor(ProcessDescriptor processDescriptor) {
-		new ApplicationEditor(processDescriptor);
+	public static void editProcessDescriptor(ProcessDescriptor processDescriptor, Component parent) {
+		new ApplicationEditor(processDescriptor, parent);
 	}
 
 	private ProcessDescriptor getProcessDescriptor() {
