@@ -5,7 +5,6 @@ import static java.util.Objects.requireNonNull;
 
 import java.awt.Color;
 import java.awt.image.BufferedImage;
-import java.io.File;
 import java.io.Serializable;
 import java.nio.charset.Charset;
 import java.util.Iterator;
@@ -28,7 +27,7 @@ public class ProcessDescriptor implements Serializable {
 	private ImageIcon icon;
 	private String title;
 	private String command;
-	private File executionDirectory;
+	private String executionDirectory;
 	private Color color;
 	private Charset charset;
 	private Map<String, String> environment;
@@ -142,11 +141,11 @@ public class ProcessDescriptor implements Serializable {
 		}
 	}
 
-	public File getExecutionDirectory() {
+	public String getExecutionDirectory() {
 		return executionDirectory;
 	}
 
-	public void setExecutionDirectory(File executionDirectory) {
+	public void setExecutionDirectory(String executionDirectory) {
 		this.executionDirectory = executionDirectory;
 	}
 
@@ -226,6 +225,14 @@ public class ProcessDescriptor implements Serializable {
 
 	public static String getVariablePlaceholder(String variable) {
 		return "${" + variable + "}";
+	}
+
+	public String getExecutionDirectoryForExecution() {
+		if (variableSubstitution) {
+			return substituteCommand(this.executionDirectory);
+		} else {
+			return executionDirectory;
+		}
 	}
 
 }

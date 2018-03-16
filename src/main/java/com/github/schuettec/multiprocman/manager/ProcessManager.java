@@ -130,7 +130,11 @@ public class ProcessManager extends JFrame {
 				JOptionPane.showMessageDialog(ProcessManager.this, "Please select the category to remove first.",
 				    "No selection", JOptionPane.WARNING_MESSAGE);
 			} else {
-				categories.remove(selectedIndex);
+				int sure = JOptionPane.showConfirmDialog(ProcessManager.this, "Are you sure to remove this category?",
+				    "Remove category", JOptionPane.YES_NO_OPTION, JOptionPane.QUESTION_MESSAGE);
+				if (sure == JOptionPane.YES_OPTION) {
+					categories.remove(selectedIndex);
+				}
 			}
 		}
 	};
@@ -150,7 +154,7 @@ public class ProcessManager extends JFrame {
 				    "Please select the category to assign the new application first.", "No selection",
 				    JOptionPane.WARNING_MESSAGE);
 			} else {
-				ProcessDescriptor process = ApplicationEditor.newProcess();
+				ProcessDescriptor process = ApplicationEditor.newProcess(ProcessManager.this);
 				if (nonNull(process)) {
 					currentCategory.getProcessTemplates()
 					    .addElement(process);
@@ -174,7 +178,7 @@ public class ProcessManager extends JFrame {
 				JOptionPane.showMessageDialog(ProcessManager.this, "Please select the application to edit first.",
 				    "No selection", JOptionPane.WARNING_MESSAGE);
 			} else {
-				ApplicationEditor.editProcessDescriptor(value);
+				ApplicationEditor.editProcessDescriptor(value, ProcessManager.this);
 				categories.saveToPreferences();
 				lstProcesses.repaint();
 			}
@@ -195,10 +199,15 @@ public class ProcessManager extends JFrame {
 				JOptionPane.showMessageDialog(ProcessManager.this, "Please select the application to remove first.",
 				    "No selection", JOptionPane.WARNING_MESSAGE);
 			} else {
-				DefaultListModel<ProcessDescriptor> processes = (DefaultListModel<ProcessDescriptor>) lstProcesses.getModel();
-				processes.removeElement(value);
-				categories.saveToPreferences();
-				lstProcesses.repaint();
+				int sure = JOptionPane.showConfirmDialog(ProcessManager.this, "Are you sure to remove this application?",
+				    "Remove application", JOptionPane.YES_NO_OPTION, JOptionPane.QUESTION_MESSAGE);
+				if (sure == JOptionPane.YES_OPTION) {
+					DefaultListModel<ProcessDescriptor> processes = (DefaultListModel<ProcessDescriptor>) lstProcesses.getModel();
+					processes.removeElement(value);
+					categories.saveToPreferences();
+					lstProcesses.repaint();
+				}
+
 			}
 		}
 	};

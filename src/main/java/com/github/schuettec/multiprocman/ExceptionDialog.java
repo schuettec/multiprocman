@@ -3,6 +3,7 @@ package com.github.schuettec.multiprocman;
 import static java.util.Objects.requireNonNull;
 
 import java.awt.BorderLayout;
+import java.awt.Component;
 import java.awt.Dimension;
 import java.awt.FlowLayout;
 import java.awt.Font;
@@ -28,8 +29,6 @@ import javax.swing.border.EmptyBorder;
 
 import org.apache.commons.lang3.exception.ExceptionUtils;
 
-import com.github.schuettec.multiprocman.themes.ThemeUtil;
-
 public class ExceptionDialog extends JDialog {
 
 	private final JPanel contentPanel = new JPanel();
@@ -41,18 +40,18 @@ public class ExceptionDialog extends JDialog {
 		}
 	};
 
-	public static void showException(Exception exception, String messageFormat, Object... param) {
-		new ExceptionDialog(String.format(messageFormat, param), exception);
+	public static void showException(Component parent, Exception exception, String messageFormat, Object... param) {
+		new ExceptionDialog(parent, String.format(messageFormat, param), exception);
 	}
 
-	public static void showException(Exception exception, String message) {
-		new ExceptionDialog(message, exception);
+	public static void showException(Component parent, Exception exception, String message) {
+		new ExceptionDialog(parent, message, exception);
 	}
 
 	/**
 	 * Create the dialog.
 	 */
-	private ExceptionDialog(String message, Exception exception) {
+	private ExceptionDialog(Component parent, String message, Exception exception) {
 		requireNonNull(message, "Message must not be null.");
 		requireNonNull(exception, "Exception must not be null.");
 		setIconImage(Resources.getApplicationIcon());
@@ -62,8 +61,8 @@ public class ExceptionDialog extends JDialog {
 		setAutoRequestFocus(true);
 		setDefaultCloseOperation(JDialog.DISPOSE_ON_CLOSE);
 		setPreferredSize(new Dimension(480, 420));
-		ThemeUtil.loadWindow(this);
-		ThemeUtil.installListeners(this);
+		setSize(new Dimension(480, 420));
+		setLocationRelativeTo(parent);
 
 		getContentPane().setLayout(new BorderLayout());
 		contentPanel.setBorder(new EmptyBorder(5, 5, 5, 5));
@@ -136,9 +135,4 @@ public class ExceptionDialog extends JDialog {
 		setVisible(true);
 	}
 
-	@Override
-	public void dispose() {
-		ThemeUtil.deinstallListeners(this);
-		super.dispose();
-	}
 }

@@ -9,15 +9,14 @@ import java.util.List;
 import javax.swing.DefaultListModel;
 import javax.swing.ImageIcon;
 
-import com.thoughtworks.xstream.XStream;
-
 import com.github.schuettec.multiprocman.ExceptionDialog;
+import com.thoughtworks.xstream.XStream;
 
 public class Categories extends DefaultListModel<Category> {
 
 	private static final String CATEGORIES = "categories";
 	/**
-	 * 
+	 *
 	 */
 	private static final long serialVersionUID = 1L;
 
@@ -42,7 +41,7 @@ public class Categories extends DefaultListModel<Category> {
 					}
 				}
 			} catch (Exception e) {
-				ExceptionDialog.showException(e, "Error while loading user settings from user home directory.");
+				ExceptionDialog.showException(null, e, "Error while loading user settings from user home directory.");
 			}
 		} else {
 			this.addElement(Category.defaultCategory());
@@ -64,7 +63,7 @@ public class Categories extends DefaultListModel<Category> {
 			XStream xstream = new XStream();
 			xstream.toXML(asList, fout);
 		} catch (Exception e) {
-			ExceptionDialog.showException(e, "Error while persisting user settings in user home directory.");
+			ExceptionDialog.showException(null, e, "Error while persisting user settings in user home directory.");
 		}
 	}
 
