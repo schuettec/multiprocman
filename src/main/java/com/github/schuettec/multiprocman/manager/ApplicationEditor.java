@@ -11,6 +11,8 @@ import java.awt.FlowLayout;
 import java.awt.Graphics2D;
 import java.awt.event.ActionEvent;
 import java.awt.event.KeyEvent;
+import java.awt.event.WindowEvent;
+import java.awt.event.WindowListener;
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
@@ -23,14 +25,17 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.SortedMap;
+import java.util.Vector;
 
 import javax.imageio.ImageIO;
 import javax.swing.AbstractAction;
+import javax.swing.ButtonGroup;
 import javax.swing.DefaultComboBoxModel;
 import javax.swing.GroupLayout;
 import javax.swing.GroupLayout.Alignment;
 import javax.swing.ImageIcon;
 import javax.swing.JButton;
+import javax.swing.JCheckBox;
 import javax.swing.JColorChooser;
 import javax.swing.JComboBox;
 import javax.swing.JComponent;
@@ -38,6 +43,7 @@ import javax.swing.JDialog;
 import javax.swing.JLabel;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
+import javax.swing.JRadioButton;
 import javax.swing.JScrollPane;
 import javax.swing.JTabbedPane;
 import javax.swing.JTable;
@@ -52,6 +58,7 @@ import javax.swing.border.EmptyBorder;
 import javax.swing.table.DefaultTableModel;
 import javax.swing.table.TableCellRenderer;
 import javax.swing.table.TableColumn;
+import javax.swing.text.JTextComponent;
 
 import com.github.schuettec.multiprocman.Counter;
 import com.github.schuettec.multiprocman.FileChooserCallback;
@@ -63,6 +70,7 @@ import javafx.stage.FileChooser.ExtensionFilter;
 
 public class ApplicationEditor extends JDialog {
 
+	private final JPanel terminatePanel = new JPanel();
 	private final JPanel mainPanel = new JPanel();
 	private final JPanel environmentPanel = new JPanel();
 	private final JPanel counterPanel = new JPanel();
@@ -76,24 +84,139 @@ public class ApplicationEditor extends JDialog {
 	private DefaultTableModel variables;
 	private JTable tblExpressions;
 	private DefaultTableModel expressions;
+	private JCheckBox chckbxEnablesExperimentalAscii;
+	private JLabel lblIcon;
+	private JPanel pnlColor;
+	private JCheckBox chckbxSubsitution;
+	private DefaultComboBoxModel<Charset> charsets;
+	private JTextArea txtTermCommand;
+	private JRadioButton rdbtnUseCustomCommand;
+	private JCheckBox chckbxTermUseVariableSubst;
 
 	/**
 	 * Create the dialog.
-	 * 
+	 *
+	 * @param parent
+	 *
 	 * @param category
 	 */
-	private ApplicationEditor(ProcessDescriptor process) {
+	private ApplicationEditor(ProcessDescriptor process, Component parent) {
 		setIconImage(Resources.getApplicationIcon());
 		setModal(true);
 		setTitle("Application");
-		setDefaultCloseOperation(JDialog.DISPOSE_ON_CLOSE);
-		this.setPreferredSize(new Dimension(430, 200));
-		this.setSize(new Dimension(477, 523));
-		this.setLocationRelativeTo(null);
+		this.setPreferredSize(new Dimension(540, 580));
+		this.setSize(new Dimension(540, 580));
+		this.setLocationRelativeTo(parent);
+		addWindowListener(new WindowListener() {
+
+			@Override
+			public void windowOpened(WindowEvent e) {
+			}
+
+			@Override
+			public void windowIconified(WindowEvent e) {
+			}
+
+			@Override
+			public void windowDeiconified(WindowEvent e) {
+			}
+
+			@Override
+			public void windowDeactivated(WindowEvent e) {
+			}
+
+			@Override
+			public void windowClosing(WindowEvent e) {
+				performCancel();
+			}
+
+			@Override
+			public void windowClosed(WindowEvent e) {
+			}
+
+			@Override
+			public void windowActivated(WindowEvent e) {
+			}
+		});
+
 		getContentPane().setLayout(new BorderLayout());
 
 		tabbedPane = new JTabbedPane();
-		tabbedPane.add("Application", mainPanel);
+		tabbedPane.add("Launch", mainPanel);
+		tabbedPane.add("Terminate", terminatePanel);
+
+		JRadioButton rdbtnUseDefaultProcess = new JRadioButton("Use default process termination signal");
+		rdbtnUseDefaultProcess.setSelected(true);
+		rdbtnUseCustomCommand = new JRadioButton("Use custom command to terminate application");
+		ButtonGroup group = new ButtonGroup();
+		group.add(rdbtnUseDefaultProcess);
+		group.add(rdbtnUseCustomCommand);
+
+		txtTermCommand = new JTextArea();
+
+		JScrollPane scrollPane_3 = new JScrollPane();
+
+		JButton btnTermFind = new JButton(new AbstractAction("Find...") {
+
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				FileUtil.showFileChooser(FileUtil.Type.OPEN, new FileChooserCallback() {
+
+					@Override
+					public void fileSelected(File file, ExtensionFilter extension) {
+						txtTermCommand.setText(file.getAbsolutePath());
+					}
+				});
+			}
+		});
+
+		JButton btnTermInsertVariable = new JButton(insertVariableAction(txtTermCommand));
+
+		JButton btnTermShowSubstitution = new JButton(showSubstitutionAction(txtTermCommand));
+
+		chckbxTermUseVariableSubst = new JCheckBox("Enable environment variable substitution");
+		GroupLayout gl_terminatePanel = new GroupLayout(terminatePanel);
+		gl_terminatePanel.setHorizontalGroup(gl_terminatePanel.createParallelGroup(Alignment.LEADING)
+		    .addGroup(gl_terminatePanel.createSequentialGroup()
+		        .addGroup(gl_terminatePanel.createParallelGroup(Alignment.LEADING)
+		            .addGroup(Alignment.TRAILING, gl_terminatePanel.createSequentialGroup()
+		                .addContainerGap(103, Short.MAX_VALUE)
+		                .addComponent(btnTermShowSubstitution)
+		                .addPreferredGap(ComponentPlacement.RELATED)
+		                .addComponent(btnTermInsertVariable)
+		                .addPreferredGap(ComponentPlacement.RELATED)
+		                .addComponent(btnTermFind, GroupLayout.PREFERRED_SIZE, 84, GroupLayout.PREFERRED_SIZE))
+		            .addGroup(gl_terminatePanel.createSequentialGroup()
+		                .addGap(29)
+		                .addGroup(gl_terminatePanel.createParallelGroup(Alignment.LEADING)
+		                    .addComponent(chckbxTermUseVariableSubst, GroupLayout.DEFAULT_SIZE, 390, Short.MAX_VALUE)
+		                    .addComponent(scrollPane_3, GroupLayout.DEFAULT_SIZE, 390, Short.MAX_VALUE)))
+		            .addGroup(gl_terminatePanel.createSequentialGroup()
+		                .addContainerGap()
+		                .addComponent(rdbtnUseCustomCommand, GroupLayout.DEFAULT_SIZE, 413, Short.MAX_VALUE))
+		            .addGroup(gl_terminatePanel.createSequentialGroup()
+		                .addContainerGap()
+		                .addComponent(rdbtnUseDefaultProcess, GroupLayout.DEFAULT_SIZE, 413, Short.MAX_VALUE)))
+		        .addContainerGap()));
+		gl_terminatePanel.setVerticalGroup(gl_terminatePanel.createParallelGroup(Alignment.LEADING)
+		    .addGroup(gl_terminatePanel.createSequentialGroup()
+		        .addContainerGap()
+		        .addComponent(rdbtnUseDefaultProcess)
+		        .addPreferredGap(ComponentPlacement.RELATED)
+		        .addComponent(rdbtnUseCustomCommand)
+		        .addGap(5)
+		        .addComponent(scrollPane_3, GroupLayout.DEFAULT_SIZE, 100, Short.MAX_VALUE)
+		        .addGap(3)
+		        .addComponent(chckbxTermUseVariableSubst)
+		        .addPreferredGap(ComponentPlacement.UNRELATED)
+		        .addGroup(gl_terminatePanel.createParallelGroup(Alignment.BASELINE)
+		            .addComponent(btnTermFind)
+		            .addComponent(btnTermInsertVariable)
+		            .addComponent(btnTermShowSubstitution))
+		        .addGap(19)));
+
+		scrollPane_3.setViewportView(txtTermCommand);
+		terminatePanel.setLayout(gl_terminatePanel);
 		tabbedPane.add("Environment", environmentPanel);
 		tabbedPane.add("Counter expressions", counterPanel);
 
@@ -247,7 +370,7 @@ public class ApplicationEditor extends JDialog {
 		getContentPane().add(tabbedPane, BorderLayout.CENTER);
 
 		mainPanel.setBorder(new EmptyBorder(5, 5, 5, 5));
-		JLabel lblIcon = new JLabel(new ImageIcon(Resources.getTerminal()));
+		lblIcon = new JLabel(new ImageIcon(Resources.getTerminal()));
 		lblIcon.setSize(new Dimension(24, 24));
 		lblIcon.setPreferredSize(new Dimension(24, 24));
 		JLabel lblForIcon = new JLabel("Category icon: ");
@@ -332,7 +455,7 @@ public class ApplicationEditor extends JDialog {
 		JLabel lblColorFor = new JLabel("Color:");
 		lblColorFor.setHorizontalAlignment(SwingConstants.RIGHT);
 
-		JPanel pnlColor = new JPanel();
+		this.pnlColor = new JPanel();
 		pnlColor.setBackground(Color.GREEN);
 		pnlColor.setBorder(new BevelBorder(BevelBorder.RAISED, null, null, null, null));
 
@@ -352,7 +475,7 @@ public class ApplicationEditor extends JDialog {
 
 		comboBox = new JComboBox();
 		SortedMap<String, Charset> availableCharsets = Charset.availableCharsets();
-		DefaultComboBoxModel<Charset> charsets = new DefaultComboBoxModel<Charset>();
+		this.charsets = new DefaultComboBoxModel<Charset>();
 		for (Charset c : availableCharsets.values()) {
 			charsets.addElement(c);
 		}
@@ -368,8 +491,8 @@ public class ApplicationEditor extends JDialog {
 
 					@Override
 					public void fileSelected(File file, ExtensionFilter extension) {
-						txtCommand.setText(file.getName());
-						txtTitle.setText(file.getAbsolutePath());
+						txtTitle.setText(file.getName());
+						txtCommand.setText(file.getAbsolutePath());
 						if (nonNull(file.getParent())) {
 							txtWorkingDir.setText(file.getParent());
 						}
@@ -386,52 +509,81 @@ public class ApplicationEditor extends JDialog {
 			}
 		});
 
+		this.chckbxEnablesExperimentalAscii = new JCheckBox(
+		    "<html>Enables experimental ASCII code support for formatted application output.</html>");
+		chckbxEnablesExperimentalAscii.setVerticalAlignment(SwingConstants.TOP);
+
+		txtCommand = new JTextArea();
+		JButton btnInsertVariable = new JButton(insertVariableAction(txtCommand));
+
+		chckbxSubsitution = new JCheckBox("Enable environment variable substitution");
+		JButton btnShowSubstitution = new JButton(showSubstitutionAction(txtCommand));
+
 		GroupLayout gl_contentPanel = new GroupLayout(mainPanel);
 		gl_contentPanel.setHorizontalGroup(gl_contentPanel.createParallelGroup(Alignment.LEADING)
 		    .addGroup(gl_contentPanel.createSequentialGroup()
 		        .addContainerGap()
 		        .addGroup(gl_contentPanel.createParallelGroup(Alignment.LEADING)
-		            .addComponent(lblPleaseFillIn)
 		            .addGroup(gl_contentPanel.createSequentialGroup()
-		                .addGroup(gl_contentPanel.createParallelGroup(Alignment.LEADING, false)
+		                .addGroup(gl_contentPanel.createParallelGroup(Alignment.TRAILING)
+		                    .addComponent(lblPleaseFillIn, GroupLayout.DEFAULT_SIZE, 489, Short.MAX_VALUE)
 		                    .addGroup(gl_contentPanel.createSequentialGroup()
-		                        .addGap(1)
-		                        .addComponent(lblNewLabel, GroupLayout.DEFAULT_SIZE, GroupLayout.DEFAULT_SIZE,
+		                        .addGroup(gl_contentPanel.createParallelGroup(Alignment.LEADING)
+		                            .addGroup(gl_contentPanel.createParallelGroup(Alignment.TRAILING, false)
+		                                .addComponent(lblName, GroupLayout.DEFAULT_SIZE, GroupLayout.DEFAULT_SIZE,
+		                                    Short.MAX_VALUE)
+		                                .addComponent(lblForIcon, GroupLayout.DEFAULT_SIZE, 94, Short.MAX_VALUE))
+		                            .addComponent(lblNewLabel, GroupLayout.PREFERRED_SIZE, 95, GroupLayout.PREFERRED_SIZE))
+		                        .addGroup(gl_contentPanel.createParallelGroup(Alignment.LEADING)
+		                            .addGroup(gl_contentPanel.createSequentialGroup()
+		                                .addPreferredGap(ComponentPlacement.RELATED)
+		                                .addGroup(gl_contentPanel.createParallelGroup(Alignment.LEADING)
+		                                    .addGroup(gl_contentPanel.createSequentialGroup()
+		                                        .addComponent(lblIcon, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE,
+		                                            GroupLayout.PREFERRED_SIZE)
+		                                        .addPreferredGap(ComponentPlacement.RELATED, 171, Short.MAX_VALUE)
+		                                        .addComponent(btnDefaultIcon)
+		                                        .addPreferredGap(ComponentPlacement.RELATED)
+		                                        .addComponent(btnFindIcon, GroupLayout.PREFERRED_SIZE, 98,
+		                                            GroupLayout.PREFERRED_SIZE))
+		                                    .addComponent(txtTitle, GroupLayout.DEFAULT_SIZE, 388, Short.MAX_VALUE)))
+		                            .addGroup(gl_contentPanel.createSequentialGroup()
+		                                .addGap(6)
+		                                .addGroup(gl_contentPanel.createParallelGroup(Alignment.LEADING)
+		                                    .addComponent(scrollPane, GroupLayout.DEFAULT_SIZE, 388, Short.MAX_VALUE)
+		                                    .addGroup(gl_contentPanel.createSequentialGroup()
+		                                        .addComponent(btnShowSubstitution)
+		                                        .addPreferredGap(ComponentPlacement.RELATED)
+		                                        .addComponent(btnInsertVariable, GroupLayout.PREFERRED_SIZE, 111,
+		                                            GroupLayout.PREFERRED_SIZE)
+		                                        .addPreferredGap(ComponentPlacement.RELATED, 64, Short.MAX_VALUE)
+		                                        .addComponent(btnFindApplication, GroupLayout.PREFERRED_SIZE, 90,
+		                                            GroupLayout.PREFERRED_SIZE)
+		                                        .addPreferredGap(ComponentPlacement.RELATED)))))))
+		                .addGap(10))
+		            .addGroup(gl_contentPanel.createSequentialGroup()
+		                .addGroup(gl_contentPanel.createParallelGroup(Alignment.TRAILING)
+		                    .addGroup(gl_contentPanel.createParallelGroup(Alignment.LEADING, false)
+		                        .addComponent(lblColorFor, Alignment.TRAILING, GroupLayout.DEFAULT_SIZE,
+		                            GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+		                        .addComponent(lblCharset, Alignment.TRAILING, GroupLayout.DEFAULT_SIZE, 95,
 		                            Short.MAX_VALUE))
-		                    .addComponent(lblName, GroupLayout.DEFAULT_SIZE, GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-		                    .addComponent(lblForIcon, GroupLayout.DEFAULT_SIZE, 94, Short.MAX_VALUE))
-		                .addGap(2)
-		                .addGroup(gl_contentPanel.createParallelGroup(Alignment.LEADING)
-		                    .addGroup(gl_contentPanel.createSequentialGroup()
-		                        .addPreferredGap(ComponentPlacement.RELATED)
-		                        .addComponent(scrollPane, GroupLayout.DEFAULT_SIZE, 258, Short.MAX_VALUE))
-		                    .addGroup(gl_contentPanel.createSequentialGroup()
-		                        .addComponent(lblIcon, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE,
-		                            GroupLayout.PREFERRED_SIZE)
-		                        .addPreferredGap(ComponentPlacement.RELATED, 41, Short.MAX_VALUE)
-		                        .addComponent(btnDefaultIcon)
-		                        .addPreferredGap(ComponentPlacement.RELATED)
-		                        .addComponent(btnFindIcon, GroupLayout.PREFERRED_SIZE, 98, GroupLayout.PREFERRED_SIZE))
-		                    .addComponent(txtTitle, GroupLayout.DEFAULT_SIZE, 258, Short.MAX_VALUE)))
-		            .addGroup(gl_contentPanel.createSequentialGroup()
-		                .addGroup(gl_contentPanel.createParallelGroup(Alignment.TRAILING, false)
-		                    .addComponent(lblColorFor, Alignment.LEADING, GroupLayout.DEFAULT_SIZE,
-		                        GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-		                    .addComponent(lblWorkingDirectory, GroupLayout.DEFAULT_SIZE, GroupLayout.DEFAULT_SIZE,
-		                        Short.MAX_VALUE)
-		                    .addComponent(lblCharset, GroupLayout.DEFAULT_SIZE, 91, Short.MAX_VALUE))
+		                    .addComponent(lblWorkingDirectory, GroupLayout.PREFERRED_SIZE, 96, GroupLayout.PREFERRED_SIZE))
 		                .addPreferredGap(ComponentPlacement.RELATED)
-		                .addGroup(gl_contentPanel.createParallelGroup(Alignment.LEADING)
-		                    .addComponent(btnFindWorkingDir, GroupLayout.PREFERRED_SIZE, 98, GroupLayout.PREFERRED_SIZE)
+		                .addGroup(gl_contentPanel.createParallelGroup(Alignment.TRAILING)
+		                    .addComponent(txtWorkingDir, GroupLayout.DEFAULT_SIZE, 389, Short.MAX_VALUE)
+		                    .addComponent(chckbxEnablesExperimentalAscii, GroupLayout.DEFAULT_SIZE, 389, Short.MAX_VALUE)
+		                    .addComponent(comboBox, 0, 389, Short.MAX_VALUE)
+		                    .addGroup(gl_contentPanel.createSequentialGroup()
+		                        .addComponent(chckbxSubsitution, GroupLayout.DEFAULT_SIZE, 295, Short.MAX_VALUE)
+		                        .addPreferredGap(ComponentPlacement.UNRELATED)
+		                        .addComponent(btnFindWorkingDir, GroupLayout.PREFERRED_SIZE, 88,
+		                            GroupLayout.PREFERRED_SIZE))
 		                    .addGroup(gl_contentPanel.createSequentialGroup()
 		                        .addComponent(pnlColor, GroupLayout.PREFERRED_SIZE, 25, GroupLayout.PREFERRED_SIZE)
-		                        .addPreferredGap(ComponentPlacement.RELATED, GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-		                        .addComponent(btnSelectColor))
-		                    .addComponent(txtWorkingDir)
-		                    .addComponent(comboBox, 0, 259, Short.MAX_VALUE)))
-		            .addComponent(btnFindApplication, Alignment.TRAILING, GroupLayout.PREFERRED_SIZE, 98,
-		                GroupLayout.PREFERRED_SIZE))
-		        .addGap(0)));
+		                        .addPreferredGap(ComponentPlacement.RELATED, 265, Short.MAX_VALUE)
+		                        .addComponent(btnSelectColor)))
+		                .addContainerGap()))));
 		gl_contentPanel.setVerticalGroup(gl_contentPanel.createParallelGroup(Alignment.LEADING)
 		    .addGroup(gl_contentPanel.createSequentialGroup()
 		        .addGap(8)
@@ -453,35 +605,37 @@ public class ApplicationEditor extends JDialog {
 		            .addComponent(lblName))
 		        .addPreferredGap(ComponentPlacement.UNRELATED)
 		        .addGroup(gl_contentPanel.createParallelGroup(Alignment.LEADING)
-		            .addGroup(gl_contentPanel.createSequentialGroup()
-		                .addComponent(scrollPane, GroupLayout.DEFAULT_SIZE, 130, Short.MAX_VALUE)
-		                .addPreferredGap(ComponentPlacement.RELATED)
-		                .addComponent(btnFindApplication))
-		            .addComponent(lblNewLabel))
+		            .addComponent(lblNewLabel)
+		            .addComponent(scrollPane, GroupLayout.DEFAULT_SIZE, 162, Short.MAX_VALUE))
 		        .addPreferredGap(ComponentPlacement.RELATED)
 		        .addGroup(gl_contentPanel.createParallelGroup(Alignment.BASELINE)
-		            .addComponent(lblCharset)
-		            .addComponent(comboBox, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE,
-		                GroupLayout.PREFERRED_SIZE))
+		            .addComponent(btnShowSubstitution)
+		            .addComponent(btnInsertVariable)
+		            .addComponent(btnFindApplication))
 		        .addPreferredGap(ComponentPlacement.RELATED)
-		        .addGroup(gl_contentPanel.createParallelGroup(Alignment.LEADING)
-		            .addComponent(lblWorkingDirectory)
+		        .addGroup(gl_contentPanel.createParallelGroup(Alignment.BASELINE)
 		            .addComponent(txtWorkingDir, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE,
-		                GroupLayout.PREFERRED_SIZE))
+		                GroupLayout.PREFERRED_SIZE)
+		            .addComponent(lblWorkingDirectory))
 		        .addPreferredGap(ComponentPlacement.RELATED)
 		        .addGroup(gl_contentPanel.createParallelGroup(Alignment.LEADING)
-		            .addGroup(gl_contentPanel.createSequentialGroup()
-		                .addGap(29)
+		            .addComponent(chckbxSubsitution)
+		            .addComponent(btnFindWorkingDir))
+		        .addPreferredGap(ComponentPlacement.UNRELATED)
+		        .addGroup(gl_contentPanel.createParallelGroup(Alignment.BASELINE)
+		            .addComponent(comboBox, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE,
+		                GroupLayout.PREFERRED_SIZE)
+		            .addComponent(lblCharset))
+		        .addPreferredGap(ComponentPlacement.UNRELATED)
+		        .addGroup(gl_contentPanel.createParallelGroup(Alignment.TRAILING)
+		            .addGroup(gl_contentPanel.createParallelGroup(Alignment.BASELINE)
+		                .addComponent(btnSelectColor)
 		                .addComponent(lblColorFor))
-		            .addGroup(gl_contentPanel.createParallelGroup(Alignment.TRAILING)
-		                .addComponent(pnlColor, GroupLayout.PREFERRED_SIZE, 26, GroupLayout.PREFERRED_SIZE)
-		                .addGroup(gl_contentPanel.createSequentialGroup()
-		                    .addComponent(btnFindWorkingDir)
-		                    .addPreferredGap(ComponentPlacement.RELATED)
-		                    .addComponent(btnSelectColor))))
-		        .addGap(23)));
+		            .addComponent(pnlColor, GroupLayout.PREFERRED_SIZE, 26, GroupLayout.PREFERRED_SIZE))
+		        .addPreferredGap(ComponentPlacement.RELATED)
+		        .addComponent(chckbxEnablesExperimentalAscii, GroupLayout.PREFERRED_SIZE, 37, GroupLayout.PREFERRED_SIZE)
+		        .addGap(0)));
 
-		txtCommand = new JTextArea();
 		scrollPane.setViewportView(txtCommand);
 		mainPanel.setLayout(gl_contentPanel);
 
@@ -494,61 +648,9 @@ public class ApplicationEditor extends JDialog {
 
 					@Override
 					public void actionPerformed(ActionEvent e) {
-						ApplicationEditor.this.processDescriptor.setIcon((ImageIcon) lblIcon.getIcon());
-						String title = txtTitle.getText()
-						    .trim();
-						if (title.isEmpty()) {
-							JOptionPane.showMessageDialog(ApplicationEditor.this, "Title must not be empty!", "Title not set",
-							    JOptionPane.WARNING_MESSAGE);
-							return;
-						}
-						ApplicationEditor.this.processDescriptor.setTitle(title);
-						String command = txtCommand.getText()
-						    .trim();
-						if (command.isEmpty()) {
-							JOptionPane.showMessageDialog(ApplicationEditor.this, "Command must not be empty!", "Command not set",
-							    JOptionPane.WARNING_MESSAGE);
-
-						}
-						ApplicationEditor.this.processDescriptor.setCommand(command);
-						String workingDir = txtWorkingDir.getText();
-						if (workingDir.trim()
-						    .isEmpty()) {
-							ApplicationEditor.this.processDescriptor.setExecutionDirectory(null);
-						} else {
-							ApplicationEditor.this.processDescriptor.setExecutionDirectory(new File(workingDir.trim()));
-						}
-						ApplicationEditor.this.processDescriptor.setColor(pnlColor.getBackground());
-						ApplicationEditor.this.processDescriptor.setCharset((Charset) comboBox.getSelectedItem());
-
-						Map<String, String> vars = new HashMap<>();
-						for (int i = 0; i < variables.getRowCount(); i++) {
-							String key = (String) variables.getValueAt(i, 0);
-							String value = (String) variables.getValueAt(i, 1);
-							vars.put(key, value);
-						}
-						if (!vars.isEmpty()) {
-							ApplicationEditor.this.processDescriptor.setEnvironment(vars);
-						}
-
-						List<Counter> counters = new LinkedList<>();
-						for (int i = 0; i < expressions.getRowCount(); i++) {
-							String name = ((String) expressions.getValueAt(i, 0)).trim();
-							String expression = ((String) expressions.getValueAt(i, 1)).trim();
-							Color color = (Color) expressions.getValueAt(i, 2);
-							if (!name.isEmpty() && !expression.isEmpty()) {
-								Counter counterDescriptor = new Counter(name, expression, color);
-								boolean valid = counterDescriptor.testRegexp();
-								if (!valid) {
-									return;
-								}
-								counters.add(counterDescriptor);
-							}
-						}
-						ApplicationEditor.this.processDescriptor.setCounters(counters);
-
-						dispose();
+						performOk();
 					}
+
 				});
 				okButton.setPreferredSize(new Dimension(91, 23));
 				okButton.setActionCommand("OK");
@@ -564,9 +666,9 @@ public class ApplicationEditor extends JDialog {
 
 					@Override
 					public void actionPerformed(ActionEvent e) {
-						ApplicationEditor.this.processDescriptor = null;
-						dispose();
+						performCancel();
 					}
+
 				});
 				cancelButton.setPreferredSize(new Dimension(91, 23));
 				cancelButton.setActionCommand("Cancel");
@@ -578,6 +680,72 @@ public class ApplicationEditor extends JDialog {
 			}
 		}
 
+		setProcessDescriptor(process);
+
+		setVisible(true);
+	}
+
+	private AbstractAction showSubstitutionAction(JTextComponent textComp) {
+		return new AbstractAction("Show substitution") {
+
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				JOptionPane.showMessageDialog(ApplicationEditor.this,
+				    "<html><body><p style='width: 640px;'>The following command will be substituted:<br/><br/><tt>"
+				        + ProcessDescriptor.substituteCommand(textComp.getText())
+				        + "</tt></p><br/><br/>The following workind directory will be substituted:<br/><br><tt>"
+				        + ProcessDescriptor.substituteCommand(txtWorkingDir.getText()) + "</tt></body></html>",
+				    "Command substitution", JOptionPane.INFORMATION_MESSAGE);
+			}
+		};
+	}
+
+	private AbstractAction insertVariableAction(final JTextArea textComponent) {
+		return new AbstractAction("Insert variable") {
+
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				Vector keys = new Vector<>(System.getenv()
+				    .keySet());
+				JComboBox jcd = new JComboBox(keys);
+
+				// create a JOptionPane
+				JOptionPane jop = new JOptionPane("Please Select a variable to insert:", JOptionPane.QUESTION_MESSAGE,
+				    JOptionPane.DEFAULT_OPTION, null, new Object[] {}, null);
+
+				// add combos to JOptionPane
+				jop.add(jcd);
+
+				JDialog diag = new JDialog(ApplicationEditor.this, "Select variable");
+
+				JPanel contentPane = new JPanel(new BorderLayout());
+				contentPane.add(jop, BorderLayout.CENTER);
+				JButton okButton = new JButton(new AbstractAction("OK") {
+
+					@Override
+					public void actionPerformed(ActionEvent e) {
+						diag.dispose();
+						String variable = (String) jcd.getSelectedItem();
+						String placeholder = ProcessDescriptor.getVariablePlaceholder(variable);
+						textComponent.insert(placeholder, textComponent.getCaretPosition());
+					}
+				});
+				JPanel buttonPanel = new JPanel();
+				buttonPanel.add(okButton);
+				contentPane.add(buttonPanel, BorderLayout.SOUTH);
+
+				// create a JDialog and add JOptionPane to it
+				diag.setModal(true);
+				diag.setContentPane(contentPane);
+				diag.pack();
+				diag.setLocationRelativeTo(ApplicationEditor.this);
+				diag.setVisible(true);
+
+			}
+		};
+	}
+
+	private void setProcessDescriptor(ProcessDescriptor process) {
 		if (isNull(process)) {
 			this.processDescriptor = new ProcessDescriptor();
 		} else {
@@ -586,8 +754,7 @@ public class ApplicationEditor extends JDialog {
 			txtTitle.setText(processDescriptor.getTitle());
 			txtCommand.setText(processDescriptor.getCommand());
 			if (processDescriptor.hasExecutionDirectory()) {
-				File executionDirectory = processDescriptor.getExecutionDirectory();
-				txtWorkingDir.setText(executionDirectory.getAbsolutePath());
+				txtWorkingDir.setText(processDescriptor.getExecutionDirectory());
 			}
 			pnlColor.setBackground(processDescriptor.getColor());
 			int charsetIndex = charsets.getIndexOf(processDescriptor.getCharset());
@@ -618,18 +785,97 @@ public class ApplicationEditor extends JDialog {
 				}
 			}
 
-		}
+			chckbxEnablesExperimentalAscii.setSelected(processDescriptor.isSupportAsciiCodes());
+			chckbxSubsitution.setSelected(processDescriptor.isVariableSubstitution());
 
-		setVisible(true);
+			rdbtnUseCustomCommand.setSelected(processDescriptor.isUseTerminationCommand());
+			chckbxTermUseVariableSubst.setSelected(processDescriptor.isTerminationVariableSubstitution());
+			txtTermCommand.setText(processDescriptor.getTerminationCommand());
+
+		}
 	}
 
-	public static ProcessDescriptor newProcess() {
-		ApplicationEditor editor = new ApplicationEditor(null);
+	@Override
+	public void dispose() {
+		super.dispose();
+	}
+
+	private void performCancel() {
+		ApplicationEditor.this.processDescriptor = null;
+		dispose();
+	}
+
+	private void performOk() {
+		ApplicationEditor.this.processDescriptor.setIcon((ImageIcon) this.lblIcon.getIcon());
+		String title = txtTitle.getText()
+		    .trim();
+		if (title.isEmpty()) {
+			JOptionPane.showMessageDialog(ApplicationEditor.this, "Title must not be empty!", "Title not set",
+			    JOptionPane.WARNING_MESSAGE);
+			return;
+		}
+		ApplicationEditor.this.processDescriptor.setTitle(title);
+		String command = txtCommand.getText()
+		    .trim();
+		if (command.isEmpty()) {
+			JOptionPane.showMessageDialog(ApplicationEditor.this, "Command must not be empty!", "Command not set",
+			    JOptionPane.WARNING_MESSAGE);
+
+		}
+		ApplicationEditor.this.processDescriptor.setCommand(command);
+		String workingDir = txtWorkingDir.getText();
+		if (workingDir.trim()
+		    .isEmpty()) {
+			ApplicationEditor.this.processDescriptor.setExecutionDirectory(null);
+		} else {
+			ApplicationEditor.this.processDescriptor.setExecutionDirectory(workingDir.trim());
+		}
+		ApplicationEditor.this.processDescriptor.setColor(pnlColor.getBackground());
+		ApplicationEditor.this.processDescriptor.setCharset((Charset) comboBox.getSelectedItem());
+
+		Map<String, String> vars = new HashMap<>();
+		for (int i = 0; i < variables.getRowCount(); i++) {
+			String key = (String) variables.getValueAt(i, 0);
+			String value = (String) variables.getValueAt(i, 1);
+			vars.put(key, value);
+		}
+		if (!vars.isEmpty()) {
+			ApplicationEditor.this.processDescriptor.setEnvironment(vars);
+		}
+
+		List<Counter> counters = new LinkedList<>();
+		for (int i = 0; i < expressions.getRowCount(); i++) {
+			String name = ((String) expressions.getValueAt(i, 0)).trim();
+			String expression = ((String) expressions.getValueAt(i, 1)).trim();
+			Color color = (Color) expressions.getValueAt(i, 2);
+			if (!name.isEmpty() && !expression.isEmpty()) {
+				Counter counterDescriptor = new Counter(name, expression, color);
+				boolean valid = counterDescriptor.testRegexp();
+				if (!valid) {
+					return;
+				}
+				counters.add(counterDescriptor);
+			}
+		}
+		ApplicationEditor.this.processDescriptor.setCounters(counters);
+		ApplicationEditor.this.processDescriptor.setSupportAsciiCodes(chckbxEnablesExperimentalAscii.isSelected());
+		ApplicationEditor.this.processDescriptor.setVariableSubstitution(chckbxSubsitution.isSelected());
+
+		ApplicationEditor.this.processDescriptor.setUseTerminationCommand(rdbtnUseCustomCommand.isSelected());
+		ApplicationEditor.this.processDescriptor
+		    .setTerminationVariableSubstitution(chckbxTermUseVariableSubst.isSelected());
+		ApplicationEditor.this.processDescriptor.setTerminationCommand(txtTermCommand.getText());
+
+		dispose();
+	}
+
+	public static ProcessDescriptor newProcess(Component parent) {
+		ApplicationEditor editor = new ApplicationEditor(null, parent);
 		return editor.getProcessDescriptor();
 	}
 
-	public static void editProcessDescriptor(ProcessDescriptor processDescriptor) {
-		new ApplicationEditor(processDescriptor);
+	public static void editProcessDescriptor(ProcessDescriptor processDescriptor, Component parent) {
+		new ApplicationEditor(processDescriptor, parent);
 	}
 
 	private ProcessDescriptor getProcessDescriptor() {

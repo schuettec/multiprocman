@@ -60,7 +60,7 @@ public class Resources {
 			up = ImageIO.read(getResource("/up.png"));
 			down = ImageIO.read(getResource("/down.png"));
 		} catch (IOException e) {
-			ExceptionDialog.showException(e, "Some application resources could not be found!");
+			ExceptionDialog.showException(null, e, "Some application resources could not be found!");
 		}
 
 	}

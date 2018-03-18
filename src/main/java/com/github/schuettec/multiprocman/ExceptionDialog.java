@@ -3,6 +3,7 @@ package com.github.schuettec.multiprocman;
 import static java.util.Objects.requireNonNull;
 
 import java.awt.BorderLayout;
+import java.awt.Component;
 import java.awt.Dimension;
 import java.awt.FlowLayout;
 import java.awt.Font;
@@ -39,18 +40,18 @@ public class ExceptionDialog extends JDialog {
 		}
 	};
 
-	public static void showException(Exception exception, String messageFormat, Object... param) {
-		new ExceptionDialog(String.format(messageFormat, param), exception);
+	public static void showException(Component parent, Exception exception, String messageFormat, Object... param) {
+		new ExceptionDialog(parent, String.format(messageFormat, param), exception);
 	}
 
-	public static void showException(Exception exception, String message) {
-		new ExceptionDialog(message, exception);
+	public static void showException(Component parent, Exception exception, String message) {
+		new ExceptionDialog(parent, message, exception);
 	}
 
 	/**
 	 * Create the dialog.
 	 */
-	private ExceptionDialog(String message, Exception exception) {
+	private ExceptionDialog(Component parent, String message, Exception exception) {
 		requireNonNull(message, "Message must not be null.");
 		requireNonNull(exception, "Exception must not be null.");
 		setIconImage(Resources.getApplicationIcon());
@@ -58,10 +59,11 @@ public class ExceptionDialog extends JDialog {
 		setTitle("Exception");
 		setAlwaysOnTop(true);
 		setAutoRequestFocus(true);
+		setDefaultCloseOperation(JDialog.DISPOSE_ON_CLOSE);
 		setPreferredSize(new Dimension(480, 420));
 		setSize(new Dimension(480, 420));
-		setLocationRelativeTo(null);
-		setDefaultCloseOperation(JDialog.DISPOSE_ON_CLOSE);
+		setLocationRelativeTo(parent);
+
 		getContentPane().setLayout(new BorderLayout());
 		contentPanel.setBorder(new EmptyBorder(5, 5, 5, 5));
 		getContentPane().add(contentPanel, BorderLayout.CENTER);
@@ -132,4 +134,5 @@ public class ExceptionDialog extends JDialog {
 		    .put("Close", disposeAction);
 		setVisible(true);
 	}
+
 }

@@ -3,11 +3,14 @@ package com.github.schuettec.multiprocman.manager;
 import static java.util.Objects.isNull;
 
 import java.awt.BorderLayout;
+import java.awt.Component;
 import java.awt.Dimension;
 import java.awt.FlowLayout;
 import java.awt.Graphics2D;
 import java.awt.event.ActionEvent;
 import java.awt.event.KeyEvent;
+import java.awt.event.WindowEvent;
+import java.awt.event.WindowListener;
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
@@ -34,6 +37,7 @@ import javax.swing.border.EmptyBorder;
 import com.github.schuettec.multiprocman.FileChooserCallback;
 import com.github.schuettec.multiprocman.FileUtil;
 import com.github.schuettec.multiprocman.Resources;
+
 import javafx.stage.FileChooser.ExtensionFilter;
 
 public class CategoryEditor extends JDialog {
@@ -45,18 +49,49 @@ public class CategoryEditor extends JDialog {
 
 	/**
 	 * Create the dialog.
-	 * 
+	 *
 	 * @param category
+	 * @param owner
 	 */
-	private CategoryEditor(Category category) {
+	private CategoryEditor(Category category, Component owner) {
 		setIconImage(Resources.getApplicationIcon());
 		setModal(true);
 		setTitle("Category");
-		setResizable(false);
-		setDefaultCloseOperation(JDialog.DISPOSE_ON_CLOSE);
-		this.setPreferredSize(new Dimension(430, 200));
-		this.setSize(new Dimension(325, 221));
-		this.setLocationRelativeTo(null);
+		addWindowListener(new WindowListener() {
+
+			@Override
+			public void windowOpened(WindowEvent e) {
+			}
+
+			@Override
+			public void windowIconified(WindowEvent e) {
+			}
+
+			@Override
+			public void windowDeiconified(WindowEvent e) {
+			}
+
+			@Override
+			public void windowDeactivated(WindowEvent e) {
+			}
+
+			@Override
+			public void windowClosing(WindowEvent e) {
+				performCancel();
+			}
+
+			@Override
+			public void windowClosed(WindowEvent e) {
+			}
+
+			@Override
+			public void windowActivated(WindowEvent e) {
+			}
+		});
+		this.setPreferredSize(new Dimension(330, 236));
+		this.setSize(new Dimension(330, 236));
+		setLocationRelativeTo(owner);
+
 		getContentPane().setLayout(new BorderLayout());
 		contentPanel.setBorder(new EmptyBorder(5, 5, 5, 5));
 		getContentPane().add(contentPanel, BorderLayout.CENTER);
@@ -121,11 +156,11 @@ public class CategoryEditor extends JDialog {
 		    "<html>Please fill in the desired data for the new category. When selecting a category icon use 24x24px images, otherwise the images will be scaled automatically.</html>");
 
 		GroupLayout gl_contentPanel = new GroupLayout(contentPanel);
-		gl_contentPanel.setHorizontalGroup(gl_contentPanel.createParallelGroup(Alignment.LEADING)
+		gl_contentPanel.setHorizontalGroup(gl_contentPanel.createParallelGroup(Alignment.TRAILING)
 		    .addGroup(gl_contentPanel.createSequentialGroup()
 		        .addContainerGap()
-		        .addGroup(gl_contentPanel.createParallelGroup(Alignment.LEADING)
-		            .addComponent(lblPleaseFillIn)
+		        .addGroup(gl_contentPanel.createParallelGroup(Alignment.TRAILING)
+		            .addComponent(lblPleaseFillIn, Alignment.LEADING, GroupLayout.DEFAULT_SIZE, 292, Short.MAX_VALUE)
 		            .addGroup(gl_contentPanel.createSequentialGroup()
 		                .addGroup(gl_contentPanel.createParallelGroup(Alignment.TRAILING)
 		                    .addGroup(gl_contentPanel.createParallelGroup(Alignment.TRAILING, false)
@@ -135,29 +170,28 @@ public class CategoryEditor extends JDialog {
 		                            GroupLayout.PREFERRED_SIZE))
 		                    .addComponent(lblNewLabel))
 		                .addPreferredGap(ComponentPlacement.RELATED)
-		                .addGroup(gl_contentPanel.createParallelGroup(Alignment.LEADING)
+		                .addGroup(gl_contentPanel.createParallelGroup(Alignment.TRAILING)
 		                    .addGroup(gl_contentPanel.createSequentialGroup()
 		                        .addComponent(lblIcon, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE,
 		                            GroupLayout.PREFERRED_SIZE)
-		                        .addGap(93)
+		                        .addGap(91)
 		                        .addComponent(btnNewButton, GroupLayout.PREFERRED_SIZE, 91, GroupLayout.PREFERRED_SIZE))
-		                    .addGroup(gl_contentPanel.createParallelGroup(Alignment.TRAILING, false)
-		                        .addComponent(txtDescription, Alignment.LEADING)
-		                        .addComponent(txtName, Alignment.LEADING, GroupLayout.PREFERRED_SIZE, 206,
-		                            GroupLayout.PREFERRED_SIZE)))))
-		        .addContainerGap(GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)));
-		gl_contentPanel.setVerticalGroup(gl_contentPanel.createParallelGroup(Alignment.LEADING)
+		                    .addComponent(txtDescription, Alignment.LEADING, GroupLayout.DEFAULT_SIZE, 206, Short.MAX_VALUE)
+		                    .addComponent(txtName, GroupLayout.DEFAULT_SIZE, 206, Short.MAX_VALUE))
+		                .addGap(2)))
+		        .addContainerGap()));
+		gl_contentPanel.setVerticalGroup(gl_contentPanel.createParallelGroup(Alignment.TRAILING)
 		    .addGroup(gl_contentPanel.createSequentialGroup()
 		        .addGap(8)
 		        .addComponent(lblPleaseFillIn)
 		        .addPreferredGap(ComponentPlacement.RELATED, GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
 		        .addGroup(gl_contentPanel.createParallelGroup(Alignment.LEADING, false)
+		            .addComponent(lblForIcon, GroupLayout.PREFERRED_SIZE, 38, GroupLayout.PREFERRED_SIZE)
 		            .addGroup(gl_contentPanel.createSequentialGroup()
 		                .addGap(11)
-		                .addComponent(lblIcon, GroupLayout.DEFAULT_SIZE, GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
-		            .addGroup(gl_contentPanel.createParallelGroup(Alignment.BASELINE)
-		                .addComponent(lblForIcon, GroupLayout.PREFERRED_SIZE, 38, GroupLayout.PREFERRED_SIZE)
-		                .addComponent(btnNewButton)))
+		                .addGroup(gl_contentPanel.createParallelGroup(Alignment.LEADING)
+		                    .addComponent(btnNewButton)
+		                    .addComponent(lblIcon, GroupLayout.DEFAULT_SIZE, GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))))
 		        .addPreferredGap(ComponentPlacement.RELATED)
 		        .addGroup(gl_contentPanel.createParallelGroup(Alignment.LEADING)
 		            .addComponent(lblName)
@@ -229,17 +263,22 @@ public class CategoryEditor extends JDialog {
 		setVisible(true);
 	}
 
-	public static Category newCategory() {
-		CategoryEditor editor = new CategoryEditor(null);
+	public static Category newCategory(Component owner) {
+		CategoryEditor editor = new CategoryEditor(null, owner);
 		return editor.getCategory();
 	}
 
-	public static void editCategory(Category category) {
-		new CategoryEditor(category);
+	public static void editCategory(Category category, Component owner) {
+		new CategoryEditor(category, owner);
 	}
 
 	private Category getCategory() {
 		return this.category;
+	}
+
+	private void performCancel() {
+		category = null;
+		dispose();
 	}
 
 }
