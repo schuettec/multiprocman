@@ -18,6 +18,8 @@ import javafx.stage.FileChooser.ExtensionFilter;
 
 public class FileUtil {
 
+	private static File lastFile = null;
+
 	public enum Type {
 		OPEN,
 		SAVE;
@@ -39,6 +41,7 @@ public class FileUtil {
 			public void run() {
 
 				FileChooser fileChooser = new FileChooser();
+				fileChooser.setInitialDirectory(lastFile);
 				fileChooser.setTitle("Open Resource File");
 				ObservableList<ExtensionFilter> extensionFilters = fileChooser.getExtensionFilters();
 				List<ExtensionFilter> list = new LinkedList<>();
@@ -53,12 +56,14 @@ public class FileUtil {
 					selectedFile = fileChooser.showSaveDialog(null);
 				}
 				if (nonNull(selectedFile)) {
+					setLastFile(selectedFile);
 					fileConsumer.fileSelected(selectedFile, fileChooser.getSelectedExtensionFilter());
 				} else {
 					fileConsumer.noFile();
 				}
 				s.release();
 			}
+
 		});
 		s.acquireUninterruptibly();
 	}
@@ -72,10 +77,12 @@ public class FileUtil {
 			@Override
 			public void run() {
 				DirectoryChooser fileChooser = new DirectoryChooser();
+				fileChooser.setInitialDirectory(lastFile);
 				fileChooser.setTitle("Find directory");
 				File selectedFile = null;
 				selectedFile = fileChooser.showDialog(null);
 				if (nonNull(selectedFile)) {
+					setLastFile(selectedFile);
 					fileConsumer.fileSelected(selectedFile, null);
 				} else {
 					fileConsumer.noFile();
@@ -87,4 +94,11 @@ public class FileUtil {
 		s.acquireUninterruptibly();
 	}
 
+	private static void setLastFile(File selectedFile) {
+		File parentFile = selectedFile.getParentFile();
+		if (parentFile
+		    .isDirectory()) {
+			lastFile = parentFile;
+		}
+	}
 }

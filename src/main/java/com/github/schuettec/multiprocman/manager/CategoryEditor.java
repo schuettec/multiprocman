@@ -32,6 +32,7 @@ import javax.swing.JTextField;
 import javax.swing.KeyStroke;
 import javax.swing.LayoutStyle.ComponentPlacement;
 import javax.swing.SwingConstants;
+import javax.swing.SwingUtilities;
 import javax.swing.border.EmptyBorder;
 
 import com.github.schuettec.multiprocman.FileChooserCallback;
@@ -134,19 +135,25 @@ public class CategoryEditor extends JDialog {
 
 					@Override
 					public void fileSelected(File file, ExtensionFilter extension) {
-						try {
-							BufferedImage read = ImageIO.read(file);
-							BufferedImage after = new BufferedImage(24, 24, BufferedImage.TYPE_INT_ARGB);
-							Graphics2D g = (Graphics2D) after.getGraphics();
-							double ratio = read.getHeight() / (double) read.getWidth();
-							int newHeight = (int) Math.round(24 * ratio);
-							g.drawImage(read, 0, 0, 24, newHeight, null);
-							lblIcon.setIcon(new ImageIcon(after));
-						} catch (IOException e1) {
-							JOptionPane.showMessageDialog(CategoryEditor.this, "Error while loading the selected image file.",
-							    "I/O error", JOptionPane.ERROR_MESSAGE);
-							e1.printStackTrace();
-						}
+						SwingUtilities.invokeLater(new Runnable() {
+							@Override
+							public void run() {
+								try {
+									BufferedImage read = ImageIO.read(file);
+									BufferedImage after = new BufferedImage(24, 24, BufferedImage.TYPE_INT_ARGB);
+									Graphics2D g = (Graphics2D) after.getGraphics();
+									double ratio = read.getHeight() / (double) read.getWidth();
+									int newHeight = (int) Math.round(24 * ratio);
+									g.drawImage(read, 0, 0, 24, newHeight, null);
+									lblIcon.setIcon(new ImageIcon(after));
+								} catch (IOException e1) {
+									JOptionPane.showMessageDialog(CategoryEditor.this, "Error while loading the selected image file.",
+									    "I/O error", JOptionPane.ERROR_MESSAGE);
+									e1.printStackTrace();
+								}
+							}
+
+						});
 					}
 				});
 			}

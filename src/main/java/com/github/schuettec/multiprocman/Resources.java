@@ -33,6 +33,8 @@ public class Resources {
 	private static BufferedImage minus;
 	private static BufferedImage up;
 	private static BufferedImage down;
+	private static BufferedImage upload;
+	private static BufferedImage download;
 
 	static {
 		try {
@@ -59,10 +61,20 @@ public class Resources {
 			minus = ImageIO.read(getResource("/minus.png"));
 			up = ImageIO.read(getResource("/up.png"));
 			down = ImageIO.read(getResource("/down.png"));
+			upload = ImageIO.read(getResource("/upload.png"));
+			download = ImageIO.read(getResource("/download.png"));
 		} catch (IOException e) {
 			ExceptionDialog.showException(null, e, "Some application resources could not be found!");
 		}
 
+	}
+
+	public static BufferedImage getExport() {
+		return upload;
+	}
+
+	public static BufferedImage getImport() {
+		return download;
 	}
 
 	public static BufferedImage getUp() {

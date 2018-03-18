@@ -547,22 +547,26 @@ public class MainFrame extends JFrame implements WindowListener, ProcessListener
 
 			@Override
 			public void fileSelected(File file, ExtensionFilter extension) {
-				ExportType exportType = null;
-				switch (extension.getDescription()) {
-					default:
-					case TEXT_FILES:
-						exportType = ExportType.TEXT;
-						break;
-					case HTML_FILES:
-						exportType = ExportType.HTML;
-						break;
-					case RICH_TEXT_FILES:
-						exportType = ExportType.RTF;
-						break;
-				}
-
-				currentProcess.getTextPane()
-				    .saveAs(file, exportType);
+				SwingUtilities.invokeLater(new Runnable() {
+					@Override
+					public void run() {
+						ExportType exportType = null;
+						switch (extension.getDescription()) {
+							default:
+							case TEXT_FILES:
+								exportType = ExportType.TEXT;
+								break;
+							case HTML_FILES:
+								exportType = ExportType.HTML;
+								break;
+							case RICH_TEXT_FILES:
+								exportType = ExportType.RTF;
+								break;
+						}
+						currentProcess.getTextPane()
+						    .saveAs(file, exportType);
+					}
+				});
 			}
 		});
 

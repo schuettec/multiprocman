@@ -14,6 +14,7 @@ import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.awt.event.WindowEvent;
 import java.awt.event.WindowListener;
+import java.io.File;
 import java.util.Arrays;
 import java.util.Iterator;
 import java.util.List;
@@ -37,16 +38,21 @@ import javax.swing.JSplitPane;
 import javax.swing.JToolBar;
 import javax.swing.ListSelectionModel;
 import javax.swing.SwingConstants;
+import javax.swing.SwingUtilities;
 import javax.swing.TransferHandler;
 import javax.swing.border.EmptyBorder;
 import javax.swing.event.ListSelectionEvent;
 import javax.swing.event.ListSelectionListener;
 
+import com.github.schuettec.multiprocman.FileChooserCallback;
+import com.github.schuettec.multiprocman.FileUtil;
 import com.github.schuettec.multiprocman.MainFrame;
 import com.github.schuettec.multiprocman.ProcessController;
 import com.github.schuettec.multiprocman.ProcessDescriptor;
 import com.github.schuettec.multiprocman.Resources;
 import com.github.schuettec.multiprocman.themes.ThemeUtil;
+
+import javafx.stage.FileChooser.ExtensionFilter;
 
 public class ProcessManager extends JFrame {
 
@@ -116,6 +122,68 @@ public class ProcessManager extends JFrame {
 
 		}
 	};
+
+	private Action importCategories = new AbstractAction(null, new ImageIcon(Resources.getImport())) {
+
+		/**
+		 *
+		 */
+		private static final long serialVersionUID = 1L;
+
+		@Override
+		public void actionPerformed(ActionEvent e) {
+			FileUtil.showFileChooser(FileUtil.Type.OPEN, extensions -> {
+				extensions.add(new ExtensionFilter("Categories", Arrays.asList(".categories")));
+			}, new FileChooserCallback() {
+				@Override
+				public void fileSelected(File file, ExtensionFilter selectedFilter) {
+					SwingUtilities.invokeLater(new Runnable() {
+
+						@Override
+						public void run() {
+							List<Category> toAdd = Categories.importCategories(file);
+							for (Category c : toAdd) {
+								categories.addElement(c);
+							}
+						}
+					});
+				}
+			});
+		}
+	};
+
+	private Action exportCategories = new AbstractAction(null, new ImageIcon(Resources.getExport())) {
+
+		/**
+		 *
+		 */
+		private static final long serialVersionUID = 1L;
+
+		@Override
+		public void actionPerformed(ActionEvent e) {
+			int selectedIndex = lstCategories.getSelectedIndex();
+			if (selectedIndex == -1) {
+				JOptionPane.showMessageDialog(ProcessManager.this, "Please select the categories to export first.",
+				    "No selection", JOptionPane.WARNING_MESSAGE);
+			} else {
+				FileUtil.showFileChooser(FileUtil.Type.SAVE, extensions -> {
+					extensions.add(new ExtensionFilter("Categories", Arrays.asList(".categories")));
+				}, new FileChooserCallback() {
+					@Override
+					public void fileSelected(File file, ExtensionFilter selectedFilter) {
+						SwingUtilities.invokeLater(new Runnable() {
+							@Override
+							public void run() {
+								List<Category> selection = lstCategories.getSelectedValuesList();
+								Categories.exportCategories(selection, file);
+							}
+						});
+					}
+				});
+			}
+		}
+	};
+
 	private Action removeCategory = new AbstractAction(null, new ImageIcon(Resources.getFolderMinus())) {
 
 		/**
@@ -208,6 +276,76 @@ public class ProcessManager extends JFrame {
 					lstProcesses.repaint();
 				}
 
+			}
+		}
+	};
+
+	private Action importApplications = new AbstractAction(null, new ImageIcon(Resources.getImport())) {
+
+		/**
+		 *
+		 */
+		private static final long serialVersionUID = 1L;
+
+		@Override
+		public void actionPerformed(ActionEvent e) {
+			int selectedIndex = lstCategories.getSelectedIndex();
+			if (selectedIndex == -1) {
+				JOptionPane.showMessageDialog(ProcessManager.this, "Please select the categories to import into.",
+				    "No selection", JOptionPane.WARNING_MESSAGE);
+			} else {
+				FileUtil.showFileChooser(FileUtil.Type.OPEN, extensions -> {
+					extensions.add(new ExtensionFilter("Launch configurations", Arrays.asList(".launch")));
+				}, new FileChooserCallback() {
+					@Override
+					public void fileSelected(File file, ExtensionFilter selectedFilter) {
+						SwingUtilities.invokeLater(new Runnable() {
+							@Override
+							public void run() {
+								Category category = categories.get(selectedIndex);
+								List<ProcessDescriptor> toAdd = Categories.importApplications(file);
+								for (ProcessDescriptor e : toAdd) {
+									category.getProcessTemplates()
+									    .addElement(e);
+								}
+								categories.saveToPreferences();
+							}
+						});
+					}
+				});
+			}
+		}
+	};
+
+	private Action exportApplications = new AbstractAction(null, new ImageIcon(Resources.getExport())) {
+
+		/**
+		 *
+		 */
+		private static final long serialVersionUID = 1L;
+
+		@Override
+		public void actionPerformed(ActionEvent e) {
+			int selectedIndex = lstProcesses.getSelectedIndex();
+			if (selectedIndex == -1) {
+				JOptionPane.showMessageDialog(ProcessManager.this, "Please select the applications to export first.",
+				    "No selection", JOptionPane.WARNING_MESSAGE);
+			} else {
+				FileUtil.showFileChooser(FileUtil.Type.SAVE, extensions -> {
+					extensions.add(new ExtensionFilter("Launch configurations", Arrays.asList(".launch")));
+				}, new FileChooserCallback() {
+					@Override
+					public void fileSelected(File file, ExtensionFilter selectedFilter) {
+						SwingUtilities.invokeLater(new Runnable() {
+							@Override
+							public void run() {
+
+								List<ProcessDescriptor> selection = lstProcesses.getSelectedValuesList();
+								Categories.exportApplications(selection, file);
+							}
+						});
+					}
+				});
 			}
 		}
 	};
@@ -366,6 +504,16 @@ public class ProcessManager extends JFrame {
 					btnRemoveCategory.setToolTipText("Remove category");
 					toolBar.add(btnRemoveCategory);
 				}
+				{
+					JButton button = new JButton(importCategories);
+					button.setToolTipText("Import category");
+					toolBar.add(button);
+				}
+				{
+					JButton button = new JButton(exportCategories);
+					button.setToolTipText("Export category");
+					toolBar.add(button);
+				}
 			}
 			{
 				JPanel panel = new JPanel();
@@ -448,6 +596,16 @@ public class ProcessManager extends JFrame {
 						btnRemoveApplication.setToolTipText("Remove application");
 						toolBar.add(btnRemoveApplication);
 					}
+					{
+						JButton button = new JButton(importApplications);
+						button.setToolTipText("Import applications.");
+						toolBar.add(button);
+					}
+					{
+						JButton button = new JButton(exportApplications);
+						button.setToolTipText("Export applications.");
+						toolBar.add(button);
+					}
 				}
 				{
 					JPanel panel = new JPanel();
@@ -496,12 +654,12 @@ public class ProcessManager extends JFrame {
 		{
 			JPopupMenu popupMenu = new JPopupMenu();
 			addPopup(lstCategories, popupMenu);
-			JMenuItem newApp = new JMenuItem(new TitledAction("New...", newCategory));
-			JMenuItem editApp = new JMenuItem(new TitledAction("Edit...", editCategory));
-			JMenuItem removeApp = new JMenuItem(new TitledAction("Remove", removeCategory));
-			popupMenu.add(newApp);
-			popupMenu.add(editApp);
-			popupMenu.add(removeApp);
+			JMenuItem newCat = new JMenuItem(new TitledAction("New...", newCategory));
+			JMenuItem editCat = new JMenuItem(new TitledAction("Edit...", editCategory));
+			JMenuItem removeCat = new JMenuItem(new TitledAction("Remove", removeCategory));
+			popupMenu.add(newCat);
+			popupMenu.add(editCat);
+			popupMenu.add(removeCat);
 		}
 		setVisible(true);
 
