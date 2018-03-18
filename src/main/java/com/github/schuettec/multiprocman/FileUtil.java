@@ -96,8 +96,7 @@ public class FileUtil {
 
 	private static void setLastFile(File selectedFile) {
 		File parentFile = selectedFile.getParentFile();
-		if (parentFile
-		    .isDirectory()) {
+		if (parentFile.isDirectory()) {
 			lastFile = parentFile;
 		}
 	}
