@@ -3,19 +3,18 @@ package com.github.schuettec.multiprocman.manager;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
+import java.io.OutputStream;
 import java.util.Arrays;
 import java.util.List;
 
 import javax.swing.DefaultListModel;
 import javax.swing.ImageIcon;
 
-import com.thoughtworks.xstream.XStream;
-
 import com.github.schuettec.multiprocman.ExceptionDialog;
+import com.thoughtworks.xstream.XStream;
 
 public class Categories extends DefaultListModel<Category> {
 
-	private static final String CATEGORIES = "categories";
 	/**
 	 * 
 	 */
@@ -24,6 +23,15 @@ public class Categories extends DefaultListModel<Category> {
 	public Categories() {
 		super();
 		loadFromPreferences();
+	}
+
+	public static void exportCategories(List<Category> categories, OutputStream output) {
+		try (OutputStream o = output) {
+			XStream xstream = new XStream();
+			xstream.toXML(categories, o);
+		} catch (Exception e) {
+			ExceptionDialog.showException(e, "Error while exporting the selected categories.");
+		}
 	}
 
 	private void loadFromPreferences() {
@@ -56,7 +64,6 @@ public class Categories extends DefaultListModel<Category> {
 	}
 
 	public void saveToPreferences() {
-
 		try (FileOutputStream fout = new FileOutputStream(getUserFile())) {
 			Object[] anArray = new Object[this.size()];
 			this.copyInto(anArray);
