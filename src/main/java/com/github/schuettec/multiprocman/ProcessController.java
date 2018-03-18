@@ -3,15 +3,17 @@ package com.github.schuettec.multiprocman;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
+import java.nio.charset.Charset;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Queue;
-import java.util.Scanner;
 import java.util.concurrent.ConcurrentLinkedQueue;
+import java.util.concurrent.TimeUnit;
 
+import javax.swing.JOptionPane;
 import javax.swing.SwingUtilities;
 
 import org.apache.commons.lang3.event.EventListenerSupport;
@@ -85,30 +87,35 @@ public class ProcessController {
 
 	public boolean start() {
 		try {
-			File workingDir = null;
-			if (processDescriptor.hasExecutionDirectory()) {
-				workingDir = processDescriptor.getExecutionDirectory();
-			}
-			String[] env = null;
-			if (processDescriptor.hasEnvironmentVariables()) {
-				Map<String, String> environment = processDescriptor.getEnvironment();
-				env = new String[environment.size()];
-				Iterator<Entry<String, String>> it = environment.entrySet()
-				    .iterator();
-				int i = 0;
-				while (it.hasNext()) {
-					Entry<String, String> next = it.next();
-					env[i] = next.getKey() + "=" + next.getValue();
-				}
-			}
-			this.process = Runtime.getRuntime()
-			    .exec(processDescriptor.getCommand(), env, workingDir);
+			String command = processDescriptor.getCommandForExecution();
+			this.process = executeCommand(command);
 			startProcessObserver();
 		} catch (IOException e) {
-			ExceptionDialog.showException(e, "Error while starting the application.");
+			ExceptionDialog.showException(textPane, e, "Error while starting the application.");
 			return false;
 		}
 		return true;
+	}
+
+	private Process executeCommand(String command) throws IOException {
+		File workingDir = null;
+		if (processDescriptor.hasExecutionDirectory()) {
+			workingDir = new File(processDescriptor.getExecutionDirectoryForExecution());
+		}
+		String[] env = null;
+		if (processDescriptor.hasEnvironmentVariables()) {
+			Map<String, String> environment = processDescriptor.getEnvironment();
+			env = new String[environment.size()];
+			Iterator<Entry<String, String>> it = environment.entrySet()
+			    .iterator();
+			int i = 0;
+			while (it.hasNext()) {
+				Entry<String, String> next = it.next();
+				env[i] = next.getKey() + "=" + next.getValue();
+			}
+		}
+		return Runtime.getRuntime()
+		    .exec(command, env, workingDir);
 	}
 
 	private void startProcessObserver() {
@@ -124,19 +131,11 @@ public class ProcessController {
 					final InputStream inputStream = process.getInputStream();
 					final InputStream errorStream = process.getErrorStream();
 
-					try (Scanner input1 = new Scanner(inputStream, processDescriptor.getCharset()
-					    .name());
-					    Scanner input2 = new Scanner(errorStream, processDescriptor.getCharset()
-					        .name())) {
+					Charset charset = processDescriptor.getCharset();
+					try {
 						do {
-							if (inputStream.available() > 0) {
-								String nextLine = input1.nextLine();
-								appendInEDT(nextLine);
-							}
-							if (errorStream.available() > 0) {
-								String nextLine = input2.nextLine();
-								appendInEDT(nextLine);
-							}
+							readNext(charset, inputStream);
+							readNext(charset, errorStream);
 						} while (process.isAlive());
 					} catch (Exception e) {
 						updateState(State.ABANDONED);
@@ -154,16 +153,29 @@ public class ProcessController {
 				}
 			}
 
-			private void appendInEDT(String nextLine) {
-				SwingUtilities.invokeLater(new Runnable() {
+			private void readNext(Charset charset, InputStream stream) throws IOException {
+				int available = 0;
+				if ((available = stream.available()) > 0) {
+					byte[] data = new byte[available];
+					int amount = stream.read(data);
+					appendInEDT(new String(data, 0, amount, charset));
+				}
+			}
 
-					@Override
-					public void run() {
-						consoleScroller.appendANSI(nextLine + "\n");
-						processListener.fire()
-						    .processUpdate(ProcessController.this);
-					}
-				});
+			private void appendInEDT(String nextLine) {
+				try {
+					SwingUtilities.invokeAndWait(new Runnable() {
+
+						@Override
+						public void run() {
+							consoleScroller.appendANSI(nextLine, processDescriptor.isSupportAsciiCodes());
+							processListener.fire()
+							    .processUpdate(ProcessController.this);
+						}
+					});
+				} catch (Exception e) {
+					e.printStackTrace();
+				}
 			}
 		});
 		processObserver.start();
@@ -177,13 +189,50 @@ public class ProcessController {
 
 	public void stop(boolean waitFor) {
 		updateState(State.STOPPING);
-		this.process.destroy();
+		_stopProcess(false);
 		waitForOnDemand(waitFor);
+	}
+
+	private void _stopProcess(boolean force) {
+		if (force) {
+			this.process.destroyForcibly();
+		} else {
+			if (processDescriptor.isUseTerminationCommand()) {
+				executeTermination();
+			} else {
+				this.process.destroy();
+			}
+		}
+	}
+
+	private void executeTermination() {
+		Thread termination = new Thread(new Runnable() {
+			@Override
+			public void run() {
+				String terminationCommand = processDescriptor.getTerminationCommandForExecution();
+				try {
+					Process process = executeCommand(terminationCommand);
+					boolean terminated = process.waitFor(8000, TimeUnit.MILLISECONDS);
+					if (!terminated) {
+						stopForce(false);
+						JOptionPane.showMessageDialog(textPane,
+						    "The application %s was stopped with the termination command but the command did not respond. The applicationwas killed to force termination.",
+						    "Termination command", JOptionPane.ERROR_MESSAGE);
+					}
+				} catch (Exception e) {
+					stopForce(false);
+					JOptionPane.showMessageDialog(textPane,
+					    "The application %s was stopped with the termination command but the command threw an error. A kill signal is used to force termination.",
+					    "Termination command", JOptionPane.ERROR_MESSAGE);
+				}
+			}
+		});
+		termination.start();
 	}
 
 	public void stopForce(boolean waitFor) {
 		updateState(State.STOPPING);
-		this.process.destroyForcibly();
+		_stopProcess(true);
 		waitForOnDemand(waitFor);
 	}
 
@@ -241,6 +290,7 @@ public class ProcessController {
 		getTextPane().setText("");
 		getConsolePreview().clear();
 		counterExpressions.clear();
+		updateListeners();
 	}
 
 	public CounterExpressions getCounterExpressions() {
