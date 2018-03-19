@@ -31,6 +31,10 @@ public class Resources {
 	private static BufferedImage plus;
 	private static BufferedImage appIcon;
 	private static BufferedImage minus;
+	private static BufferedImage up;
+	private static BufferedImage down;
+	private static BufferedImage upload;
+	private static BufferedImage download;
 
 	static {
 		try {
@@ -55,10 +59,30 @@ public class Resources {
 			appIcon = ImageIO.read(getResource("/app.png"));
 			plus = ImageIO.read(getResource("/plus.png"));
 			minus = ImageIO.read(getResource("/minus.png"));
+			up = ImageIO.read(getResource("/up.png"));
+			down = ImageIO.read(getResource("/down.png"));
+			upload = ImageIO.read(getResource("/upload.png"));
+			download = ImageIO.read(getResource("/download.png"));
 		} catch (IOException e) {
 			ExceptionDialog.showException(null, e, "Some application resources could not be found!");
 		}
 
+	}
+
+	public static BufferedImage getExport() {
+		return upload;
+	}
+
+	public static BufferedImage getImport() {
+		return download;
+	}
+
+	public static BufferedImage getUp() {
+		return up;
+	}
+
+	public static BufferedImage getDown() {
+		return down;
 	}
 
 	public static BufferedImage getCheck() {

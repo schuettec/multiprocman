@@ -17,6 +17,7 @@ import java.awt.event.MouseWheelListener;
 
 import javax.swing.AbstractAction;
 import javax.swing.Box;
+import javax.swing.ImageIcon;
 import javax.swing.JButton;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
@@ -31,6 +32,7 @@ import javax.swing.text.DefaultCaret;
 import org.apache.commons.lang3.event.EventListenerSupport;
 
 import com.github.schuettec.multiprocman.AppendListener;
+import com.github.schuettec.multiprocman.Resources;
 import com.github.schuettec.multiprocman.TextView;
 
 public class ScrollableAnsiColorTextPaneContainer extends JScrollPane
@@ -97,7 +99,7 @@ public class ScrollableAnsiColorTextPaneContainer extends JScrollPane
 		}
 
 	};
-	private AbstractAction finishSearchAction = new AbstractAction() {
+	private AbstractAction finishSearchAction = new AbstractAction(null, new ImageIcon(Resources.getX())) {
 
 		/**
 		 *
@@ -111,7 +113,7 @@ public class ScrollableAnsiColorTextPaneContainer extends JScrollPane
 
 	};
 
-	private AbstractAction prevOccurrence = new AbstractAction("^") {
+	private AbstractAction prevOccurrence = new AbstractAction(null, new ImageIcon(Resources.getUp())) {
 
 		/**
 		 *
@@ -124,7 +126,7 @@ public class ScrollableAnsiColorTextPaneContainer extends JScrollPane
 		}
 
 	};
-	private AbstractAction nextOccurrence = new AbstractAction("V") {
+	private AbstractAction nextOccurrence = new AbstractAction(null, new ImageIcon(Resources.getDown())) {
 
 		/**
 		 *
