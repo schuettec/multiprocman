@@ -19,6 +19,8 @@ import javax.swing.ImageIcon;
 
 public class ProcessDescriptor implements Serializable {
 
+	private static final int MAX_LINES_DEFAULT = 20000;
+
 	/**
 	 *
 	 */
@@ -37,6 +39,8 @@ public class ProcessDescriptor implements Serializable {
 	private boolean useTerminationCommand;
 	private String terminationCommand;
 
+	private int maxLineNumbers;
+
 	private List<Counter> counters;
 
 	public ProcessDescriptor() {
@@ -44,6 +48,7 @@ public class ProcessDescriptor implements Serializable {
 		setCharset(Charset.defaultCharset());
 		setIcon(Resources.getTerminal());
 		setColor(Color.GREEN);
+		setMaxLineNumbers(MAX_LINES_DEFAULT);
 	}
 
 	public static String substituteCommand(String command) {
@@ -58,6 +63,14 @@ public class ProcessDescriptor implements Serializable {
 			    Matcher.quoteReplacement(entry.getValue()));
 		}
 		return substitute;
+	}
+
+	public int getMaxLineNumbers() {
+		return maxLineNumbers;
+	}
+
+	public void setMaxLineNumbers(int maxLineNumbers) {
+		this.maxLineNumbers = maxLineNumbers;
 	}
 
 	public boolean isVariableSubstitution() {

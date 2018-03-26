@@ -19,6 +19,7 @@ import javax.swing.SwingUtilities;
 import org.apache.commons.lang3.event.EventListenerSupport;
 
 import com.github.schuettec.multiprocman.console.AnsiColorTextPane;
+import com.github.schuettec.multiprocman.console.LimitLinesDocumentListener;
 import com.github.schuettec.multiprocman.console.ScrollableAnsiColorTextPaneContainer;
 import com.github.schuettec.multiprocman.consolepreview.ConsolePreview;
 import com.github.schuettec.multiprocman.themes.ThemeUtil;
@@ -63,6 +64,8 @@ public class ProcessController {
 		this.processDescriptor = processDescriptor;
 		this.textPane = new AnsiColorTextPane();
 		ThemeUtil.theme(textPane, AnsiColorTextPaneTheme.class);
+		this.textPane.getDocument()
+		    .addDocumentListener(new LimitLinesDocumentListener(processDescriptor.getMaxLineNumbers()));
 		this.consoleScroller = new ScrollableAnsiColorTextPaneContainer(textPane);
 		this.consolePreview = new ConsolePreview(this);
 		this.textPane.addAppendListener(consolePreview);
