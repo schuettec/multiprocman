@@ -164,8 +164,7 @@ public class ProcessController {
 
 			private void appendInEDT(String nextLine) {
 				try {
-					SwingUtilities.invokeAndWait(new Runnable() {
-
+					SwingUtilities.invokeLater(new Runnable() {
 						@Override
 						public void run() {
 							consoleScroller.appendANSI(nextLine, processDescriptor.isSupportAsciiCodes());
