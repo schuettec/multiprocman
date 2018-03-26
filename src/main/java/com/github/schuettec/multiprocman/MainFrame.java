@@ -539,7 +539,7 @@ public class MainFrame extends JFrame implements WindowListener, ProcessListener
 	}
 
 	private void saveAs() {
-		FileUtil.showFileChooser(FileUtil.Type.OPEN, l -> {
+		FileUtil.showFileChooser(FileUtil.Type.SAVE, l -> {
 			l.add(new ExtensionFilter(TEXT_FILES, "*.txt"));
 			l.add(new ExtensionFilter(HTML_FILES, "*.html", "*.htm"));
 			l.add(new ExtensionFilter(RICH_TEXT_FILES, "*.rtf"));

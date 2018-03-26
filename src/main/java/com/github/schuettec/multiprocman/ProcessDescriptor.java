@@ -19,7 +19,7 @@ import javax.swing.ImageIcon;
 
 public class ProcessDescriptor implements Serializable {
 
-	private static final int MAX_LINES_DEFAULT = 20000;
+	private static final int MAX_LINES_DEFAULT = 200;
 
 	/**
 	 *
