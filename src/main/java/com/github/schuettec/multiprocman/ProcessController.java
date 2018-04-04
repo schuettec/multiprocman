@@ -33,7 +33,7 @@ import com.github.schuettec.multiprocman.themes.console.AnsiColorTextPaneTheme;
 
 public class ProcessController {
 
-	private static final int WAIT_FOR_STREAM = 500;
+	private static final int WAIT_FOR_STREAM = 125;
 
 	private static final int MAX_READ_AMOUNT_SIZE = 512;
 
