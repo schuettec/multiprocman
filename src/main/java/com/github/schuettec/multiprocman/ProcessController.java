@@ -33,6 +33,8 @@ import com.github.schuettec.multiprocman.themes.console.AnsiColorTextPaneTheme;
 
 public class ProcessController {
 
+	private static final int WAIT_FOR_STREAM = 500;
+
 	private static final int MAX_READ_AMOUNT_SIZE = 512;
 
 	private static Queue<ProcessController> controllers = new ConcurrentLinkedQueue<>();
@@ -173,6 +175,9 @@ public class ProcessController {
 					Charset charset = processDescriptor.getCharset();
 					try {
 						do {
+
+							waitForStreams(inputStream, errorStream);
+
 							buffer(inputStream, inputBufferSize, inputBuffer, charset);
 							inputJoin.noticeEvent();
 
@@ -197,6 +202,16 @@ public class ProcessController {
 				}
 			}
 
+			private void waitForStreams(final InputStream inputStream, final InputStream errorStream) throws IOException {
+				if (inputStream.available() < 1 || errorStream.available() < 1) {
+					try {
+						Thread.sleep(WAIT_FOR_STREAM);
+					} catch (InterruptedException e) {
+						// Nothing to do.
+					}
+				}
+			}
+
 			private void buffer(final InputStream inputStream, AtomicInteger inputBufferSize,
 			    ByteArrayOutputStream inputBuffer, Charset charset) throws IOException {
 				Chunk inputChunk = readNext(charset, inputStream);
@@ -208,7 +223,6 @@ public class ProcessController {
 
 			private Chunk readNext(Charset charset, InputStream stream) throws IOException {
 				int available = 0;
-
 				if ((available = stream.available()) > 0) {
 					available = min(MAX_READ_AMOUNT_SIZE, available);
 					byte[] data = new byte[available];
