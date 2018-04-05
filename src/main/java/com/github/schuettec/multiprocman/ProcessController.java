@@ -135,81 +135,83 @@ public class ProcessController {
 
 			@Override
 			public void run() {
-				if (process.isAlive()) {
-					updateState(State.RUNNING);
-					controllers.add(ProcessController.this);
+				updateState(State.RUNNING);
+				controllers.add(ProcessController.this);
 
-					// Read outputs
-					final InputStream inputStream = process.getInputStream();
-					final InputStream errorStream = process.getErrorStream();
+				// Read outputs
+				final InputStream inputStream = process.getInputStream();
+				final InputStream errorStream = process.getErrorStream();
 
-					ByteArrayOutputStream inputBuffer = new ByteArrayOutputStream();
-					AtomicInteger inputBufferSize = new AtomicInteger(0);
-					ByteArrayOutputStream errorBuffer = new ByteArrayOutputStream();
-					AtomicInteger errorBufferSize = new AtomicInteger(0);
+				ByteArrayOutputStream inputBuffer = new ByteArrayOutputStream();
+				AtomicInteger inputBufferSize = new AtomicInteger(0);
+				ByteArrayOutputStream errorBuffer = new ByteArrayOutputStream();
+				AtomicInteger errorBufferSize = new AtomicInteger(0);
 
-					EventJoin inputJoin = new EventJoin(new EventJoin.Callback() {
+				EventJoin inputJoin = new EventJoin(new EventJoin.Callback() {
 
-						@Override
-						public void eventCallback() {
-							if (inputBufferSize.get() > 0) {
-								appendInEDT(new String(inputBuffer.toByteArray()));
-								inputBuffer.reset();
-								inputBufferSize.set(0);
-							}
+					@Override
+					public void eventCallback() {
+						if (inputBufferSize.get() > 0) {
+							appendInEDT(new String(inputBuffer.toByteArray()));
+							inputBuffer.reset();
+							inputBufferSize.set(0);
 						}
-					}, 250, TimeUnit.MILLISECONDS);
-
-					EventJoin errorJoin = new EventJoin(new EventJoin.Callback() {
-
-						@Override
-						public void eventCallback() {
-							if (errorBufferSize.get() > 0) {
-								appendInEDT(new String(errorBuffer.toByteArray()));
-								errorBuffer.reset();
-								errorBufferSize.set(0);
-							}
-						}
-					}, 250, TimeUnit.MILLISECONDS);
-
-					Charset charset = processDescriptor.getCharset();
-					try {
-						do {
-
-							waitForStreams(inputStream, errorStream);
-
-							buffer(inputStream, inputBufferSize, inputBuffer, charset);
-							inputJoin.noticeEvent();
-
-							buffer(errorStream, inputBufferSize, errorBuffer, charset);
-							errorJoin.noticeEvent();
-
-						} while (process.isAlive());
-
-					} catch (Exception e) {
-						updateState(State.ABANDONED);
 					}
-					try {
-						int exitValue = process.waitFor();
-						if (exitValue == 0) {
-							updateState(State.STOPPED_OK);
-						} else {
-							updateState(State.STOPPED_ALERT);
+				}, 250, TimeUnit.MILLISECONDS);
+
+				EventJoin errorJoin = new EventJoin(new EventJoin.Callback() {
+
+					@Override
+					public void eventCallback() {
+						if (errorBufferSize.get() > 0) {
+							appendInEDT(new String(errorBuffer.toByteArray()));
+							errorBuffer.reset();
+							errorBufferSize.set(0);
 						}
-						controllers.remove(ProcessController.this);
-					} catch (InterruptedException e) {
 					}
+				}, 250, TimeUnit.MILLISECONDS);
+
+				Charset charset = processDescriptor.getCharset();
+				try {
+					do {
+
+						waitForStreams(inputStream, errorStream);
+
+						buffer(inputStream, inputBufferSize, inputBuffer, charset);
+						inputJoin.noticeEvent();
+
+						buffer(errorStream, errorBufferSize, errorBuffer, charset);
+						errorJoin.noticeEvent();
+
+					} while (hasOutput(inputStream, errorStream) || process.isAlive());
+
+				} catch (Exception e) {
+					updateState(State.ABANDONED);
+				}
+				try {
+					int exitValue = process.waitFor();
+					if (exitValue == 0) {
+						updateState(State.STOPPED_OK);
+					} else {
+						updateState(State.STOPPED_ALERT);
+					}
+					controllers.remove(ProcessController.this);
+				} catch (InterruptedException e) {
 				}
 			}
 
 			private void waitForStreams(final InputStream inputStream, final InputStream errorStream) throws IOException {
-				if (inputStream.available() < 1 || errorStream.available() < 1) {
+				if (!hasOutput(inputStream, errorStream)) {
 					try {
 						Thread.sleep(WAIT_FOR_STREAM);
 					} catch (InterruptedException e) {
 						// Nothing to do.
 					}
 				}
+			}
+
+			private boolean hasOutput(final InputStream inputStream, final InputStream errorStream) throws IOException {
+				return inputStream.available() > 0 || errorStream.available() > 0;
 			}
 
 			private void buffer(final InputStream inputStream, AtomicInteger inputBufferSize,
