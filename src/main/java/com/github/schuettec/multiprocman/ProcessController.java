@@ -33,7 +33,7 @@ import com.github.schuettec.multiprocman.themes.console.AnsiColorTextPaneTheme;
 
 public class ProcessController {
 
-	private static final int WAIT_FOR_STREAM = 125;
+	private static final int WAIT_FOR_STREAM = 75;
 
 	private static final int MAX_READ_AMOUNT_SIZE = 512;
 
@@ -152,9 +152,13 @@ public class ProcessController {
 					@Override
 					public void eventCallback() {
 						if (inputBufferSize.get() > 0) {
-							appendInEDT(new String(inputBuffer.toByteArray()));
-							inputBuffer.reset();
-							inputBufferSize.set(0);
+							byte[] byteArray = null;
+							synchronized (inputBuffer) {
+								byteArray = inputBuffer.toByteArray();
+								inputBuffer.reset();
+								inputBufferSize.set(0);
+							}
+							appendInEDT(new String(byteArray));
 						}
 					}
 				}, 250, TimeUnit.MILLISECONDS);
@@ -164,9 +168,13 @@ public class ProcessController {
 					@Override
 					public void eventCallback() {
 						if (errorBufferSize.get() > 0) {
-							appendInEDT(new String(errorBuffer.toByteArray()));
-							errorBuffer.reset();
-							errorBufferSize.set(0);
+							byte[] byteArray = null;
+							synchronized (errorBuffer) {
+								byteArray = errorBuffer.toByteArray();
+								errorBuffer.reset();
+								errorBufferSize.set(0);
+							}
+							appendInEDT(new String(byteArray));
 						}
 					}
 				}, 250, TimeUnit.MILLISECONDS);
@@ -218,8 +226,10 @@ public class ProcessController {
 			    ByteArrayOutputStream inputBuffer, Charset charset) throws IOException {
 				Chunk inputChunk = readNext(charset, inputStream);
 				if (nonNull(inputChunk)) {
-					inputBuffer.write(inputChunk.getData(), 0, inputChunk.getAmount());
-					inputBufferSize.addAndGet(inputChunk.getAmount());
+					synchronized (inputBuffer) {
+						inputBuffer.write(inputChunk.getData(), 0, inputChunk.getAmount());
+						inputBufferSize.addAndGet(inputChunk.getAmount());
+					}
 				}
 			}
 

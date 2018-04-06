@@ -7,11 +7,11 @@ import java.awt.Dimension;
 import java.awt.EventQueue;
 import java.awt.Font;
 import java.awt.event.ActionEvent;
-import java.awt.event.AdjustmentEvent;
-import java.awt.event.AdjustmentListener;
 import java.awt.event.InputEvent;
 import java.awt.event.KeyEvent;
 import java.awt.event.KeyListener;
+import java.awt.event.MouseEvent;
+import java.awt.event.MouseListener;
 import java.awt.event.MouseWheelEvent;
 import java.awt.event.MouseWheelListener;
 
@@ -35,8 +35,7 @@ import com.github.schuettec.multiprocman.AppendListener;
 import com.github.schuettec.multiprocman.Resources;
 import com.github.schuettec.multiprocman.TextView;
 
-public class ScrollableAnsiColorTextPaneContainer extends JScrollPane
-    implements TextView, AdjustmentListener, MouseWheelListener {
+public class ScrollableAnsiColorTextPaneContainer extends JScrollPane implements TextView, MouseWheelListener {
 
 	private static final String CMD_SHOW_SEARCH = "show-search";
 	private static final String CMD_HIDE_SEARCH = "hide-search";
@@ -151,7 +150,6 @@ public class ScrollableAnsiColorTextPaneContainer extends JScrollPane
 		setViewportView(textPane);
 		this.autoScrollToBottomListeners = new EventListenerSupport<>(AutoScrollToBottomListener.class);
 		this.searchFieldListeners = new EventListenerSupport<>(SearchFieldListener.class);
-		getVerticalScrollBar().addAdjustmentListener(this);
 
 		this.pnlSearch = new JPanel();
 
@@ -195,6 +193,30 @@ public class ScrollableAnsiColorTextPaneContainer extends JScrollPane
 		JButton btnClose = new JButton(finishSearchAction);
 		panel.add(btnClose);
 
+		getVerticalScrollBar().addMouseListener(new MouseListener() {
+
+			@Override
+			public void mouseReleased(MouseEvent e) {
+			}
+
+			@Override
+			public void mousePressed(MouseEvent e) {
+				setAutoScrollToBottom(false);
+			}
+
+			@Override
+			public void mouseExited(MouseEvent e) {
+			}
+
+			@Override
+			public void mouseEntered(MouseEvent e) {
+			}
+
+			@Override
+			public void mouseClicked(MouseEvent e) {
+			}
+		});
+
 	}
 
 	@Override
@@ -208,6 +230,8 @@ public class ScrollableAnsiColorTextPaneContainer extends JScrollPane
 
 		getInputMap(WHEN_IN_FOCUSED_WINDOW).put(KeyStroke.getKeyStroke(KeyEvent.VK_ESCAPE, 0), CMD_HIDE_SEARCH);
 		getActionMap().put(CMD_HIDE_SEARCH, finishSearchAction);
+
+		scrollToBottomOnDemand();
 	}
 
 	@Override
@@ -225,10 +249,14 @@ public class ScrollableAnsiColorTextPaneContainer extends JScrollPane
 	@Override
 	public void mouseWheelMoved(MouseWheelEvent e) {
 		Font oldFont = textPane.getFont();
-		if (e.isControlDown() && e.getScrollType() == MouseWheelEvent.WHEEL_UNIT_SCROLL) {
-			int totalScrollAmount = e.getUnitsToScroll();
-			Font deriveFont = oldFont.deriveFont((float) oldFont.getSize() - totalScrollAmount);
-			textPane.setFont(deriveFont);
+		if (e.getScrollType() == MouseWheelEvent.WHEEL_UNIT_SCROLL) {
+			if (e.isControlDown()) {
+				int totalScrollAmount = e.getUnitsToScroll();
+				Font deriveFont = oldFont.deriveFont((float) oldFont.getSize() - totalScrollAmount);
+				textPane.setFont(deriveFont);
+			} else {
+				userScrolled();
+			}
 		}
 	}
 
@@ -287,20 +315,17 @@ public class ScrollableAnsiColorTextPaneContainer extends JScrollPane
 		}
 	}
 
-	@Override
-	public void adjustmentValueChanged(AdjustmentEvent e) {
-		if (!ignoreAdjustment) {
-			JScrollBar scroller = getVerticalScrollBar();
-			if (scroller.isVisible()) {
-				int value = e.getValue();
-				int maxValue = scroller.getMaximum() - scroller.getModel()
-				    .getExtent();
-				isAtBottom = (value == maxValue);
-			} else {
-				isAtBottom = true;
-			}
-			setAutoScrollToBottom(isAtBottom);
+	private void userScrolled() {
+		JScrollBar scroller = getVerticalScrollBar();
+		if (scroller.isVisible()) {
+			int value = scroller.getValue();
+			int maxValue = scroller.getMaximum() - scroller.getModel()
+			    .getExtent();
+			isAtBottom = (value == maxValue);
+		} else {
+			isAtBottom = true;
 		}
+		setAutoScrollToBottom(isAtBottom);
 	}
 
 	@Override
