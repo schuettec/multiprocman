@@ -248,14 +248,10 @@ public class ProcessController {
 				} catch (Exception e) {
 					e.printStackTrace();
 				}
-				int incrementAndGet = count.incrementAndGet();
-				System.out.println(incrementAndGet + " for " + nextLine.getBytes().length + "bytes");
 			}
 		});
 		processObserver.start();
 	}
-
-	public static final AtomicInteger count = new AtomicInteger(0);
 
 	private void updateState(State state) {
 		this.state = state;

@@ -66,7 +66,6 @@ public class LimitedStyledDocument extends DefaultStyledDocument {
 		try {
 			document.remove(start - 1, end - start);
 		} catch (BadLocationException ble) {
-			System.out.println(ble);
 		}
 	}
 
