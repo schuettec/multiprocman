@@ -1,5 +1,9 @@
 package com.github.schuettec.multiprocman;
 
+import static java.lang.Math.min;
+import static java.util.Objects.nonNull;
+
+import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
@@ -12,19 +16,26 @@ import java.util.Map.Entry;
 import java.util.Queue;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import javax.swing.JOptionPane;
 import javax.swing.SwingUtilities;
 
 import org.apache.commons.lang3.event.EventListenerSupport;
 
+import com.github.schuettec.multiprocman.common.EventJoin;
 import com.github.schuettec.multiprocman.console.AnsiColorTextPane;
+import com.github.schuettec.multiprocman.console.LimitedStyledDocument;
 import com.github.schuettec.multiprocman.console.ScrollableAnsiColorTextPaneContainer;
 import com.github.schuettec.multiprocman.consolepreview.ConsolePreview;
 import com.github.schuettec.multiprocman.themes.ThemeUtil;
 import com.github.schuettec.multiprocman.themes.console.AnsiColorTextPaneTheme;
 
 public class ProcessController {
+
+	private static final int WAIT_FOR_STREAM = 75;
+
+	private static final int MAX_READ_AMOUNT_SIZE = 512;
 
 	private static Queue<ProcessController> controllers = new ConcurrentLinkedQueue<>();
 
@@ -61,7 +72,8 @@ public class ProcessController {
 
 	public ProcessController(ProcessDescriptor processDescriptor) {
 		this.processDescriptor = processDescriptor;
-		this.textPane = new AnsiColorTextPane();
+
+		this.textPane = new AnsiColorTextPane(new LimitedStyledDocument(processDescriptor.getMaxLineNumbers()));
 		ThemeUtil.theme(textPane, AnsiColorTextPaneTheme.class);
 		this.consoleScroller = new ScrollableAnsiColorTextPaneContainer(textPane);
 		this.consolePreview = new ConsolePreview(this);
@@ -123,49 +135,119 @@ public class ProcessController {
 
 			@Override
 			public void run() {
-				if (process.isAlive()) {
-					updateState(State.RUNNING);
-					controllers.add(ProcessController.this);
+				updateState(State.RUNNING);
+				controllers.add(ProcessController.this);
 
-					// Read outputs
-					final InputStream inputStream = process.getInputStream();
-					final InputStream errorStream = process.getErrorStream();
+				// Read outputs
+				final InputStream inputStream = process.getInputStream();
+				final InputStream errorStream = process.getErrorStream();
 
-					Charset charset = processDescriptor.getCharset();
-					try {
-						do {
-							readNext(charset, inputStream);
-							readNext(charset, errorStream);
-						} while (process.isAlive());
-					} catch (Exception e) {
-						updateState(State.ABANDONED);
-					}
-					try {
-						int exitValue = process.waitFor();
-						if (exitValue == 0) {
-							updateState(State.STOPPED_OK);
-						} else {
-							updateState(State.STOPPED_ALERT);
+				ByteArrayOutputStream inputBuffer = new ByteArrayOutputStream();
+				AtomicInteger inputBufferSize = new AtomicInteger(0);
+				ByteArrayOutputStream errorBuffer = new ByteArrayOutputStream();
+				AtomicInteger errorBufferSize = new AtomicInteger(0);
+
+				EventJoin inputJoin = new EventJoin(new EventJoin.Callback() {
+
+					@Override
+					public void eventCallback() {
+						if (inputBufferSize.get() > 0) {
+							byte[] byteArray = null;
+							synchronized (inputBuffer) {
+								byteArray = inputBuffer.toByteArray();
+								inputBuffer.reset();
+								inputBufferSize.set(0);
+							}
+							appendInEDT(new String(byteArray));
 						}
-						controllers.remove(ProcessController.this);
+					}
+				}, 250, TimeUnit.MILLISECONDS);
+
+				EventJoin errorJoin = new EventJoin(new EventJoin.Callback() {
+
+					@Override
+					public void eventCallback() {
+						if (errorBufferSize.get() > 0) {
+							byte[] byteArray = null;
+							synchronized (errorBuffer) {
+								byteArray = errorBuffer.toByteArray();
+								errorBuffer.reset();
+								errorBufferSize.set(0);
+							}
+							appendInEDT(new String(byteArray));
+						}
+					}
+				}, 250, TimeUnit.MILLISECONDS);
+
+				Charset charset = processDescriptor.getCharset();
+				try {
+					do {
+
+						waitForStreams(inputStream, errorStream);
+
+						buffer(inputStream, inputBufferSize, inputBuffer, charset);
+						inputJoin.noticeEvent();
+
+						buffer(errorStream, errorBufferSize, errorBuffer, charset);
+						errorJoin.noticeEvent();
+
+					} while (hasOutput(inputStream, errorStream) || process.isAlive());
+
+				} catch (Exception e) {
+					updateState(State.ABANDONED);
+				}
+				try {
+					int exitValue = process.waitFor();
+					if (exitValue == 0) {
+						updateState(State.STOPPED_OK);
+					} else {
+						updateState(State.STOPPED_ALERT);
+					}
+					controllers.remove(ProcessController.this);
+				} catch (InterruptedException e) {
+				}
+			}
+
+			private void waitForStreams(final InputStream inputStream, final InputStream errorStream) throws IOException {
+				if (!hasOutput(inputStream, errorStream)) {
+					try {
+						Thread.sleep(WAIT_FOR_STREAM);
 					} catch (InterruptedException e) {
+						// Nothing to do.
 					}
 				}
 			}
 
-			private void readNext(Charset charset, InputStream stream) throws IOException {
+			private boolean hasOutput(final InputStream inputStream, final InputStream errorStream) throws IOException {
+				return inputStream.available() > 0 || errorStream.available() > 0;
+			}
+
+			private void buffer(final InputStream inputStream, AtomicInteger inputBufferSize,
+			    ByteArrayOutputStream inputBuffer, Charset charset) throws IOException {
+				Chunk inputChunk = readNext(charset, inputStream);
+				if (nonNull(inputChunk)) {
+					synchronized (inputBuffer) {
+						inputBuffer.write(inputChunk.getData(), 0, inputChunk.getAmount());
+						inputBufferSize.addAndGet(inputChunk.getAmount());
+					}
+				}
+			}
+
+			private Chunk readNext(Charset charset, InputStream stream) throws IOException {
 				int available = 0;
 				if ((available = stream.available()) > 0) {
+					available = min(MAX_READ_AMOUNT_SIZE, available);
 					byte[] data = new byte[available];
 					int amount = stream.read(data);
-					appendInEDT(new String(data, 0, amount, charset));
+					Chunk chunk = new Chunk(data, amount);
+					return chunk;
 				}
+				return null;
 			}
 
 			private void appendInEDT(String nextLine) {
 				try {
-					SwingUtilities.invokeAndWait(new Runnable() {
-
+					SwingUtilities.invokeLater(new Runnable() {
 						@Override
 						public void run() {
 							consoleScroller.appendANSI(nextLine, processDescriptor.isSupportAsciiCodes());
@@ -194,11 +276,11 @@ public class ProcessController {
 	}
 
 	private void _stopProcess(boolean force) {
-		if (force) {
-			this.process.destroyForcibly();
+		if (processDescriptor.isUseTerminationCommand()) {
+			executeTermination();
 		} else {
-			if (processDescriptor.isUseTerminationCommand()) {
-				executeTermination();
+			if (force) {
+				this.process.destroyForcibly();
 			} else {
 				this.process.destroy();
 			}
@@ -270,7 +352,7 @@ public class ProcessController {
 		if (!controllers.isEmpty()) {
 			List<ProcessController> toShutdown = new LinkedList<>(controllers);
 			for (ProcessController controller : toShutdown) {
-				controller.stopForce(true);
+				controller.stop(true);
 			}
 		}
 	}

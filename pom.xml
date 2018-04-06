@@ -1,9 +1,10 @@
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
 	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
 	<modelVersion>4.0.0</modelVersion>
 	<groupId>com.github.schuettec.multiprocman</groupId>
 	<artifactId>multiprocman</artifactId>
-	<version>1.0.8</version>
+	<version>1.0.10</version>
 
 	<scm>
 		<connection>scm:git:https://github.com/schuettec/multiprocman.git</connection>
@@ -197,7 +198,7 @@
 								<requireReleaseDeps>
 									<failWhenParentIsSnapshot>false</failWhenParentIsSnapshot>
 									<message>No Snapshots Allowed!</message>
-									<excludes> 										<!-- We want to exclude child module dependencies from this check, as we're 
+									<excludes> 										<!-- We want to exclude child module dependencies from this check, as we're
 											always using SNAPSHOT versions (except when performing a release) -->
 										<exclude>${project.groupId}:*</exclude>
 									</excludes>
@@ -347,5 +348,20 @@
 			<systemPath>${java.home}/lib/ext/jfxrt.jar</systemPath>
 			<scope>system</scope>
 		</dependency>
+
+
+		<dependency>
+			<groupId>junit</groupId>
+			<artifactId>junit</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>org.powermock</groupId>
+			<artifactId>powermock-module-junit4</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>org.powermock</groupId>
+			<artifactId>powermock-api-mockito</artifactId>
+		</dependency>
+
 	</dependencies>
 </project>
