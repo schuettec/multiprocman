@@ -346,7 +346,7 @@ public class ProcessController {
 		if (!controllers.isEmpty()) {
 			List<ProcessController> toShutdown = new LinkedList<>(controllers);
 			for (ProcessController controller : toShutdown) {
-				controller.stopForce(true);
+				controller.stop(true);
 			}
 		}
 	}
