@@ -270,11 +270,11 @@ public class ProcessController {
 	}
 
 	private void _stopProcess(boolean force) {
-		if (force) {
-			this.process.destroyForcibly();
+		if (processDescriptor.isUseTerminationCommand()) {
+			executeTermination();
 		} else {
-			if (processDescriptor.isUseTerminationCommand()) {
-				executeTermination();
+			if (force) {
+				this.process.destroyForcibly();
 			} else {
 				this.process.destroy();
 			}
