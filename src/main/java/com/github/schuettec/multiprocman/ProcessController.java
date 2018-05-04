@@ -151,14 +151,14 @@ public class ProcessController {
 
 					@Override
 					public void eventCallback() {
-						if (inputBufferSize.get() > 0) {
-							byte[] byteArray = null;
-							synchronized (inputBuffer) {
+						synchronized (inputBuffer) {
+							if (inputBufferSize.get() > 0) {
+								byte[] byteArray = null;
 								byteArray = inputBuffer.toByteArray();
 								inputBuffer.reset();
 								inputBufferSize.set(0);
+								appendInEDT(new String(byteArray));
 							}
-							appendInEDT(new String(byteArray));
 						}
 					}
 				}, 250, TimeUnit.MILLISECONDS);
@@ -167,14 +167,14 @@ public class ProcessController {
 
 					@Override
 					public void eventCallback() {
-						if (errorBufferSize.get() > 0) {
-							byte[] byteArray = null;
-							synchronized (errorBuffer) {
+						synchronized (errorBuffer) {
+							if (errorBufferSize.get() > 0) {
+								byte[] byteArray = null;
 								byteArray = errorBuffer.toByteArray();
 								errorBuffer.reset();
 								errorBufferSize.set(0);
+								appendInEDT(new String(byteArray));
 							}
-							appendInEDT(new String(byteArray));
 						}
 					}
 				}, 250, TimeUnit.MILLISECONDS);
