@@ -665,6 +665,7 @@ public class MainFrame extends JFrame implements WindowListener, ProcessListener
 					btnRestart.setEnabled(false);
 					break;
 				case ABANDONED:
+					btnClose.setEnabled(true);
 					break;
 			}
 		}
