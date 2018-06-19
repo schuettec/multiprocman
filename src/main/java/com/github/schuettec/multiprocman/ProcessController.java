@@ -297,15 +297,15 @@ public class ProcessController {
 					boolean terminated = process.waitFor(8000, TimeUnit.MILLISECONDS);
 					if (!terminated) {
 						stopForce(false);
-						JOptionPane.showMessageDialog(textPane,
+						JOptionPane.showMessageDialog(textPane, String.format(
 						    "The application %s was stopped with the termination command but the command did not respond. The applicationwas killed to force termination.",
-						    "Termination command", JOptionPane.ERROR_MESSAGE);
+						    processDescriptor.getTitle()), "Termination command", JOptionPane.ERROR_MESSAGE);
 					}
 				} catch (Exception e) {
 					stopForce(false);
-					JOptionPane.showMessageDialog(textPane,
+					JOptionPane.showMessageDialog(textPane, String.format(
 					    "The application %s was stopped with the termination command but the command threw an error. A kill signal is used to force termination.",
-					    "Termination command", JOptionPane.ERROR_MESSAGE);
+					    processDescriptor.getTitle()), "Termination command", JOptionPane.ERROR_MESSAGE);
 				}
 			}
 		});

@@ -14,6 +14,8 @@ import javax.swing.text.JTextComponent;
 
 public class WordSearch {
 
+	private static final int DEFAULT_MIN_SEARCH_LENGTH = 2;
+
 	protected JTextComponent comp;
 
 	protected IndexAwareHighlighter painter;
@@ -76,53 +78,57 @@ public class WordSearch {
 	 * @return Returns the index of the last occurrence.
 	 */
 	public int search(String word) {
-		int firstOffset = -1;
-		Highlighter highlighter = comp.getHighlighter();
+		if (word.length() > DEFAULT_MIN_SEARCH_LENGTH) {
+			int firstOffset = -1;
+			Highlighter highlighter = comp.getHighlighter();
 
-		// Remove any existing highlights for last word
-		removeAll(comp);
+			// Remove any existing highlights for last word
+			removeAll(comp);
 
-		if (word == null || word.equals("")) {
-			return -1;
-		}
+			if (word == null || word.equals("")) {
+				return -1;
+			}
 
-		// Look for the word we are given - insensitive search
-		String content = null;
-		try {
-			Document d = comp.getDocument();
-			content = d.getText(0, d.getLength())
-			    .toLowerCase();
-		} catch (BadLocationException e) {
-			// Cannot happen
-			return -1;
-		}
-
-		word = word.toLowerCase();
-		int lastIndex = 0;
-		int wordSize = word.length();
-
-		while ((lastIndex = content.indexOf(word, lastIndex)) != -1) {
-			int endIndex = lastIndex + wordSize;
+			// Look for the word we are given - insensitive search
+			String content = null;
 			try {
-				this.lastWord = word;
-				occurences.add(lastIndex);
-				highlighter.addHighlight(lastIndex, endIndex, painter);
+				Document d = comp.getDocument();
+				content = d.getText(0, d.getLength())
+				    .toLowerCase();
 			} catch (BadLocationException e) {
-				// Nothing to do
+				// Cannot happen
+				return -1;
 			}
-			if (firstOffset == -1) {
-				firstOffset = lastIndex;
-			}
-			lastIndex = endIndex;
-		}
-		if (!occurences.isEmpty()) {
-			if (isNull(lastOccurence) || lastOccurence >= occurences.size()) {
-				this.lastOccurence = occurences.size() - 1;
-			}
-			scrollToOccurrence();
-		}
 
-		return lastIndex;
+			word = word.toLowerCase();
+			int lastIndex = 0;
+			int wordSize = word.length();
+
+			while ((lastIndex = content.indexOf(word, lastIndex)) != -1) {
+				int endIndex = lastIndex + wordSize;
+				try {
+					this.lastWord = word;
+					occurences.add(lastIndex);
+					highlighter.addHighlight(lastIndex, endIndex, painter);
+				} catch (BadLocationException e) {
+					// Nothing to do
+				}
+				if (firstOffset == -1) {
+					firstOffset = lastIndex;
+				}
+				lastIndex = endIndex;
+			}
+			if (!occurences.isEmpty()) {
+				if (isNull(lastOccurence) || lastOccurence >= occurences.size()) {
+					this.lastOccurence = occurences.size() - 1;
+				}
+				scrollToOccurrence();
+			}
+
+			return lastIndex;
+		} else {
+			return -1;
+		}
 	}
 
 	private void removeAll(JTextComponent component) {

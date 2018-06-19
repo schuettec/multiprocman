@@ -1,5 +1,7 @@
 package com.github.schuettec.multiprocman.consolepreview;
 
+import static java.lang.Character.isWhitespace;
+
 import java.awt.AlphaComposite;
 import java.awt.BasicStroke;
 import java.awt.Color;
@@ -11,7 +13,6 @@ import java.awt.Insets;
 import java.awt.geom.AffineTransform;
 import java.awt.geom.Rectangle2D;
 import java.awt.image.BufferedImage;
-import java.util.Iterator;
 import java.util.List;
 
 import javax.swing.JPanel;
@@ -25,7 +26,6 @@ import com.github.schuettec.multiprocman.ProcessController.State;
 import com.github.schuettec.multiprocman.ProcessDescriptor;
 import com.github.schuettec.multiprocman.ProcessListener;
 import com.github.schuettec.multiprocman.Resources;
-import com.github.schuettec.multiprocman.TextUtil;
 
 public class ConsolePreview extends JPanel implements AppendListener, ProcessListener {
 
@@ -183,23 +183,23 @@ public class ConsolePreview extends JPanel implements AppendListener, ProcessLis
 	}
 
 	@Override
-	public void append(Color c, String s) {
-		List<String> lines = TextUtil.getLinesFromString(s);
-		Iterator<String> it = lines.iterator();
-		while (it.hasNext()) {
+	public void append(Color color, String s) {
+		for (int i = 0; i < s.length(); i++) {
 			int localCurY = HEIGHT - Y_INC;
-			String line = it.next();
-			if (line.isEmpty()) {
+			char c = s.charAt(i);
+			if (c == '\n') {
+				// Trigger line break
 				bufferedImage = cropImage(bufferedImage);
 				curX = INITIAL_X;
+			} else if (isWhitespace(c)) {
+				// Do nothing
 			} else {
-				int length = line.length();
-				int endX = length * X_INC;
+				// Paint charatcer
 				Graphics2D g = (Graphics2D) bufferedImage.getGraphics();
-				g.setColor(c);
+				g.setColor(color);
 				g.setStroke(new BasicStroke(Y_INC - 1));
-				g.drawLine(curX, localCurY, curX + endX, localCurY);
-				curX += endX;
+				g.drawLine(curX, localCurY, curX + X_INC, localCurY);
+				curX += X_INC;
 			}
 		}
 

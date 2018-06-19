@@ -516,7 +516,7 @@ public class ApplicationEditor extends JDialog {
 		});
 
 		this.chckbxEnablesExperimentalAscii = new JCheckBox(
-		    "<html>Enables experimental ASCII code support for formatted application output.</html>");
+		    "<html>Enables support for backspace ASCII code (used in formatted console outputs).</html>");
 		chckbxEnablesExperimentalAscii.setVerticalAlignment(SwingConstants.TOP);
 
 		txtCommand = new JTextArea();

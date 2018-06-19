@@ -50,7 +50,7 @@ public class ScrollableAnsiColorTextPaneContainer extends JScrollPane implements
 
 	private AnsiColorTextPane textPane;
 
-	private boolean autoScrollToBottom = true;
+	private boolean autoScrollToBottom;
 
 	private boolean isAtBottom;
 
@@ -216,7 +216,7 @@ public class ScrollableAnsiColorTextPaneContainer extends JScrollPane implements
 			public void mouseClicked(MouseEvent e) {
 			}
 		});
-
+		setAutoScrollToBottom(true);
 	}
 
 	@Override

@@ -22,4 +22,8 @@ public class TextUtil {
 		return lines;
 	}
 
+	public static void main(String[] args) {
+		System.out.println(getLinesFromString("Hallo\n\nWort\n"));
+	}
+
 }
