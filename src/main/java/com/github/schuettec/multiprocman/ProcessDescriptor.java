@@ -7,6 +7,7 @@ import java.awt.Color;
 import java.awt.image.BufferedImage;
 import java.io.Serializable;
 import java.nio.charset.Charset;
+import java.util.Arrays;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
@@ -48,6 +49,7 @@ public class ProcessDescriptor implements Serializable {
 	private boolean enableGitSupport;
 	private GitStrategy gitStrategy;
 	private String preferredBranchName;
+	private boolean pullBeforeCheckout;
 
 	public ProcessDescriptor() {
 		super();
@@ -57,6 +59,23 @@ public class ProcessDescriptor implements Serializable {
 		setMaxLineNumbers(MAX_LINES_DEFAULT);
 		setEnableGitSupport(false);
 		setGitStrategy(GitStrategy.SHOW_SELECTION);
+		setPullBeforeCheckout(true);
+	}
+
+	public String getCurrentBranch() {
+		return "B";
+	}
+
+	public List<String> getAllBranches() {
+		return Arrays.asList("A", "B", "C", "D");
+	}
+
+	public boolean isPullBeforeCheckout() {
+		return pullBeforeCheckout;
+	}
+
+	public void setPullBeforeCheckout(boolean pullBeforeCheckout) {
+		this.pullBeforeCheckout = pullBeforeCheckout;
 	}
 
 	public static String substituteCommand(String command) {
