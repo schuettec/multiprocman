@@ -17,6 +17,8 @@ import java.util.regex.Pattern;
 
 import javax.swing.ImageIcon;
 
+import com.github.schuettec.multiprocman.git.GitStrategy;
+
 public class ProcessDescriptor implements Serializable {
 
 	private static final int MAX_LINES_DEFAULT = 200;
@@ -43,12 +45,18 @@ public class ProcessDescriptor implements Serializable {
 
 	private List<Counter> counters;
 
+	private boolean enableGitSupport;
+	private GitStrategy gitStrategy;
+	private String preferredBranchName;
+
 	public ProcessDescriptor() {
 		super();
 		setCharset(Charset.defaultCharset());
 		setIcon(Resources.getTerminal());
 		setColor(Color.GREEN);
 		setMaxLineNumbers(MAX_LINES_DEFAULT);
+		setEnableGitSupport(false);
+		setGitStrategy(GitStrategy.SHOW_SELECTION);
 	}
 
 	public static String substituteCommand(String command) {
@@ -63,6 +71,30 @@ public class ProcessDescriptor implements Serializable {
 			    Matcher.quoteReplacement(entry.getValue()));
 		}
 		return substitute;
+	}
+
+	public String getPreferredBranchName() {
+		return preferredBranchName;
+	}
+
+	public void setPreferredBranchName(String preferredBranchName) {
+		this.preferredBranchName = preferredBranchName;
+	}
+
+	public GitStrategy getGitStrategy() {
+		return gitStrategy;
+	}
+
+	public void setGitStrategy(GitStrategy gitStrategy) {
+		this.gitStrategy = gitStrategy;
+	}
+
+	public boolean isEnableGitSupport() {
+		return enableGitSupport;
+	}
+
+	public void setEnableGitSupport(boolean enableGitSupport) {
+		this.enableGitSupport = enableGitSupport;
 	}
 
 	public int getMaxLineNumbers() {

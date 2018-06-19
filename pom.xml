@@ -22,14 +22,8 @@
 
 	<repositories>
 		<repository>
-			<id>oxbow-repository</id>
-			<url>https://github.com/eugener/oxbow/raw/master/maven/repository</url>
-			<releases>
-				<enabled>true</enabled>
-			</releases>
-			<snapshots>
-				<enabled>true</enabled>
-			</snapshots>
+			<id>jgit-repository</id>
+			<url>https://repo.eclipse.org/content/groups/releases/</url>
 		</repository>
 	</repositories>
 
@@ -363,5 +357,11 @@
 			<artifactId>powermock-api-mockito</artifactId>
 		</dependency>
 
+		<!-- Core Library -->
+		<dependency>
+			<groupId>org.eclipse.jgit</groupId>
+			<artifactId>org.eclipse.jgit</artifactId>
+			<version>4.11.0.201803080745-r</version>
+		</dependency>
 	</dependencies>
 </project>

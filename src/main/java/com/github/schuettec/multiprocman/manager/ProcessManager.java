@@ -16,6 +16,7 @@ import java.awt.event.WindowEvent;
 import java.awt.event.WindowListener;
 import java.io.File;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.Iterator;
 import java.util.List;
 
@@ -546,8 +547,7 @@ public class ProcessManager extends JFrame {
 									DefaultListModel<ProcessDescriptor> processTemplates = selected.getProcessTemplates();
 									ProcessDescriptor[] array = new ProcessDescriptor[processTemplates.size()];
 									processTemplates.copyInto(array);
-									startAll(mainFrame, Arrays.asList(array)
-									    .iterator());
+									startAll(mainFrame, Arrays.asList(array));
 									setVisible(false);
 								}
 							}
@@ -680,13 +680,17 @@ public class ProcessManager extends JFrame {
 			MainFrame mainFrame = MainFrame.getInstance();
 			mainFrame.setVisible(true);
 			List<ProcessDescriptor> selected = lstProcesses.getSelectedValuesList();
-			Iterator<ProcessDescriptor> iterator = selected.iterator();
-			startAll(mainFrame, iterator);
+			startAll(mainFrame, selected);
 			setVisible(false);
 		}
 	}
 
-	private void startAll(MainFrame mainFrame, Iterator<ProcessDescriptor> iterator) {
+	private void startAll(MainFrame mainFrame, Collection<ProcessDescriptor> descriptors) {
+		_startAll(mainFrame, descriptors);
+	}
+
+	private void _startAll(MainFrame mainFrame, Collection<ProcessDescriptor> descriptors) {
+		Iterator<ProcessDescriptor> iterator = descriptors.iterator();
 		while (iterator.hasNext()) {
 			ProcessDescriptor descriptor = iterator.next();
 			ProcessController c = new ProcessController(descriptor);
