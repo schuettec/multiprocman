@@ -134,7 +134,7 @@ public class ProcessManager extends JFrame {
 		@Override
 		public void actionPerformed(ActionEvent e) {
 			FileUtil.showFileChooser(FileUtil.Type.OPEN, extensions -> {
-				extensions.add(new ExtensionFilter("Categories", Arrays.asList(".categories")));
+				extensions.add(new ExtensionFilter("Categories", Arrays.asList("*.categories")));
 			}, new FileChooserCallback() {
 				@Override
 				public void fileSelected(File file, ExtensionFilter selectedFilter) {
@@ -168,7 +168,7 @@ public class ProcessManager extends JFrame {
 				    "No selection", JOptionPane.WARNING_MESSAGE);
 			} else {
 				FileUtil.showFileChooser(FileUtil.Type.SAVE, extensions -> {
-					extensions.add(new ExtensionFilter("Categories", Arrays.asList(".categories")));
+					extensions.add(new ExtensionFilter("Categories", Arrays.asList("*.categories")));
 				}, new FileChooserCallback() {
 					@Override
 					public void fileSelected(File file, ExtensionFilter selectedFilter) {
@@ -296,7 +296,7 @@ public class ProcessManager extends JFrame {
 				    "No selection", JOptionPane.WARNING_MESSAGE);
 			} else {
 				FileUtil.showFileChooser(FileUtil.Type.OPEN, extensions -> {
-					extensions.add(new ExtensionFilter("Launch configurations", Arrays.asList(".launch")));
+					extensions.add(new ExtensionFilter("Launch configurations", Arrays.asList("*.launch")));
 				}, new FileChooserCallback() {
 					@Override
 					public void fileSelected(File file, ExtensionFilter selectedFilter) {
@@ -333,7 +333,7 @@ public class ProcessManager extends JFrame {
 				    "No selection", JOptionPane.WARNING_MESSAGE);
 			} else {
 				FileUtil.showFileChooser(FileUtil.Type.SAVE, extensions -> {
-					extensions.add(new ExtensionFilter("Launch configurations", Arrays.asList(".launch")));
+					extensions.add(new ExtensionFilter("Launch configurations", Arrays.asList("*.launch")));
 				}, new FileChooserCallback() {
 					@Override
 					public void fileSelected(File file, ExtensionFilter selectedFilter) {
