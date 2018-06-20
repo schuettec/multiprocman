@@ -136,6 +136,7 @@ public class ProgressView extends JDialog {
 					ExceptionDialog.showException(ProgressView.this, e,
 					    "Error while checking out branch %s for launcher %s. Aborting the launch operation.",
 					    b.getSelectedBranch(), b.getTitle());
+					worker.cancel(false);
 					break;
 				}
 			}
