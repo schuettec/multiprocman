@@ -3,7 +3,6 @@ package com.github.schuettec.multiprocman.git;
 import java.awt.BorderLayout;
 import java.awt.Component;
 import java.awt.Dimension;
-import java.awt.FlowLayout;
 import java.awt.Font;
 import java.util.LinkedList;
 import java.util.List;
@@ -21,11 +20,13 @@ import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JTable;
+import javax.swing.LayoutStyle.ComponentPlacement;
 import javax.swing.border.EmptyBorder;
 import javax.swing.table.AbstractTableModel;
 import javax.swing.table.DefaultTableCellRenderer;
 import javax.swing.table.TableColumnModel;
 
+import com.github.schuettec.multiprocman.ExceptionDialog;
 import com.github.schuettec.multiprocman.ProcessDescriptor;
 import com.github.schuettec.multiprocman.Resources;
 import com.github.schuettec.multiprocman.themes.ThemeUtil;
@@ -47,6 +48,8 @@ public class GitBranchSelection extends JDialog {
 	private JTable table;
 
 	private List<BranchSelectionResult> descriptors;
+	private JButton okButton;
+	private JButton cancelButton;
 
 	/**
 	 * Launch the application.
@@ -88,7 +91,7 @@ public class GitBranchSelection extends JDialog {
 
 		setModal(true);
 		setTitle("Git branch selection");
-		setBounds(100, 100, 452, 475);
+		setBounds(100, 100, 452, 440);
 		getContentPane().setLayout(new BorderLayout());
 		contentPanel.setBorder(new EmptyBorder(5, 5, 5, 5));
 		getContentPane().add(contentPanel, BorderLayout.CENTER);
@@ -97,42 +100,55 @@ public class GitBranchSelection extends JDialog {
 		    "<html>Some selected launch configurations have enable Git support. Please choose the Git branch to work with and confirm the launch operation.</html>");
 
 		scrollPane = new JScrollPane();
+		{
+			okButton = new JButton("OK");
+			okButton.setPreferredSize(new Dimension(91, 23));
+			okButton.setActionCommand("OK");
+			getRootPane().setDefaultButton(okButton);
+		}
+		{
+			cancelButton = new JButton("Cancel");
+			cancelButton.setPreferredSize(new Dimension(91, 23));
+			cancelButton.setActionCommand("Cancel");
+		}
+
+		JButton btnRefresh = new JButton("Refresh");
+		btnRefresh.setPreferredSize(new Dimension(91, 23));
 		GroupLayout gl_contentPanel = new GroupLayout(contentPanel);
 		gl_contentPanel.setHorizontalGroup(gl_contentPanel.createParallelGroup(Alignment.TRAILING)
-		    .addGroup(gl_contentPanel.createSequentialGroup()
+		    .addGroup(Alignment.LEADING, gl_contentPanel.createSequentialGroup()
 		        .addContainerGap()
-		        .addGroup(gl_contentPanel.createParallelGroup(Alignment.TRAILING)
-		            .addComponent(scrollPane, Alignment.LEADING, GroupLayout.DEFAULT_SIZE, 406, Short.MAX_VALUE)
-		            .addComponent(lblSomeSelectedLaunch, Alignment.LEADING, GroupLayout.DEFAULT_SIZE, 406, Short.MAX_VALUE))
+		        .addGroup(gl_contentPanel.createParallelGroup(Alignment.LEADING)
+		            .addGroup(Alignment.TRAILING, gl_contentPanel.createSequentialGroup()
+		                .addComponent(btnRefresh, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE,
+		                    GroupLayout.PREFERRED_SIZE)
+		                .addPreferredGap(ComponentPlacement.RELATED, 127, Short.MAX_VALUE)
+		                .addComponent(okButton, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE,
+		                    GroupLayout.PREFERRED_SIZE)
+		                .addPreferredGap(ComponentPlacement.RELATED)
+		                .addComponent(cancelButton, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE,
+		                    GroupLayout.PREFERRED_SIZE))
+		            .addComponent(lblSomeSelectedLaunch, GroupLayout.DEFAULT_SIZE, 406, Short.MAX_VALUE)
+		            .addComponent(scrollPane, Alignment.TRAILING, GroupLayout.DEFAULT_SIZE, 406, Short.MAX_VALUE))
 		        .addContainerGap()));
 		gl_contentPanel.setVerticalGroup(gl_contentPanel.createParallelGroup(Alignment.LEADING)
 		    .addGroup(gl_contentPanel.createSequentialGroup()
 		        .addComponent(lblSomeSelectedLaunch)
 		        .addGap(8)
-		        .addComponent(scrollPane, GroupLayout.DEFAULT_SIZE, 346, Short.MAX_VALUE)
-		        .addContainerGap()));
+		        .addComponent(scrollPane, GroupLayout.DEFAULT_SIZE, 323, Short.MAX_VALUE)
+		        .addPreferredGap(ComponentPlacement.RELATED)
+		        .addGroup(gl_contentPanel.createParallelGroup(Alignment.BASELINE)
+		            .addComponent(cancelButton, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE,
+		                GroupLayout.PREFERRED_SIZE)
+		            .addComponent(okButton, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE,
+		                GroupLayout.PREFERRED_SIZE)
+		            .addComponent(btnRefresh, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE,
+		                GroupLayout.PREFERRED_SIZE))
+		        .addGap(3)));
 
 		table = new JTable(new ComboBoxTableModel());
 		scrollPane.setViewportView(table);
 		contentPanel.setLayout(gl_contentPanel);
-		{
-			JPanel buttonPane = new JPanel();
-			buttonPane.setLayout(new FlowLayout(FlowLayout.RIGHT));
-			getContentPane().add(buttonPane, BorderLayout.SOUTH);
-			{
-				JButton okButton = new JButton("OK");
-				okButton.setPreferredSize(new Dimension(91, 23));
-				okButton.setActionCommand("OK");
-				buttonPane.add(okButton);
-				getRootPane().setDefaultButton(okButton);
-			}
-			{
-				JButton cancelButton = new JButton("Cancel");
-				cancelButton.setPreferredSize(new Dimension(91, 23));
-				cancelButton.setActionCommand("Cancel");
-				buttonPane.add(cancelButton);
-			}
-		}
 
 		// Create the combo box editor
 		JComboBox comboBox = new JComboBox();
@@ -156,12 +172,23 @@ public class GitBranchSelection extends JDialog {
 		table.setPreferredScrollableViewportSize(table.getPreferredSize());
 	}
 
+	public void showBranchSelection(Component parent) {
+		this.setLocationRelativeTo(parent);
+		this.setVisible(true);
+	}
+
 	public boolean isEmpty() {
 		return descriptors.isEmpty();
 	}
 
-	public boolean addProcessDescriptor(ProcessDescriptor pd) {
-		return descriptors.add(new BranchSelectionResult(pd));
+	public void addProcessDescriptor(ProcessDescriptor pd) {
+		try {
+			BranchSelectionResult selection = new BranchSelectionResult(pd);
+			selection.setSelectedBranch(pd.getCurrentBranch());
+			descriptors.add(selection);
+		} catch (GitException e) {
+			ExceptionDialog.showException(this, e, e.getMessage());
+		}
 	}
 
 	public void clear() {
@@ -190,12 +217,18 @@ public class GitBranchSelection extends JDialog {
 		@Override
 		public Component getTableCellEditorComponent(JTable table, Object value, boolean isSelected, int row, int column) {
 			BranchSelectionResult selection = descriptors.get(row);
-			List<String> obtainedList = selection.getAllBranches();
-			model.removeAllElements();
-			for (int i = 0; i < obtainedList.size(); i++) {
-				model.addElement(obtainedList.get(i));
+			List<String> obtainedList;
+			try {
+				obtainedList = selection.getAllBranches();
+				model.removeAllElements();
+				for (int i = 0; i < obtainedList.size(); i++) {
+					model.addElement(obtainedList.get(i));
+				}
+				model.setSelectedItem(selection.getCurrentBranch());
+			} catch (GitException e) {
+				ExceptionDialog.showException(GitBranchSelection.this, e, e.getMessage());
 			}
-			model.setSelectedItem(selection.getCurrentBranch());
+
 			Component toReturn = super.getTableCellEditorComponent(table, value, isSelected, row, column);
 			toReturn.setFont(MONOSPACED);
 			return toReturn;
@@ -264,5 +297,4 @@ public class GitBranchSelection extends JDialog {
 			}
 		}
 	}
-
 }

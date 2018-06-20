@@ -20,7 +20,6 @@ public class BranchSelectionResult {
 	public BranchSelectionResult(ProcessDescriptor processDescriptor) {
 		super();
 		this.processDescriptor = processDescriptor;
-		this.selectedBranch = processDescriptor.getCurrentBranch();
 	}
 
 	public String getSelectedBranch() {
@@ -48,11 +47,11 @@ public class BranchSelectionResult {
 		return processDescriptor.hashCode();
 	}
 
-	public String getCurrentBranch() {
+	public String getCurrentBranch() throws GitException {
 		return processDescriptor.getCurrentBranch();
 	}
 
-	public List<String> getAllBranches() {
+	public List<String> getAllBranches() throws GitException {
 		return processDescriptor.getAllBranches();
 	}
 

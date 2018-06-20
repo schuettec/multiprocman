@@ -51,6 +51,7 @@ import com.github.schuettec.multiprocman.MainFrame;
 import com.github.schuettec.multiprocman.ProcessController;
 import com.github.schuettec.multiprocman.ProcessDescriptor;
 import com.github.schuettec.multiprocman.Resources;
+import com.github.schuettec.multiprocman.git.GitBranchSelection;
 import com.github.schuettec.multiprocman.themes.ThemeUtil;
 
 import javafx.stage.FileChooser.ExtensionFilter;
@@ -541,13 +542,11 @@ public class ProcessManager extends JFrame {
 									JOptionPane.showMessageDialog(ProcessManager.this, "Please select the category to start first.",
 									    "No selection", JOptionPane.WARNING_MESSAGE);
 								} else {
-									MainFrame mainFrame = MainFrame.getInstance();
-									mainFrame.setVisible(true);
 									Category selected = lstCategories.getSelectedValue();
 									DefaultListModel<ProcessDescriptor> processTemplates = selected.getProcessTemplates();
 									ProcessDescriptor[] array = new ProcessDescriptor[processTemplates.size()];
 									processTemplates.copyInto(array);
-									startAll(mainFrame, Arrays.asList(array));
+									startAll(Arrays.asList(array));
 									setVisible(false);
 								}
 							}
@@ -677,15 +676,24 @@ public class ProcessManager extends JFrame {
 			JOptionPane.showMessageDialog(ProcessManager.this, "Please select the application to start first.",
 			    "No selection", JOptionPane.WARNING_MESSAGE);
 		} else {
-			MainFrame mainFrame = MainFrame.getInstance();
-			mainFrame.setVisible(true);
 			List<ProcessDescriptor> selected = lstProcesses.getSelectedValuesList();
-			startAll(mainFrame, selected);
+			startAll(selected);
 			setVisible(false);
 		}
 	}
 
-	private void startAll(MainFrame mainFrame, Collection<ProcessDescriptor> descriptors) {
+	private void startAll(Collection<ProcessDescriptor> descriptors) {
+
+		GitBranchSelection branchSelection = new GitBranchSelection();
+		Iterator<ProcessDescriptor> iterator = descriptors.iterator();
+		while (iterator.hasNext()) {
+			ProcessDescriptor descriptor = iterator.next();
+			branchSelection.addProcessDescriptor(descriptor);
+		}
+		branchSelection.showBranchSelection(this);
+
+		MainFrame mainFrame = MainFrame.getInstance();
+		mainFrame.setVisible(true);
 		_startAll(mainFrame, descriptors);
 	}
 

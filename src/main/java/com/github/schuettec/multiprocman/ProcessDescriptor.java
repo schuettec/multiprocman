@@ -1,5 +1,6 @@
 package com.github.schuettec.multiprocman;
 
+import static java.util.Objects.isNull;
 import static java.util.Objects.nonNull;
 import static java.util.Objects.requireNonNull;
 
@@ -7,7 +8,6 @@ import java.awt.Color;
 import java.awt.image.BufferedImage;
 import java.io.Serializable;
 import java.nio.charset.Charset;
-import java.util.Arrays;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
@@ -18,6 +18,9 @@ import java.util.regex.Pattern;
 
 import javax.swing.ImageIcon;
 
+import com.github.schuettec.multiprocman.git.GitException;
+import com.github.schuettec.multiprocman.git.GitManager;
+import com.github.schuettec.multiprocman.git.GitManagerImpl;
 import com.github.schuettec.multiprocman.git.GitStrategy;
 
 public class ProcessDescriptor implements Serializable {
@@ -52,6 +55,8 @@ public class ProcessDescriptor implements Serializable {
 	private boolean pullBeforeCheckout;
 	private boolean safeToCheckout;
 
+	private transient GitManager gitManager;
+
 	public ProcessDescriptor() {
 		super();
 		setCharset(Charset.defaultCharset());
@@ -64,12 +69,23 @@ public class ProcessDescriptor implements Serializable {
 		setPullBeforeCheckout(true);
 	}
 
-	public String getCurrentBranch() {
-		return "B";
+	private GitManager gitOperation() throws GitException {
+		if (isEnableGitSupport()) {
+			if (isNull(this.gitManager)) {
+				this.gitManager = new GitManagerImpl(executionDirectory);
+			}
+		} else {
+			this.gitManager = GitManagerImpl.noop();
+		}
+		return this.gitManager;
 	}
 
-	public List<String> getAllBranches() {
-		return Arrays.asList("A", "B", "C", "D");
+	public String getCurrentBranch() throws GitException {
+		return gitOperation().currentBranch();
+	}
+
+	public List<String> getAllBranches() throws GitException {
+		return gitOperation().branchList();
 	}
 
 	public boolean isPullBeforeCheckout() {
