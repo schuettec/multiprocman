@@ -12,6 +12,7 @@ import javax.swing.DefaultCellEditor;
 import javax.swing.DefaultComboBoxModel;
 import javax.swing.GroupLayout;
 import javax.swing.GroupLayout.Alignment;
+import javax.swing.ImageIcon;
 import javax.swing.JButton;
 import javax.swing.JComboBox;
 import javax.swing.JDialog;
@@ -22,6 +23,7 @@ import javax.swing.JScrollPane;
 import javax.swing.JTable;
 import javax.swing.border.EmptyBorder;
 import javax.swing.table.AbstractTableModel;
+import javax.swing.table.DefaultTableCellRenderer;
 import javax.swing.table.TableColumnModel;
 
 import com.github.schuettec.multiprocman.ProcessDescriptor;
@@ -30,8 +32,14 @@ import com.github.schuettec.multiprocman.themes.ThemeUtil;
 
 public class GitBranchSelection extends JDialog {
 
+	private static final Font MONOSPACED = new Font(Font.MONOSPACED, Font.PLAIN, 12);
+	private static final int WARN_COL = 0;
+	private static final int TITLE_COL = 1;
+	private static final int BRANCH_COL = 2;
+	private static final int PULL_COL = 3;
+
 	protected static final String[] columnNames = {
-	    "Application", "Branch selection", "Pull before"
+	    "", "Application", "Branch selection", "Pull before"
 	};
 
 	private final JPanel contentPanel = new JPanel();
@@ -133,10 +141,18 @@ public class GitBranchSelection extends JDialog {
 
 		// Assign the editor to the second column
 		TableColumnModel tcm = table.getColumnModel();
-		tcm.getColumn(1)
+		tcm.getColumn(BRANCH_COL)
+		    .setCellRenderer(new MonospacesCellRenderer());
+		tcm.getColumn(BRANCH_COL)
 		    .setCellEditor(editor);
+
 		// Set row heighht
 		table.setRowHeight(20);
+
+		table.getColumnModel()
+		    .getColumn(WARN_COL)
+		    .setPreferredWidth(14);
+
 		table.setPreferredScrollableViewportSize(table.getPreferredSize());
 	}
 
@@ -150,6 +166,16 @@ public class GitBranchSelection extends JDialog {
 
 	public void clear() {
 		descriptors.clear();
+	}
+
+	class MonospacesCellRenderer extends DefaultTableCellRenderer {
+		@Override
+		public Component getTableCellRendererComponent(JTable table, Object value, boolean isSelected, boolean hasFocus,
+		    int row, int column) {
+			Component toReturn = super.getTableCellRendererComponent(table, value, isSelected, hasFocus, row, column);
+			toReturn.setFont(MONOSPACED);
+			return toReturn;
+		}
 	}
 
 	class ComboBoxCellEditor extends DefaultCellEditor {
@@ -171,12 +197,13 @@ public class GitBranchSelection extends JDialog {
 			}
 			model.setSelectedItem(selection.getCurrentBranch());
 			Component toReturn = super.getTableCellEditorComponent(table, value, isSelected, row, column);
-			toReturn.setFont(new Font(Font.MONOSPACED, Font.PLAIN, 16));
+			toReturn.setFont(MONOSPACED);
 			return toReturn;
 		}
 	}
 
 	class ComboBoxTableModel extends AbstractTableModel {
+
 		// Implementation of TableModel interface
 		@Override
 		public int getRowCount() {
@@ -191,11 +218,17 @@ public class GitBranchSelection extends JDialog {
 		@Override
 		public Object getValueAt(int row, int column) {
 			BranchSelectionResult processDescriptor = descriptors.get(row);
-			if (column == 0) {
+			if (column == WARN_COL) {
+				if (processDescriptor.isSaveToCheckout()) {
+					return "OK";
+				} else {
+					return new ImageIcon(Resources.getWarning());
+				}
+			} else if (column == TITLE_COL) {
 				return processDescriptor.getTitle();
-			} else if (column == 1) {
-				return processDescriptor.getCurrentBranch();
-			} else if (column == 2) {
+			} else if (column == BRANCH_COL) {
+				return processDescriptor.getSelectedBranch();
+			} else if (column == PULL_COL) {
 				return processDescriptor.isPullBeforeCheckout();
 			} else {
 				return "undefined";
@@ -214,17 +247,17 @@ public class GitBranchSelection extends JDialog {
 
 		@Override
 		public boolean isCellEditable(int row, int column) {
-			return column == 1 || column == 2;
+			return column == BRANCH_COL || column == PULL_COL;
 		}
 
 		@Override
 		public void setValueAt(Object value, int row, int column) {
-			if (column == 1) {
+			if (column == BRANCH_COL) {
 				descriptors.get(row)
 				    .setSelectedBranch((String) value);
 				fireTableRowsUpdated(row, row);
 			}
-			if (column == 2) {
+			if (column == PULL_COL) {
 				descriptors.get(row)
 				    .setPullBeforeCheckout((boolean) value);
 				fireTableRowsUpdated(row, row);

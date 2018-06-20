@@ -35,6 +35,7 @@ public class Resources {
 	private static BufferedImage down;
 	private static BufferedImage upload;
 	private static BufferedImage download;
+	private static BufferedImage warning;
 
 	static {
 		try {
@@ -63,10 +64,15 @@ public class Resources {
 			down = ImageIO.read(getResource("/down.png"));
 			upload = ImageIO.read(getResource("/upload.png"));
 			download = ImageIO.read(getResource("/download.png"));
+			warning = ImageIO.read(getResource("/warning.png"));
 		} catch (IOException e) {
 			ExceptionDialog.showException(null, e, "Some application resources could not be found!");
 		}
 
+	}
+
+	public static BufferedImage getWarning() {
+		return warning;
 	}
 
 	public static BufferedImage getExport() {

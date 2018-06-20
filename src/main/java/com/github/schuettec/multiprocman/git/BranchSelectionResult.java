@@ -84,6 +84,10 @@ public class BranchSelectionResult {
 		return processDescriptor.getMaxLineNumbers();
 	}
 
+	public boolean isSaveToCheckout() {
+		return processDescriptor.isSaveToCheckout();
+	}
+
 	public void setMaxLineNumbers(int maxLineNumbers) {
 		processDescriptor.setMaxLineNumbers(maxLineNumbers);
 	}
