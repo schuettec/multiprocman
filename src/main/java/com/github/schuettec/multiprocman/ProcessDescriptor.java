@@ -91,6 +91,10 @@ public class ProcessDescriptor implements Serializable {
 		return !gitOperation().hasUncomittedChanges();
 	}
 
+	public void checkoutBranch(String branchName) throws GitException {
+		gitOperation().checkoutBranch(branchName, this.pullAfterCheckout);
+	}
+
 	public void setPullAfterCheckout(boolean pullBeforeCheckout) {
 		this.pullAfterCheckout = pullBeforeCheckout;
 	}

@@ -124,9 +124,9 @@ public class GitBranchSelection extends JDialog {
 
 				@Override
 				public void actionPerformed(ActionEvent e) {
-					okButton.setEnabled(false);
-
-					okButton.setEnabled(true);
+					ProgressView pv = new ProgressView(descriptors);
+					wasCancelled = pv.showProgressAndPerform(GitBranchSelection.this);
+					GitBranchSelection.this.setVisible(false);
 				}
 			});
 			okButton.setPreferredSize(new Dimension(91, 23));

@@ -26,6 +26,18 @@ public class BranchSelection {
 		return selectedBranch;
 	}
 
+	public boolean isPullAfterCheckout() {
+		return processDescriptor.isPullAfterCheckout();
+	}
+
+	public void checkoutBranch(String branchName) throws GitException {
+		processDescriptor.checkoutBranch(branchName);
+	}
+
+	public void setPullAfterCheckout(boolean pullBeforeCheckout) {
+		processDescriptor.setPullAfterCheckout(pullBeforeCheckout);
+	}
+
 	public void setSelectedBranch(String selectedBranch) {
 		this.selectedBranch = selectedBranch;
 	}
