@@ -47,6 +47,7 @@ public class ProcessDescriptor implements Serializable {
 		super();
 		setCharset(Charset.defaultCharset());
 		setIcon(Resources.getTerminal());
+		setVariableSubstitution(true);
 		setColor(Color.GREEN);
 		setMaxLineNumbers(MAX_LINES_DEFAULT);
 	}
