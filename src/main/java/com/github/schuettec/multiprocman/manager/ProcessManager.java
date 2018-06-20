@@ -546,10 +546,10 @@ public class ProcessManager extends JFrame {
 									DefaultListModel<ProcessDescriptor> processTemplates = selected.getProcessTemplates();
 									ProcessDescriptor[] array = new ProcessDescriptor[processTemplates.size()];
 									processTemplates.copyInto(array);
-									startAll(Arrays.asList(array));
-									setVisible(false);
+									startAllOrHandleCancel(array);
 								}
 							}
+
 						});
 						btnRunCategory.setToolTipText("Run all applications in category.");
 						toolBar.add(btnRunCategory);
@@ -670,6 +670,16 @@ public class ProcessManager extends JFrame {
 		super.dispose();
 	}
 
+	private void startAllOrHandleCancel(ProcessDescriptor[] array) {
+		boolean cancelled = startAll(Arrays.asList(array));
+		if (cancelled) {
+			JOptionPane.showMessageDialog(ProcessManager.this, "The launch was cancelled.", "Launch cancelled",
+			    JOptionPane.INFORMATION_MESSAGE);
+		} else {
+			setVisible(false);
+		}
+	}
+
 	private void runSelectedApplication() {
 		int selectedIndex = lstProcesses.getSelectedIndex();
 		if (selectedIndex == -1) {
@@ -677,12 +687,11 @@ public class ProcessManager extends JFrame {
 			    "No selection", JOptionPane.WARNING_MESSAGE);
 		} else {
 			List<ProcessDescriptor> selected = lstProcesses.getSelectedValuesList();
-			startAll(selected);
-			setVisible(false);
+			startAllOrHandleCancel(selected.toArray(new ProcessDescriptor[selected.size()]));
 		}
 	}
 
-	private void startAll(Collection<ProcessDescriptor> descriptors) {
+	private boolean startAll(Collection<ProcessDescriptor> descriptors) {
 
 		GitBranchSelection branchSelection = new GitBranchSelection();
 		Iterator<ProcessDescriptor> iterator = descriptors.iterator();
@@ -690,11 +699,15 @@ public class ProcessManager extends JFrame {
 			ProcessDescriptor descriptor = iterator.next();
 			branchSelection.addProcessDescriptor(descriptor);
 		}
-		branchSelection.showBranchSelection(this);
+		boolean cancelled = branchSelection.showBranchSelection(this);
+		if (cancelled) {
+			return cancelled;
+		}
 
 		MainFrame mainFrame = MainFrame.getInstance();
 		mainFrame.setVisible(true);
 		_startAll(mainFrame, descriptors);
+		return false;
 	}
 
 	private void _startAll(MainFrame mainFrame, Collection<ProcessDescriptor> descriptors) {

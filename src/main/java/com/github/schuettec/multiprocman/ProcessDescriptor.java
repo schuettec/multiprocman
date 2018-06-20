@@ -21,7 +21,6 @@ import javax.swing.ImageIcon;
 import com.github.schuettec.multiprocman.git.GitException;
 import com.github.schuettec.multiprocman.git.GitManager;
 import com.github.schuettec.multiprocman.git.GitManagerImpl;
-import com.github.schuettec.multiprocman.git.GitStrategy;
 
 public class ProcessDescriptor implements Serializable {
 
@@ -50,10 +49,7 @@ public class ProcessDescriptor implements Serializable {
 	private List<Counter> counters;
 
 	private boolean enableGitSupport;
-	private GitStrategy gitStrategy;
-	private String preferredBranchName;
-	private boolean pullBeforeCheckout;
-	private boolean safeToCheckout;
+	private boolean pullAfterCheckout;
 
 	private transient GitManager gitManager;
 
@@ -65,14 +61,13 @@ public class ProcessDescriptor implements Serializable {
 		setColor(Color.GREEN);
 		setMaxLineNumbers(MAX_LINES_DEFAULT);
 		setEnableGitSupport(false);
-		setGitStrategy(GitStrategy.SHOW_SELECTION);
-		setPullBeforeCheckout(true);
+		setPullAfterCheckout(true);
 	}
 
 	private GitManager gitOperation() throws GitException {
 		if (isEnableGitSupport()) {
 			if (isNull(this.gitManager)) {
-				this.gitManager = new GitManagerImpl(executionDirectory);
+				this.gitManager = new GitManagerImpl(getExecutionDirectoryForExecution());
 			}
 		} else {
 			this.gitManager = GitManagerImpl.noop();
@@ -88,16 +83,16 @@ public class ProcessDescriptor implements Serializable {
 		return gitOperation().branchList();
 	}
 
-	public boolean isPullBeforeCheckout() {
-		return pullBeforeCheckout;
+	public boolean isPullAfterCheckout() {
+		return pullAfterCheckout;
 	}
 
-	public boolean isSaveToCheckout() {
-		return safeToCheckout;
+	public boolean isSaveToCheckout() throws GitException {
+		return !gitOperation().hasUncomittedChanges();
 	}
 
-	public void setPullBeforeCheckout(boolean pullBeforeCheckout) {
-		this.pullBeforeCheckout = pullBeforeCheckout;
+	public void setPullAfterCheckout(boolean pullBeforeCheckout) {
+		this.pullAfterCheckout = pullBeforeCheckout;
 	}
 
 	public static String substituteCommand(String command) {
@@ -112,22 +107,6 @@ public class ProcessDescriptor implements Serializable {
 			    Matcher.quoteReplacement(entry.getValue()));
 		}
 		return substitute;
-	}
-
-	public String getPreferredBranchName() {
-		return preferredBranchName;
-	}
-
-	public void setPreferredBranchName(String preferredBranchName) {
-		this.preferredBranchName = preferredBranchName;
-	}
-
-	public GitStrategy getGitStrategy() {
-		return gitStrategy;
-	}
-
-	public void setGitStrategy(GitStrategy gitStrategy) {
-		this.gitStrategy = gitStrategy;
 	}
 
 	public boolean isEnableGitSupport() {

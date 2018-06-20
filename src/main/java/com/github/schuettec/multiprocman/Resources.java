@@ -36,6 +36,8 @@ public class Resources {
 	private static BufferedImage upload;
 	private static BufferedImage download;
 	private static BufferedImage warning;
+	private static BufferedImage remote;
+	private static BufferedImage local;
 
 	static {
 		try {
@@ -65,10 +67,20 @@ public class Resources {
 			upload = ImageIO.read(getResource("/upload.png"));
 			download = ImageIO.read(getResource("/download.png"));
 			warning = ImageIO.read(getResource("/warning.png"));
+			remote = ImageIO.read(getResource("/remote.png"));
+			local = ImageIO.read(getResource("/local.png"));
 		} catch (IOException e) {
 			ExceptionDialog.showException(null, e, "Some application resources could not be found!");
 		}
 
+	}
+
+	public static BufferedImage getLocal() {
+		return local;
+	}
+
+	public static BufferedImage getRemote() {
+		return remote;
 	}
 
 	public static BufferedImage getWarning() {

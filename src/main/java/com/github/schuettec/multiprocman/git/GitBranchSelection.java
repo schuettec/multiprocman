@@ -1,14 +1,21 @@
 package com.github.schuettec.multiprocman.git;
 
+import static java.util.Objects.nonNull;
+
 import java.awt.BorderLayout;
 import java.awt.Component;
 import java.awt.Dimension;
 import java.awt.Font;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.awt.event.WindowEvent;
+import java.awt.event.WindowListener;
 import java.util.LinkedList;
 import java.util.List;
 
 import javax.swing.DefaultCellEditor;
 import javax.swing.DefaultComboBoxModel;
+import javax.swing.DefaultListCellRenderer;
 import javax.swing.GroupLayout;
 import javax.swing.GroupLayout.Alignment;
 import javax.swing.ImageIcon;
@@ -17,10 +24,12 @@ import javax.swing.JComboBox;
 import javax.swing.JDialog;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
+import javax.swing.JList;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JTable;
 import javax.swing.LayoutStyle.ComponentPlacement;
+import javax.swing.ListCellRenderer;
 import javax.swing.border.EmptyBorder;
 import javax.swing.table.AbstractTableModel;
 import javax.swing.table.DefaultTableCellRenderer;
@@ -38,6 +47,8 @@ public class GitBranchSelection extends JDialog {
 	private static final int TITLE_COL = 1;
 	private static final int BRANCH_COL = 2;
 	private static final int PULL_COL = 3;
+	private static final String REMOTE_PREFIX = "refs/remotes/origin/";
+	private static final String LOCAL_PREFIX = "refs/heads/";
 
 	protected static final String[] columnNames = {
 	    "", "Application", "Branch selection", "Pull before"
@@ -47,35 +58,10 @@ public class GitBranchSelection extends JDialog {
 	private JScrollPane scrollPane;
 	private JTable table;
 
-	private List<BranchSelectionResult> descriptors;
+	private List<BranchSelection> descriptors;
 	private JButton okButton;
 	private JButton cancelButton;
-
-	/**
-	 * Launch the application.
-	 */
-	public static void main(String[] args) {
-
-		try {
-			GitBranchSelection dialog = new GitBranchSelection();
-			ProcessDescriptor pd = new ProcessDescriptor();
-			pd.setTitle("A");
-			dialog.addProcessDescriptor(pd);
-
-			pd = new ProcessDescriptor();
-			pd.setTitle("B");
-			dialog.addProcessDescriptor(pd);
-
-			pd = new ProcessDescriptor();
-			pd.setTitle("C");
-			dialog.addProcessDescriptor(pd);
-
-			dialog.setDefaultCloseOperation(JDialog.DISPOSE_ON_CLOSE);
-			dialog.setVisible(true);
-		} catch (Exception e) {
-			e.printStackTrace();
-		}
-	}
+	private boolean wasCancelled;
 
 	/**
 	 * Create the dialog.
@@ -85,13 +71,45 @@ public class GitBranchSelection extends JDialog {
 		ThemeUtil.setLookAndFeel();
 		setIconImage(Resources.getApplicationIcon());
 		setDefaultCloseOperation(JFrame.DO_NOTHING_ON_CLOSE);
-		setPreferredSize(new Dimension(700, 480));
+		setPreferredSize(new Dimension(640, 480));
+		this.setSize(new Dimension(640, 480));
+		addWindowListener(new WindowListener() {
+
+			@Override
+			public void windowOpened(WindowEvent e) {
+			}
+
+			@Override
+			public void windowIconified(WindowEvent e) {
+			}
+
+			@Override
+			public void windowDeiconified(WindowEvent e) {
+			}
+
+			@Override
+			public void windowDeactivated(WindowEvent e) {
+			}
+
+			@Override
+			public void windowClosing(WindowEvent e) {
+				performCancel();
+			}
+
+			@Override
+			public void windowClosed(WindowEvent e) {
+			}
+
+			@Override
+			public void windowActivated(WindowEvent e) {
+			}
+		});
+
 		ThemeUtil.loadWindow(this);
 		ThemeUtil.installListeners(this);
 
 		setModal(true);
 		setTitle("Git branch selection");
-		setBounds(100, 100, 452, 440);
 		getContentPane().setLayout(new BorderLayout());
 		contentPanel.setBorder(new EmptyBorder(5, 5, 5, 5));
 		getContentPane().add(contentPanel, BorderLayout.CENTER);
@@ -102,6 +120,15 @@ public class GitBranchSelection extends JDialog {
 		scrollPane = new JScrollPane();
 		{
 			okButton = new JButton("OK");
+			okButton.addActionListener(new ActionListener() {
+
+				@Override
+				public void actionPerformed(ActionEvent e) {
+					okButton.setEnabled(false);
+
+					okButton.setEnabled(true);
+				}
+			});
 			okButton.setPreferredSize(new Dimension(91, 23));
 			okButton.setActionCommand("OK");
 			getRootPane().setDefaultButton(okButton);
@@ -109,7 +136,13 @@ public class GitBranchSelection extends JDialog {
 		{
 			cancelButton = new JButton("Cancel");
 			cancelButton.setPreferredSize(new Dimension(91, 23));
-			cancelButton.setActionCommand("Cancel");
+			cancelButton.addActionListener(new ActionListener() {
+
+				@Override
+				public void actionPerformed(ActionEvent e) {
+					performCancel();
+				}
+			});
 		}
 
 		JButton btnRefresh = new JButton("Refresh");
@@ -147,18 +180,18 @@ public class GitBranchSelection extends JDialog {
 		        .addGap(3)));
 
 		table = new JTable(new ComboBoxTableModel());
+
 		scrollPane.setViewportView(table);
 		contentPanel.setLayout(gl_contentPanel);
 
-		// Create the combo box editor
-		JComboBox comboBox = new JComboBox();
-		comboBox.setEditable(true);
-		ComboBoxCellEditor editor = new ComboBoxCellEditor();
+		JComboBox jComboBox = new JComboBox();
+		jComboBox.setRenderer(new ComplexCellRenderer());
+		ComboBoxCellEditor editor = new ComboBoxCellEditor(jComboBox);
 
 		// Assign the editor to the second column
 		TableColumnModel tcm = table.getColumnModel();
 		tcm.getColumn(BRANCH_COL)
-		    .setCellRenderer(new MonospacesCellRenderer());
+		    .setCellRenderer(new BranchCellRenderer());
 		tcm.getColumn(BRANCH_COL)
 		    .setCellEditor(editor);
 
@@ -169,12 +202,18 @@ public class GitBranchSelection extends JDialog {
 		    .getColumn(WARN_COL)
 		    .setPreferredWidth(14);
 
+		table.getColumnModel()
+		    .getColumn(BRANCH_COL)
+		    .setPreferredWidth(300);
+
 		table.setPreferredScrollableViewportSize(table.getPreferredSize());
 	}
 
-	public void showBranchSelection(Component parent) {
+	public boolean showBranchSelection(Component parent) {
 		this.setLocationRelativeTo(parent);
 		this.setVisible(true);
+		this.validate();
+		return this.wasCancelled;
 	}
 
 	public boolean isEmpty() {
@@ -183,7 +222,7 @@ public class GitBranchSelection extends JDialog {
 
 	public void addProcessDescriptor(ProcessDescriptor pd) {
 		try {
-			BranchSelectionResult selection = new BranchSelectionResult(pd);
+			BranchSelection selection = new BranchSelection(pd);
 			selection.setSelectedBranch(pd.getCurrentBranch());
 			descriptors.add(selection);
 		} catch (GitException e) {
@@ -191,17 +230,39 @@ public class GitBranchSelection extends JDialog {
 		}
 	}
 
+	private void performCancel() {
+		this.wasCancelled = true;
+		this.dispose();
+	}
+
 	public void clear() {
 		descriptors.clear();
 	}
 
-	class MonospacesCellRenderer extends DefaultTableCellRenderer {
+	class BranchCellRenderer extends DefaultTableCellRenderer {
 		@Override
 		public Component getTableCellRendererComponent(JTable table, Object value, boolean isSelected, boolean hasFocus,
 		    int row, int column) {
 			Component toReturn = super.getTableCellRendererComponent(table, value, isSelected, hasFocus, row, column);
-			toReturn.setFont(MONOSPACED);
+			setupBranchLabel((String) value, (JLabel) toReturn);
 			return toReturn;
+		}
+	}
+
+	public static void setupBranchLabel(String branchName, JLabel renderer) {
+		renderer.setFont(MONOSPACED);
+
+		if (nonNull(branchName)) {
+			if (branchName.startsWith(LOCAL_PREFIX)) {
+				renderer.setIcon(new ImageIcon(Resources.getLocal()));
+				renderer.setText(branchName.replace(LOCAL_PREFIX, ""));
+			} else if (branchName.startsWith(REMOTE_PREFIX)) {
+				renderer.setIcon(new ImageIcon(Resources.getRemote()));
+				renderer.setText(branchName.replace(REMOTE_PREFIX, ""));
+			} else {
+				renderer.setIcon(null);
+				renderer.setText(branchName);
+			}
 		}
 	}
 
@@ -209,14 +270,14 @@ public class GitBranchSelection extends JDialog {
 		// Declare a model that is used for adding the elements to the `ComboBox`
 		private DefaultComboBoxModel model;
 
-		public ComboBoxCellEditor() {
-			super(new JComboBox());
+		public ComboBoxCellEditor(JComboBox combobox) {
+			super(combobox);
 			this.model = (DefaultComboBoxModel) ((JComboBox) getComponent()).getModel();
 		}
 
 		@Override
 		public Component getTableCellEditorComponent(JTable table, Object value, boolean isSelected, int row, int column) {
-			BranchSelectionResult selection = descriptors.get(row);
+			BranchSelection selection = descriptors.get(row);
 			List<String> obtainedList;
 			try {
 				obtainedList = selection.getAllBranches();
@@ -250,12 +311,16 @@ public class GitBranchSelection extends JDialog {
 
 		@Override
 		public Object getValueAt(int row, int column) {
-			BranchSelectionResult processDescriptor = descriptors.get(row);
+			BranchSelection processDescriptor = descriptors.get(row);
 			if (column == WARN_COL) {
-				if (processDescriptor.isSaveToCheckout()) {
-					return "OK";
-				} else {
-					return new ImageIcon(Resources.getWarning());
+				try {
+					if (processDescriptor.isSaveToCheckout()) {
+						return "OK";
+					} else {
+						return new ImageIcon(Resources.getWarning());
+					}
+				} catch (GitException e) {
+					return e.getMessage();
 				}
 			} else if (column == TITLE_COL) {
 				return processDescriptor.getTitle();
@@ -296,5 +361,22 @@ public class GitBranchSelection extends JDialog {
 				fireTableRowsUpdated(row, row);
 			}
 		}
+	}
+
+	class ComplexCellRenderer implements ListCellRenderer {
+
+		protected DefaultListCellRenderer defaultRenderer = new DefaultListCellRenderer();
+
+		@Override
+		public Component getListCellRendererComponent(JList list, Object value, int index, boolean isSelected,
+		    boolean cellHasFocus) {
+			JLabel renderer = (JLabel) defaultRenderer.getListCellRendererComponent(list, value, index, isSelected,
+			    cellHasFocus);
+
+			setupBranchLabel((String) value, renderer);
+
+			return renderer;
+		}
+
 	}
 }

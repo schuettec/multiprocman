@@ -11,13 +11,13 @@ import javax.swing.ImageIcon;
 import com.github.schuettec.multiprocman.Counter;
 import com.github.schuettec.multiprocman.ProcessDescriptor;
 
-public class BranchSelectionResult {
+public class BranchSelection {
 
 	private ProcessDescriptor processDescriptor;
 
 	private String selectedBranch;
 
-	public BranchSelectionResult(ProcessDescriptor processDescriptor) {
+	public BranchSelection(ProcessDescriptor processDescriptor) {
 		super();
 		this.processDescriptor = processDescriptor;
 	}
@@ -35,11 +35,11 @@ public class BranchSelectionResult {
 	}
 
 	public boolean isPullBeforeCheckout() {
-		return processDescriptor.isPullBeforeCheckout();
+		return processDescriptor.isPullAfterCheckout();
 	}
 
 	public void setPullBeforeCheckout(boolean pullBeforeCheckout) {
-		processDescriptor.setPullBeforeCheckout(pullBeforeCheckout);
+		processDescriptor.setPullAfterCheckout(pullBeforeCheckout);
 	}
 
 	@Override
@@ -55,22 +55,6 @@ public class BranchSelectionResult {
 		return processDescriptor.getAllBranches();
 	}
 
-	public String getPreferredBranchName() {
-		return processDescriptor.getPreferredBranchName();
-	}
-
-	public void setPreferredBranchName(String preferredBranchName) {
-		processDescriptor.setPreferredBranchName(preferredBranchName);
-	}
-
-	public GitStrategy getGitStrategy() {
-		return processDescriptor.getGitStrategy();
-	}
-
-	public void setGitStrategy(GitStrategy gitStrategy) {
-		processDescriptor.setGitStrategy(gitStrategy);
-	}
-
 	public boolean isEnableGitSupport() {
 		return processDescriptor.isEnableGitSupport();
 	}
@@ -83,7 +67,7 @@ public class BranchSelectionResult {
 		return processDescriptor.getMaxLineNumbers();
 	}
 
-	public boolean isSaveToCheckout() {
+	public boolean isSaveToCheckout() throws GitException {
 		return processDescriptor.isSaveToCheckout();
 	}
 
