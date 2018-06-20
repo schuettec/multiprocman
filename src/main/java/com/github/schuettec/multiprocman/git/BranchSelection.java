@@ -1,6 +1,7 @@
 package com.github.schuettec.multiprocman.git;
 
 import java.awt.Color;
+import java.awt.Component;
 import java.awt.image.BufferedImage;
 import java.nio.charset.Charset;
 import java.util.List;
@@ -30,8 +31,8 @@ public class BranchSelection {
 		return processDescriptor.isPullAfterCheckout();
 	}
 
-	public void checkoutBranch(String branchName) throws GitException {
-		processDescriptor.checkoutBranch(branchName);
+	public void checkoutBranch(Component component, String branchName) throws GitException {
+		processDescriptor.checkoutBranch(component, branchName);
 	}
 
 	public void setPullAfterCheckout(boolean pullBeforeCheckout) {

@@ -131,7 +131,7 @@ public class ProgressView extends JDialog {
 
 			for (BranchSelection b : branchSelections) {
 				try {
-					b.checkoutBranch(b.getSelectedBranch());
+					b.checkoutBranch(ProgressView.this, b.getSelectedBranch());
 				} catch (Exception e) {
 					ExceptionDialog.showException(ProgressView.this, e,
 					    "Error while checking out branch %s for launcher %s. Aborting the launch operation.",

@@ -5,6 +5,7 @@ import static java.util.Objects.nonNull;
 import static java.util.Objects.requireNonNull;
 
 import java.awt.Color;
+import java.awt.Component;
 import java.awt.image.BufferedImage;
 import java.io.Serializable;
 import java.nio.charset.Charset;
@@ -91,8 +92,8 @@ public class ProcessDescriptor implements Serializable {
 		return !gitOperation().hasUncomittedChanges();
 	}
 
-	public void checkoutBranch(String branchName) throws GitException {
-		gitOperation().checkoutBranch(branchName, this.pullAfterCheckout);
+	public void checkoutBranch(Component component, String branchName) throws GitException {
+		gitOperation().checkoutBranch(component, branchName, this.pullAfterCheckout);
 	}
 
 	public void setPullAfterCheckout(boolean pullBeforeCheckout) {

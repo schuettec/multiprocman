@@ -1,12 +1,21 @@
 package com.github.schuettec.multiprocman.git;
 
+import java.awt.Component;
 import java.util.List;
 
 public interface GitManager {
 
-	void pull() throws GitException;
+	void pull(Component parent) throws GitException;
 
-	void checkoutBranch(String branchName, boolean pullAfterCheckout) throws GitException;
+	default void pull() throws GitException {
+		pull(null);
+	}
+
+	void checkoutBranch(Component parent, String branchName, boolean pullAfterCheckout) throws GitException;
+
+	default void checkoutBranch(String branchName, boolean pullAfterCheckout) throws GitException {
+		checkoutBranch(null, branchName, pullAfterCheckout);
+	}
 
 	boolean hasUncomittedChanges() throws GitException;
 
