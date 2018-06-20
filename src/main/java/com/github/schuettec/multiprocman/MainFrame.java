@@ -58,6 +58,8 @@ import javafx.stage.FileChooser.ExtensionFilter;
 
 public class MainFrame extends JFrame implements WindowListener, ProcessListener, SearchFieldListener {
 
+	private static final String WINDOW_TITLE = "Running applications";
+
 	private static final String TEXT_FILES = "Text Files";
 
 	private static final String RICH_TEXT_FILES = "Rich Text Files";
@@ -140,7 +142,7 @@ public class MainFrame extends JFrame implements WindowListener, ProcessListener
 	 * Create the frame.
 	 */
 	private MainFrame() {
-		setTitle("Running applications");
+		setTitle(WINDOW_TITLE);
 		setIconImage(Resources.getApplicationIcon());
 		setDefaultCloseOperation(JFrame.DO_NOTHING_ON_CLOSE);
 		addWindowListener(this);
@@ -189,7 +191,11 @@ public class MainFrame extends JFrame implements WindowListener, ProcessListener
 			@Override
 			public void valueChanged(ListSelectionEvent e) {
 				ProcessController selectedValue = processList.getSelectedValue();
-				selectConsole(selectedValue);
+				if (nonNull(selectedValue)) {
+					MainFrame.this.setTitle(WINDOW_TITLE + " - " + selectedValue.getProcessDescriptor()
+					    .getTitle());
+					selectConsole(selectedValue);
+				}
 			}
 
 		});

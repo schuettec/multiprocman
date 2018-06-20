@@ -15,6 +15,7 @@ import java.awt.geom.Rectangle2D;
 import java.awt.image.BufferedImage;
 import java.util.List;
 
+import javax.swing.BorderFactory;
 import javax.swing.JPanel;
 import javax.swing.plaf.BorderUIResource;
 
@@ -67,7 +68,7 @@ public class ConsolePreview extends JPanel implements AppendListener, ProcessLis
 	}
 
 	private void initialize() {
-		this.setBorder(BorderUIResource.getRaisedBevelBorderUIResource());
+		toUnselectedBorder();
 		this.setPreferredSize(new Dimension(WIDTH, HEIGHT));
 		this.bufferedImage = new BufferedImage(WIDTH, HEIGHT, BufferedImage.TYPE_INT_RGB);
 		Insets insets = this.getInsets();
@@ -76,6 +77,14 @@ public class ConsolePreview extends JPanel implements AppendListener, ProcessLis
 		clearImage(bufferedImage, Color.BLACK);
 		drawTitleImage();
 
+	}
+
+	private void toUnselectedBorder() {
+		this.setBorder(BorderUIResource.getRaisedBevelBorderUIResource());
+	}
+
+	private void toSelectedBorder() {
+		this.setBorder(BorderUIResource.getLoweredBevelBorderUIResource());
 	}
 
 	private void clearImage(BufferedImage bufferedImage, Color clearColor) {
@@ -103,11 +112,17 @@ public class ConsolePreview extends JPanel implements AppendListener, ProcessLis
 
 	@Override
 	protected void paintComponent(Graphics g) {
+		if (selected) {
+			toSelectedBorder();
+		} else {
+			toUnselectedBorder();
+		}
+
 		super.paintComponent(g);
 		Graphics2D g2d = (Graphics2D) g;
 		Insets insets = this.getInsets();
 		if (!selected) {
-			g2d.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_OVER, 0.6f));
+			g2d.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_OVER, 0.5f));
 		}
 		g2d.drawImage(bufferedImage, insets.left + TITLE_SPACE_X, insets.top, this);
 		drawTitle(g2d);
