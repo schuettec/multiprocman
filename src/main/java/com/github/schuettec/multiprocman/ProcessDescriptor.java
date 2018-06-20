@@ -50,11 +50,13 @@ public class ProcessDescriptor implements Serializable {
 	private GitStrategy gitStrategy;
 	private String preferredBranchName;
 	private boolean pullBeforeCheckout;
+	private boolean safeToCheckout;
 
 	public ProcessDescriptor() {
 		super();
 		setCharset(Charset.defaultCharset());
 		setIcon(Resources.getTerminal());
+		setVariableSubstitution(true);
 		setColor(Color.GREEN);
 		setMaxLineNumbers(MAX_LINES_DEFAULT);
 		setEnableGitSupport(false);
@@ -72,6 +74,10 @@ public class ProcessDescriptor implements Serializable {
 
 	public boolean isPullBeforeCheckout() {
 		return pullBeforeCheckout;
+	}
+
+	public boolean isSaveToCheckout() {
+		return safeToCheckout;
 	}
 
 	public void setPullBeforeCheckout(boolean pullBeforeCheckout) {
