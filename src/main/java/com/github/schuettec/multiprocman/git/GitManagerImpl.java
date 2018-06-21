@@ -29,7 +29,6 @@ import org.eclipse.jgit.transport.SshTransport;
 import com.jcraft.jsch.Session;
 import com.jcraft.jsch.UserInfo;
 
-// Komment
 public class GitManagerImpl implements GitManager, AutoCloseable {
 
 	private Repository repository;
