@@ -79,8 +79,10 @@ public class GitManagerImpl implements GitManager, AutoCloseable {
 	public void pull() throws GitException {
 		PullCommand pull = git.pull();
 		pull.setTransportConfigCallback(transport -> {
-			SshTransport sshTransport = (SshTransport) transport;
-			sshTransport.setSshSessionFactory(sshSessionFactory);
+			if (transport instanceof SshTransport) {
+				SshTransport sshTransport = (SshTransport) transport;
+				sshTransport.setSshSessionFactory(sshSessionFactory);
+			}
 		});
 		try {
 			pull.call();
