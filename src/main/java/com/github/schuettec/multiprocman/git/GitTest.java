@@ -2,59 +2,68 @@ package com.github.schuettec.multiprocman.git;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.List;
 
-import org.eclipse.jgit.api.CheckoutCommand;
 import org.eclipse.jgit.api.Git;
-import org.eclipse.jgit.api.ListBranchCommand.ListMode;
-import org.eclipse.jgit.api.Status;
-import org.eclipse.jgit.api.StatusCommand;
-import org.eclipse.jgit.api.errors.CheckoutConflictException;
 import org.eclipse.jgit.api.errors.GitAPIException;
-import org.eclipse.jgit.api.errors.InvalidRefNameException;
-import org.eclipse.jgit.api.errors.RefAlreadyExistsException;
-import org.eclipse.jgit.api.errors.RefNotFoundException;
-import org.eclipse.jgit.lib.Ref;
-import org.eclipse.jgit.lib.Repository;
-import org.eclipse.jgit.lib.RepositoryBuilder;
+import org.eclipse.jgit.transport.JschConfigSessionFactory;
+import org.eclipse.jgit.transport.OpenSshConfig;
+import org.eclipse.jgit.transport.SshSessionFactory;
+import org.eclipse.jgit.transport.SshTransport;
+
+import com.jcraft.jsch.Session;
+import com.jcraft.jsch.UserInfo;
 
 public class GitTest {
 
-	public static void main(String[] args) throws IOException, RefAlreadyExistsException, RefNotFoundException,
-	    InvalidRefNameException, CheckoutConflictException, GitAPIException {
-		try (Repository repository = new RepositoryBuilder().setMustExist(true)
-		    .setWorkTree(new File("C:\\Users\\schuettec\\git\\article-service"))
-		    .build()) {
-			try (Git git = new Git(repository)) {
+	public static void main(String... args) throws IOException, GitAPIException {
+		final String REMOTE_URL = "git@github.com:remondis-it/remap.git";
+		SshSessionFactory sshSessionFactory = new JschConfigSessionFactory() {
+			@Override
+			protected void configure(OpenSshConfig.Host host, Session session) {
+				session.setUserInfo(new UserInfo() {
+					@Override
+					public String getPassphrase() {
+						return null;
+					}
 
-				List<Ref> branchList = git.branchList()
-				    .call();
-				System.out.println("The following local branches are available:");
-				for (Ref ref : branchList) {
-					System.out.println(" - " + ref.getName());
-				}
-				List<Ref> remoteBranchList = git.branchList()
-				    .setListMode(ListMode.REMOTE)
-				    .call();
-				System.out.println("The following remote branches are available:");
-				for (Ref ref : remoteBranchList) {
-					System.out.println(" - " + ref.getName());
-				}
+					@Override
+					public String getPassword() {
+						return null;
+					}
 
-				StatusCommand status = git.status();
-				Status statusResult = status.call();
-				if (!statusResult.getUncommittedChanges()
-				    .isEmpty()) {
-					System.out.println("There are uncommitted changes. Aborting.");
-					return;
-				}
+					@Override
+					public boolean promptPassword(String message) {
+						return true;
+					}
 
-				CheckoutCommand checkout = git.checkout();
-				checkout.setCreateBranch(false);
-				checkout.setName("develop");
-				Ref checkoutResult = checkout.call();
-				System.out.println("Branch checked out successfully.");
+					@Override
+					public boolean promptPassphrase(String message) {
+						return true;
+					}
+
+					@Override
+					public boolean promptYesNo(String message) {
+						return true;
+					}
+
+					@Override
+					public void showMessage(String message) {
+					}
+				});
 			}
+		};
+		File localPath = File.createTempFile("TestGitRepository", "");
+		localPath.delete();
+		try (Git result = Git.cloneRepository()
+		    .setURI(REMOTE_URL)
+		    .setTransportConfigCallback(transport -> {
+			    SshTransport sshTransport = (SshTransport) transport;
+			    sshTransport.setSshSessionFactory(sshSessionFactory);
+		    })
+		    .setDirectory(localPath)
+		    .call()) {
+			System.out.println("Having repository: " + result.getRepository()
+			    .getDirectory());
 		}
 	}
 
