@@ -5,18 +5,20 @@ import java.util.List;
 
 public interface GitManager {
 
-	void checkoutBranch(Component parent, String branchName, boolean pullAfterCheckout) throws GitException;
+	public void checkoutBranch(Component parent, String branchName, boolean pullAfterCheckout) throws GitException;
 
-	default void checkoutBranch(String branchName, boolean pullAfterCheckout) throws GitException {
+	public default void checkoutBranch(String branchName, boolean pullAfterCheckout) throws GitException {
 		checkoutBranch(null, branchName, pullAfterCheckout);
 	}
 
-	boolean hasUncomittedChanges() throws GitException;
+	public abstract boolean hasUncomittedChanges() throws GitException;
 
-	List<String> branchList() throws GitException;
+	public abstract List<String> branchList() throws GitException;
 
-	void close() throws Exception;
+	public abstract void close() throws Exception;
 
-	String currentBranch() throws GitException;
+	public abstract String currentBranch() throws GitException;
+
+	public abstract void pull() throws GitException;
 
 }

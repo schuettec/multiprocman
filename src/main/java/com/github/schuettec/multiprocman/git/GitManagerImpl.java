@@ -12,6 +12,7 @@ import java.util.stream.Collectors;
 import org.eclipse.jgit.api.CheckoutCommand;
 import org.eclipse.jgit.api.Git;
 import org.eclipse.jgit.api.ListBranchCommand.ListMode;
+import org.eclipse.jgit.api.PullCommand;
 import org.eclipse.jgit.api.Status;
 import org.eclipse.jgit.api.StatusCommand;
 import org.eclipse.jgit.api.errors.CheckoutConflictException;
@@ -21,22 +22,79 @@ import org.eclipse.jgit.api.errors.RefNotFoundException;
 import org.eclipse.jgit.lib.Ref;
 import org.eclipse.jgit.lib.Repository;
 import org.eclipse.jgit.lib.RepositoryBuilder;
+import org.eclipse.jgit.transport.JschConfigSessionFactory;
+import org.eclipse.jgit.transport.OpenSshConfig;
+import org.eclipse.jgit.transport.SshTransport;
 
-public class GitManagerImpl implements AutoCloseable, GitManager {
+import com.jcraft.jsch.Session;
+import com.jcraft.jsch.UserInfo;
+
+public class GitManagerImpl implements GitManager, AutoCloseable {
 
 	private Repository repository;
 	private Git git;
+	private JschConfigSessionFactory sshSessionFactory;
 
-	public GitManagerImpl(String gitDir) throws GitException {
-		super();
+	public GitManagerImpl(CredentialsCallback callback, String gitDir) throws GitException {
 		initialize(gitDir);
+		this.sshSessionFactory = new JschConfigSessionFactory() {
+			@Override
+			protected void configure(OpenSshConfig.Host host, Session session) {
+				session.setUserInfo(new UserInfo() {
+					@Override
+					public String getPassphrase() {
+						return callback.getPassphrase();
+					}
 
+					@Override
+					public String getPassword() {
+						return callback.getPassword();
+					}
+
+					@Override
+					public boolean promptPassword(String message) {
+						return callback.promptPassword(message);
+					}
+
+					@Override
+					public boolean promptPassphrase(String message) {
+						return callback.promptPassphrase(message);
+					}
+
+					@Override
+					public boolean promptYesNo(String message) {
+						return callback.promptYesNo(message);
+					}
+
+					@Override
+					public void showMessage(String message) {
+						callback.showMessage(message);
+					}
+				});
+			}
+		};
+	}
+
+	@Override
+	public void pull() throws GitException {
+		PullCommand pull = git.pull();
+		pull.setTransportConfigCallback(transport -> {
+			SshTransport sshTransport = (SshTransport) transport;
+			sshTransport.setSshSessionFactory(sshSessionFactory);
+		});
+		try {
+			pull.call();
+		} catch (GitAPIException e) {
+			throw GitException.general(e);
+		}
 	}
 
 	/*
 	 * (non-Javadoc)
 	 *
-	 * @see com.github.schuettec.multiprocman.git.GitManagerI#checkoutBranch(java.lang.String)
+	 * @see
+	 * com.github.schuettec.multiprocman.git.GitManagerI#checkoutBranch(java.lang.
+	 * String)
 	 */
 	@Override
 	public void checkoutBranch(Component parent, String branchName, boolean pullAfterCheckout) throws GitException {
@@ -45,6 +103,10 @@ public class GitManagerImpl implements AutoCloseable, GitManager {
 			checkout.setCreateBranch(false);
 			checkout.setName(branchName);
 			checkout.call();
+
+			if (pullAfterCheckout) {
+				pull();
+			}
 
 		} catch (RefNotFoundException e) {
 			throw GitException.referenceNotFound(branchName, e);
@@ -66,37 +128,22 @@ public class GitManagerImpl implements AutoCloseable, GitManager {
 		}
 	}
 
-	/*
-	 * (non-Javadoc)
-	 *
-	 * @see com.github.schuettec.multiprocman.git.GitManagerI#hasUncomittedChanges()
-	 */
 	@Override
 	public boolean hasUncomittedChanges() throws GitException {
 		try {
 			StatusCommand status = git.status();
 			Status statusResult = status.call();
-			return (!statusResult.getUncommittedChanges()
-			    .isEmpty());
+			return (!statusResult.getUncommittedChanges().isEmpty());
 		} catch (Exception e) {
 			throw GitException.general(e);
 		}
 	}
 
-	/*
-	 * (non-Javadoc)
-	 *
-	 * @see com.github.schuettec.multiprocman.git.GitManagerI#branchList()
-	 */
 	@Override
 	public List<String> branchList() throws GitException {
 		try {
-			return git.branchList()
-			    .setListMode(ListMode.ALL)
-			    .call()
-			    .stream()
-			    .map(Ref::getName)
-			    .collect(Collectors.toList());
+			return git.branchList().setListMode(ListMode.ALL).call().stream().map(Ref::getName)
+					.collect(Collectors.toList());
 		} catch (Exception e) {
 			throw GitException.general(e);
 		}
@@ -104,9 +151,7 @@ public class GitManagerImpl implements AutoCloseable, GitManager {
 
 	private void initialize(String gitDir) throws GitException {
 		try {
-			this.repository = new RepositoryBuilder().setMustExist(true)
-			    .setWorkTree(new File(gitDir))
-			    .build();
+			this.repository = new RepositoryBuilder().setMustExist(true).setWorkTree(new File(gitDir)).build();
 			this.git = new Git(repository);
 		} catch (Exception e) {
 			finish();
@@ -162,7 +207,13 @@ public class GitManagerImpl implements AutoCloseable, GitManager {
 			}
 
 			@Override
-			public void checkoutBranch(Component parent, String branchName, boolean pullAfterCheckout) throws GitException {
+			public void checkoutBranch(Component parent, String branchName, boolean pullAfterCheckout)
+					throws GitException {
+
+			}
+
+			@Override
+			public void pull() {
 
 			}
 		};
