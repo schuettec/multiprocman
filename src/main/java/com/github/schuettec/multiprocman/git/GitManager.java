@@ -3,12 +3,16 @@ package com.github.schuettec.multiprocman.git;
 import java.awt.Component;
 import java.util.List;
 
+import org.eclipse.jgit.lib.ProgressMonitor;
+
 public interface GitManager {
 
-	public void checkoutBranch(Component parent, String branchName, boolean pullAfterCheckout) throws GitException;
+	public void checkoutBranch(Component parent, String branchName, boolean pullAfterCheckout, ProgressMonitor monitor)
+	    throws GitException;
 
-	public default void checkoutBranch(String branchName, boolean pullAfterCheckout) throws GitException {
-		checkoutBranch(null, branchName, pullAfterCheckout);
+	public default void checkoutBranch(String branchName, boolean pullAfterCheckout, ProgressMonitor monitor)
+	    throws GitException {
+		checkoutBranch(null, branchName, pullAfterCheckout, monitor);
 	}
 
 	public abstract boolean hasUncomittedChanges() throws GitException;
@@ -19,6 +23,6 @@ public interface GitManager {
 
 	public abstract String currentBranch() throws GitException;
 
-	public abstract void pull() throws GitException;
+	public abstract void pull(ProgressMonitor monitor) throws GitException;
 
 }

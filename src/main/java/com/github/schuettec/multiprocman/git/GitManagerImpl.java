@@ -19,6 +19,7 @@ import org.eclipse.jgit.api.errors.CheckoutConflictException;
 import org.eclipse.jgit.api.errors.GitAPIException;
 import org.eclipse.jgit.api.errors.InvalidRefNameException;
 import org.eclipse.jgit.api.errors.RefNotFoundException;
+import org.eclipse.jgit.lib.ProgressMonitor;
 import org.eclipse.jgit.lib.Ref;
 import org.eclipse.jgit.lib.Repository;
 import org.eclipse.jgit.lib.RepositoryBuilder;
@@ -76,8 +77,11 @@ public class GitManagerImpl implements GitManager, AutoCloseable {
 	}
 
 	@Override
-	public void pull() throws GitException {
+	public void pull(ProgressMonitor monitor) throws GitException {
 		PullCommand pull = git.pull();
+		if (nonNull(monitor)) {
+			pull.setProgressMonitor(monitor);
+		}
 		pull.setTransportConfigCallback(transport -> {
 			if (transport instanceof SshTransport) {
 				SshTransport sshTransport = (SshTransport) transport;
@@ -99,7 +103,8 @@ public class GitManagerImpl implements GitManager, AutoCloseable {
 	 * String)
 	 */
 	@Override
-	public void checkoutBranch(Component parent, String branchName, boolean pullAfterCheckout) throws GitException {
+	public void checkoutBranch(Component parent, String branchName, boolean pullAfterCheckout, ProgressMonitor monitor)
+	    throws GitException {
 		try {
 			CheckoutCommand checkout = git.checkout();
 			checkout.setCreateBranch(false);
@@ -107,7 +112,7 @@ public class GitManagerImpl implements GitManager, AutoCloseable {
 			checkout.call();
 
 			if (pullAfterCheckout) {
-				pull();
+				pull(monitor);
 			}
 
 		} catch (RefNotFoundException e) {
@@ -135,7 +140,8 @@ public class GitManagerImpl implements GitManager, AutoCloseable {
 		try {
 			StatusCommand status = git.status();
 			Status statusResult = status.call();
-			return (!statusResult.getUncommittedChanges().isEmpty());
+			return (!statusResult.getUncommittedChanges()
+			    .isEmpty());
 		} catch (Exception e) {
 			throw GitException.general(e);
 		}
@@ -144,8 +150,12 @@ public class GitManagerImpl implements GitManager, AutoCloseable {
 	@Override
 	public List<String> branchList() throws GitException {
 		try {
-			return git.branchList().setListMode(ListMode.ALL).call().stream().map(Ref::getName)
-					.collect(Collectors.toList());
+			return git.branchList()
+			    .setListMode(ListMode.ALL)
+			    .call()
+			    .stream()
+			    .map(Ref::getName)
+			    .collect(Collectors.toList());
 		} catch (Exception e) {
 			throw GitException.general(e);
 		}
@@ -153,7 +163,9 @@ public class GitManagerImpl implements GitManager, AutoCloseable {
 
 	private void initialize(String gitDir) throws GitException {
 		try {
-			this.repository = new RepositoryBuilder().setMustExist(true).setWorkTree(new File(gitDir)).build();
+			this.repository = new RepositoryBuilder().setMustExist(true)
+			    .setWorkTree(new File(gitDir))
+			    .build();
 			this.git = new Git(repository);
 		} catch (Exception e) {
 			finish();
@@ -209,13 +221,13 @@ public class GitManagerImpl implements GitManager, AutoCloseable {
 			}
 
 			@Override
-			public void checkoutBranch(Component parent, String branchName, boolean pullAfterCheckout)
-					throws GitException {
+			public void checkoutBranch(Component parent, String branchName, boolean pullAfterCheckout,
+			    ProgressMonitor monitor) throws GitException {
 
 			}
 
 			@Override
-			public void pull() {
+			public void pull(ProgressMonitor monitor) {
 
 			}
 		};

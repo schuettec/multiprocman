@@ -697,7 +697,9 @@ public class ProcessManager extends JFrame {
 		Iterator<ProcessDescriptor> iterator = descriptors.iterator();
 		while (iterator.hasNext()) {
 			ProcessDescriptor descriptor = iterator.next();
-			branchSelection.addProcessDescriptor(descriptor);
+			if (descriptor.isEnableGitSupport()) {
+				branchSelection.addProcessDescriptor(descriptor);
+			}
 		}
 		boolean cancelled = branchSelection.showBranchSelection(this);
 		if (cancelled) {

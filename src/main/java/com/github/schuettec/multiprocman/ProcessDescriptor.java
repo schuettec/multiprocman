@@ -19,6 +19,8 @@ import java.util.regex.Pattern;
 
 import javax.swing.ImageIcon;
 
+import org.eclipse.jgit.lib.ProgressMonitor;
+
 import com.github.schuettec.multiprocman.git.DefaultCredentialsCallback;
 import com.github.schuettec.multiprocman.git.GitException;
 import com.github.schuettec.multiprocman.git.GitManager;
@@ -69,8 +71,7 @@ public class ProcessDescriptor implements Serializable {
 	private GitManager gitOperation() throws GitException {
 		if (isEnableGitSupport()) {
 			if (isNull(this.gitManager)) {
-				this.gitManager = new GitManagerImpl(new DefaultCredentialsCallback(),
-						getExecutionDirectoryForExecution());
+				this.gitManager = new GitManagerImpl(new DefaultCredentialsCallback(), getExecutionDirectoryForExecution());
 			}
 		} else {
 			this.gitManager = GitManagerImpl.noop();
@@ -94,8 +95,8 @@ public class ProcessDescriptor implements Serializable {
 		return !gitOperation().hasUncomittedChanges();
 	}
 
-	public void checkoutBranch(Component component, String branchName) throws GitException {
-		gitOperation().checkoutBranch(component, branchName, this.pullAfterCheckout);
+	public void checkoutBranch(Component component, String branchName, ProgressMonitor monitor) throws GitException {
+		gitOperation().checkoutBranch(component, branchName, this.pullAfterCheckout, monitor);
 	}
 
 	public void setPullAfterCheckout(boolean pullBeforeCheckout) {
@@ -104,13 +105,14 @@ public class ProcessDescriptor implements Serializable {
 
 	public static String substituteCommand(String command) {
 		Map<String, String> getenv = System.getenv();
-		Iterator<Entry<String, String>> it = getenv.entrySet().iterator();
+		Iterator<Entry<String, String>> it = getenv.entrySet()
+		    .iterator();
 		String substitute = command;
 		while (it.hasNext()) {
 			Entry<String, String> entry = it.next();
 			String substitution = getVariablePlaceholder(entry.getKey());
 			substitute = substitute.replaceAll("(?i)" + Pattern.quote(substitution),
-					Matcher.quoteReplacement(entry.getValue()));
+			    Matcher.quoteReplacement(entry.getValue()));
 		}
 		return substitute;
 	}
@@ -234,8 +236,8 @@ public class ProcessDescriptor implements Serializable {
 
 	@Override
 	public String toString() {
-		return "ProcessDescriptor [title=" + title + ", command=" + command + ", executionDirectory="
-				+ executionDirectory + ", color=" + color + ", charset=" + charset + "]";
+		return "ProcessDescriptor [title=" + title + ", command=" + command + ", executionDirectory=" + executionDirectory
+		    + ", color=" + color + ", charset=" + charset + "]";
 	}
 
 	public boolean isSupportAsciiCodes() {

@@ -7,17 +7,22 @@ import java.awt.FlowLayout;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.util.List;
+import java.util.concurrent.atomic.AtomicInteger;
 
+import javax.swing.DefaultListModel;
 import javax.swing.JButton;
 import javax.swing.JDialog;
 import javax.swing.JFrame;
+import javax.swing.JLabel;
+import javax.swing.JList;
 import javax.swing.JPanel;
 import javax.swing.JProgressBar;
 import javax.swing.JScrollPane;
-import javax.swing.JTable;
+import javax.swing.ListCellRenderer;
 import javax.swing.SwingWorker;
 import javax.swing.border.EmptyBorder;
-import javax.swing.table.TableCellRenderer;
+
+import org.eclipse.jgit.lib.ProgressMonitor;
 
 import com.github.schuettec.multiprocman.ExceptionDialog;
 import com.github.schuettec.multiprocman.Resources;
@@ -26,8 +31,11 @@ import com.github.schuettec.multiprocman.themes.ThemeUtil;
 public class ProgressView extends JDialog {
 
 	private final JPanel contentPanel = new JPanel();
-	private JTable table;
 	private GitWorker worker;
+	private DefaultListModel<GitMonitor> listModel;
+
+	private AtomicInteger waitingFor = new AtomicInteger();
+	private JList list;
 
 	/**
 	 * Create the dialog.
@@ -35,6 +43,7 @@ public class ProgressView extends JDialog {
 	public ProgressView(List<BranchSelection> branchSelections) {
 
 		this.worker = new GitWorker(branchSelections);
+		this.waitingFor.set(branchSelections.size());
 
 		ThemeUtil.setLookAndFeel();
 		setIconImage(Resources.getApplicationIcon());
@@ -54,19 +63,10 @@ public class ProgressView extends JDialog {
 			JScrollPane scrollPane = new JScrollPane();
 			contentPanel.add(scrollPane);
 			{
-
-				int size = branchSelections.size();
-				Integer[][] data = new Integer[size][1];
-				for (int i = 0; i < size; i++) {
-					data[i][0] = 0;
-				}
-				table = new JTable(data, new String[] {
-				    "Progress"
-				});
-				table.getColumnModel()
-				    .getColumn(0)
-				    .setCellRenderer(new ProgressCellRender());
-				scrollPane.setViewportView(table);
+				this.listModel = new DefaultListModel<GitMonitor>();
+				this.list = new JList(listModel);
+				list.setCellRenderer(new ProgressCellRender());
+				scrollPane.setViewportView(list);
 			}
 		}
 		{
@@ -101,20 +101,86 @@ public class ProgressView extends JDialog {
 		return worker.isCancelled();
 	}
 
-	public class ProgressCellRender extends JProgressBar implements TableCellRenderer {
+	public class ProgressCellRender implements ListCellRenderer {
+
+		private JLabel title;
+		private JProgressBar progressBar;
+		private JPanel panel;
+		private BorderLayout layout;
+
+		public ProgressCellRender() {
+			super();
+			this.layout = new BorderLayout();
+			this.panel = new JPanel(layout);
+			this.progressBar = new JProgressBar();
+			this.title = new JLabel();
+			panel.add(progressBar, BorderLayout.CENTER);
+			panel.add(title, BorderLayout.SOUTH);
+		}
 
 		@Override
-		public Component getTableCellRendererComponent(JTable table, Object value, boolean isSelected, boolean hasFocus,
-		    int row, int column) {
-			int progress = 0;
-			if (value instanceof Float) {
-				progress = Math.round(((Float) value) * 100f);
-			} else if (value instanceof Integer) {
-				progress = (int) value;
-			}
-			setValue(progress);
-			return this;
+		public Component getListCellRendererComponent(JList list, Object value, int index, boolean isSelected,
+		    boolean cellHasFocus) {
+
+			GitMonitor monitor = (GitMonitor) value;
+			progressBar.setMaximum(monitor.getTotalWork());
+			progressBar.setValue(monitor.getCompleted());
+			progressBar.setStringPainted(true);
+			title.setText(monitor.getTitle());
+			return panel;
 		}
+
+	}
+
+	public class GitMonitor implements ProgressMonitor {
+
+		protected String title = "";
+		protected int totalWork = 100;
+		protected int completed = 0;
+
+		public int getCompleted() {
+			return completed;
+		}
+
+		public String getTitle() {
+			return title;
+		}
+
+		public int getTotalWork() {
+			return totalWork;
+		}
+
+		@Override
+		public void start(int totalTasks) {
+
+		}
+
+		@Override
+		public void beginTask(String title, int totalWork) {
+			this.title = title;
+			this.totalWork = totalWork;
+			list.repaint();
+		}
+
+		@Override
+		public void update(int completed) {
+			this.completed = completed;
+			list.repaint();
+		}
+
+		@Override
+		public void endTask() {
+			int jobsWaiting = waitingFor.decrementAndGet();
+			if (jobsWaiting <= 0) {
+				ProgressView.this.dispose();
+			}
+		}
+
+		@Override
+		public boolean isCancelled() {
+			return false;
+		}
+
 	}
 
 	public class GitWorker extends SwingWorker<Void, List<BranchSelection>> {
@@ -129,9 +195,12 @@ public class ProgressView extends JDialog {
 		@Override
 		protected Void doInBackground() throws Exception {
 
-			for (BranchSelection b : branchSelections) {
+			for (int i = 0; i < branchSelections.size(); i++) {
+				BranchSelection b = branchSelections.get(i);
 				try {
-					b.checkoutBranch(ProgressView.this, b.getSelectedBranch());
+					GitMonitor monitor = new GitMonitor();
+					listModel.addElement(monitor);
+					b.checkoutBranch(ProgressView.this, b.getSelectedBranch(), monitor);
 				} catch (Exception e) {
 					ExceptionDialog.showException(ProgressView.this, e,
 					    "Error while checking out branch %s for launcher %s. Aborting the launch operation.",
@@ -141,7 +210,6 @@ public class ProgressView extends JDialog {
 				}
 			}
 
-			ProgressView.this.dispose();
 			return null;
 		}
 
