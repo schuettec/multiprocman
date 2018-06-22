@@ -52,9 +52,19 @@ public class DefaultCredentialsCallback implements CredentialsCallback {
 			String[] options = new String[] {
 			    "OK", "Cancel"
 			};
-			int option = JOptionPane.showOptionDialog(null, panel, "GIT credentials", JOptionPane.YES_OPTION,
-			    JOptionPane.PLAIN_MESSAGE, null, options, options[0]);
-			if (option == 0) {
+
+			JOptionPane pane = new JOptionPane(panel, JOptionPane.PLAIN_MESSAGE, JOptionPane.YES_OPTION, null, options,
+			    options[0]) {
+				@Override
+				public void selectInitialValue() {
+					pass.requestFocusInWindow();
+				}
+			};
+
+			pane.createDialog(panel, "GIT credentials")
+			    .setVisible(true);
+
+			if (pane.getValue() == options[0]) {
 				this.password = new String(pass.getPassword());
 				passwords.put(message, password);
 				return true;
@@ -80,9 +90,19 @@ public class DefaultCredentialsCallback implements CredentialsCallback {
 			String[] options = new String[] {
 			    "OK", "Cancel"
 			};
-			int option = JOptionPane.showOptionDialog(null, panel, "GIT credentials", JOptionPane.YES_OPTION,
-			    JOptionPane.PLAIN_MESSAGE, null, options, options[0]);
-			if (option == 0) {
+
+			JOptionPane pane = new JOptionPane(panel, JOptionPane.PLAIN_MESSAGE, JOptionPane.YES_OPTION, null, options,
+			    options[0]) {
+				@Override
+				public void selectInitialValue() {
+					pass.requestFocusInWindow();
+				}
+			};
+
+			pane.createDialog(panel, "GIT credentials")
+			    .setVisible(true);
+
+			if (pane.getValue() == options[0]) {
 				this.passphrase = new String(pass.getPassword());
 				passphrases.put(message, passphrase);
 				return true;
