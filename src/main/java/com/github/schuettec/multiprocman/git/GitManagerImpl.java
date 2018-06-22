@@ -6,6 +6,7 @@ import java.awt.Component;
 import java.io.File;
 import java.io.IOException;
 import java.util.Collections;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -32,11 +33,20 @@ import com.jcraft.jsch.UserInfo;
 
 public class GitManagerImpl implements GitManager, AutoCloseable {
 
+	private static final List<GitManagerImpl> instances = new LinkedList<>();
+
+	public static void closeAll() {
+		for (GitManagerImpl impl : instances) {
+			impl.finish();
+		}
+	}
+
 	private Repository repository;
 	private Git git;
 	private JschConfigSessionFactory sshSessionFactory;
 
 	public GitManagerImpl(CredentialsCallback callback, String gitDir) throws GitException {
+		instances.add(this);
 		initialize(gitDir);
 		this.sshSessionFactory = new JschConfigSessionFactory() {
 			@Override

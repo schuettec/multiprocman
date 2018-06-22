@@ -1,11 +1,18 @@
 package com.github.schuettec.multiprocman.git;
 
+import java.awt.Dimension;
+import java.util.HashMap;
+import java.util.Map;
+
 import javax.swing.JLabel;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JPasswordField;
 
 public class DefaultCredentialsCallback implements CredentialsCallback {
+
+	private static Map<String, String> passphrases = new HashMap<>();
+	private static Map<String, String> passwords = new HashMap<>();
 
 	private String passphrase;
 	private String password;
@@ -31,37 +38,57 @@ public class DefaultCredentialsCallback implements CredentialsCallback {
 
 	@Override
 	public boolean promptPassword(String message) {
-		JPanel panel = new JPanel();
-		JLabel label = new JLabel(message);
-		JPasswordField pass = new JPasswordField();
-		panel.add(label);
-		panel.add(pass);
-		String[] options = new String[] { "OK", "Cancel" };
-		int option = JOptionPane.showOptionDialog(null, panel, "GIT credentials", JOptionPane.NO_OPTION,
-				JOptionPane.PLAIN_MESSAGE, null, options, options[1]);
-		if (option == 0) {
-			this.password = new String(pass.getPassword());
+		if (passwords.containsKey(message)) {
+			this.password = passwords.get(message);
 			return true;
 		} else {
-			return false;
+			JPanel panel = new JPanel();
+			JLabel label = new JLabel(message + ":");
+			JPasswordField pass = new JPasswordField();
+			pass.setPreferredSize(new Dimension(100, 26));
+			pass.requestFocus();
+			panel.add(label);
+			panel.add(pass);
+			String[] options = new String[] {
+			    "OK", "Cancel"
+			};
+			int option = JOptionPane.showOptionDialog(null, panel, "GIT credentials", JOptionPane.YES_OPTION,
+			    JOptionPane.PLAIN_MESSAGE, null, options, options[0]);
+			if (option == 0) {
+				this.password = new String(pass.getPassword());
+				passwords.put(message, password);
+				return true;
+			} else {
+				return false;
+			}
 		}
 	}
 
 	@Override
 	public boolean promptPassphrase(String message) {
-		JPanel panel = new JPanel();
-		JLabel label = new JLabel(message);
-		JPasswordField pass = new JPasswordField();
-		panel.add(label);
-		panel.add(pass);
-		String[] options = new String[] { "OK", "Cancel" };
-		int option = JOptionPane.showOptionDialog(null, panel, "GIT credentials", JOptionPane.NO_OPTION,
-				JOptionPane.PLAIN_MESSAGE, null, options, options[1]);
-		if (option == 0) {
-			this.passphrase = new String(pass.getPassword());
+		if (passphrases.containsKey(message)) {
+			this.passphrase = passphrases.get(message);
 			return true;
 		} else {
-			return false;
+			JPanel panel = new JPanel();
+			JLabel label = new JLabel(message + ":");
+			JPasswordField pass = new JPasswordField();
+			pass.setPreferredSize(new Dimension(100, 26));
+			pass.requestFocus();
+			panel.add(label);
+			panel.add(pass);
+			String[] options = new String[] {
+			    "OK", "Cancel"
+			};
+			int option = JOptionPane.showOptionDialog(null, panel, "GIT credentials", JOptionPane.YES_OPTION,
+			    JOptionPane.PLAIN_MESSAGE, null, options, options[0]);
+			if (option == 0) {
+				this.passphrase = new String(pass.getPassword());
+				passphrases.put(message, passphrase);
+				return true;
+			} else {
+				return false;
+			}
 		}
 	}
 

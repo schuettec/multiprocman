@@ -52,6 +52,7 @@ import com.github.schuettec.multiprocman.ProcessController;
 import com.github.schuettec.multiprocman.ProcessDescriptor;
 import com.github.schuettec.multiprocman.Resources;
 import com.github.schuettec.multiprocman.git.GitBranchSelection;
+import com.github.schuettec.multiprocman.git.GitManagerImpl;
 import com.github.schuettec.multiprocman.themes.ThemeUtil;
 
 import javafx.stage.FileChooser.ExtensionFilter;
@@ -387,6 +388,7 @@ public class ProcessManager extends JFrame {
 				if (!MainFrame.getInstance()
 				    .isVisible()) {
 					ThemeUtil.stopJavaFX();
+					GitManagerImpl.closeAll();
 					dispose();
 					System.exit(0);
 				}

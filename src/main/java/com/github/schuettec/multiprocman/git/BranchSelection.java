@@ -20,6 +20,8 @@ public class BranchSelection {
 
 	private String selectedBranch;
 
+	private Boolean isSaveToCheckOut;
+
 	public BranchSelection(ProcessDescriptor processDescriptor) {
 		super();
 		this.processDescriptor = processDescriptor;
@@ -83,7 +85,10 @@ public class BranchSelection {
 	}
 
 	public boolean isSaveToCheckout() throws GitException {
-		return processDescriptor.isSaveToCheckout();
+		if (this.isSaveToCheckOut == null) {
+			this.isSaveToCheckOut = processDescriptor.isSaveToCheckout();
+		}
+		return this.isSaveToCheckOut;
 	}
 
 	public void setMaxLineNumbers(int maxLineNumbers) {
@@ -230,6 +235,10 @@ public class BranchSelection {
 
 	public String getExecutionDirectoryForExecution() {
 		return processDescriptor.getExecutionDirectoryForExecution();
+	}
+
+	public void clearCache() {
+		this.isSaveToCheckOut = null;
 	}
 
 }

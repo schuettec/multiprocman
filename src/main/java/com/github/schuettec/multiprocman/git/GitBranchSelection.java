@@ -1,5 +1,6 @@
 package com.github.schuettec.multiprocman.git;
 
+import static java.util.Objects.isNull;
 import static java.util.Objects.nonNull;
 
 import java.awt.BorderLayout;
@@ -120,6 +121,7 @@ public class GitBranchSelection extends JDialog {
 		scrollPane = new JScrollPane();
 		{
 			okButton = new JButton("OK");
+			okButton.setEnabled(false);
 			okButton.addActionListener(new ActionListener() {
 
 				@Override
@@ -146,6 +148,13 @@ public class GitBranchSelection extends JDialog {
 		}
 
 		JButton btnRefresh = new JButton("Refresh");
+		btnRefresh.addActionListener(new ActionListener() {
+
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				checkPreconditions();
+			}
+		});
 		btnRefresh.setPreferredSize(new Dimension(91, 23));
 		GroupLayout gl_contentPanel = new GroupLayout(contentPanel);
 		gl_contentPanel.setHorizontalGroup(gl_contentPanel.createParallelGroup(Alignment.TRAILING)
@@ -207,12 +216,41 @@ public class GitBranchSelection extends JDialog {
 		    .setPreferredWidth(300);
 
 		table.setPreferredScrollableViewportSize(table.getPreferredSize());
+
+	}
+
+	private void checkPreconditions() {
+		GitException exception = null;
+
+		boolean enable = true;
+		for (BranchSelection desc : descriptors) {
+			desc.clearCache();
+			try {
+				if (!desc.isSaveToCheckout()) {
+					enable = false;
+				}
+			} catch (GitException e) {
+				if (isNull(exception)) {
+					exception = e;
+				} else {
+					exception.addSuppressed(e);
+				}
+			}
+		}
+		table.repaint();
+		if (nonNull(exception)) {
+			ExceptionDialog.showException(this, exception, "Error while performing GIT operations.");
+			okButton.setEnabled(false);
+		} else {
+			okButton.setEnabled(enable);
+		}
 	}
 
 	public boolean showBranchSelection(Component parent) {
 		this.setLocationRelativeTo(parent);
-		this.setVisible(true);
 		this.validate();
+		checkPreconditions();
+		this.setVisible(true);
 		return this.wasCancelled;
 	}
 
@@ -233,10 +271,6 @@ public class GitBranchSelection extends JDialog {
 	private void performCancel() {
 		this.wasCancelled = true;
 		this.dispose();
-	}
-
-	public void clear() {
-		descriptors.clear();
 	}
 
 	class BranchCellRenderer extends DefaultTableCellRenderer {
@@ -315,7 +349,7 @@ public class GitBranchSelection extends JDialog {
 			if (column == WARN_COL) {
 				try {
 					if (processDescriptor.isSaveToCheckout()) {
-						return "OK";
+						return new ImageIcon(Resources.getOk());
 					} else {
 						return new ImageIcon(Resources.getWarning());
 					}
