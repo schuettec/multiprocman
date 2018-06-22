@@ -20,7 +20,6 @@ import org.eclipse.jgit.api.errors.CheckoutConflictException;
 import org.eclipse.jgit.api.errors.GitAPIException;
 import org.eclipse.jgit.api.errors.InvalidRefNameException;
 import org.eclipse.jgit.api.errors.RefNotFoundException;
-import org.eclipse.jgit.lib.ProgressMonitor;
 import org.eclipse.jgit.lib.Ref;
 import org.eclipse.jgit.lib.Repository;
 import org.eclipse.jgit.lib.RepositoryBuilder;
@@ -38,12 +37,14 @@ public class GitManagerImpl implements GitManager, AutoCloseable {
 	public static void closeAll() {
 		for (GitManagerImpl impl : instances) {
 			impl.finish();
+
 		}
 	}
 
 	private Repository repository;
 	private Git git;
 	private JschConfigSessionFactory sshSessionFactory;
+	private Component rootComponent;
 
 	public GitManagerImpl(CredentialsCallback callback, String gitDir) throws GitException {
 		instances.add(this);
@@ -64,22 +65,22 @@ public class GitManagerImpl implements GitManager, AutoCloseable {
 
 					@Override
 					public boolean promptPassword(String message) {
-						return callback.promptPassword(message);
+						return callback.promptPassword(message, rootComponent);
 					}
 
 					@Override
 					public boolean promptPassphrase(String message) {
-						return callback.promptPassphrase(message);
+						return callback.promptPassphrase(message, rootComponent);
 					}
 
 					@Override
 					public boolean promptYesNo(String message) {
-						return callback.promptYesNo(message);
+						return callback.promptYesNo(message, rootComponent);
 					}
 
 					@Override
 					public void showMessage(String message) {
-						callback.showMessage(message);
+						callback.showMessage(message, rootComponent);
 					}
 				});
 			}
@@ -87,7 +88,7 @@ public class GitManagerImpl implements GitManager, AutoCloseable {
 	}
 
 	@Override
-	public void pull(ProgressMonitor monitor) throws GitException {
+	public void pull(ProgressMonitorView monitor) throws GitException {
 		PullCommand pull = git.pull();
 		if (nonNull(monitor)) {
 			pull.setProgressMonitor(monitor);
@@ -98,8 +99,11 @@ public class GitManagerImpl implements GitManager, AutoCloseable {
 				sshTransport.setSshSessionFactory(sshSessionFactory);
 			}
 		});
+		this.rootComponent = monitor.getRootComponent();
 		try {
 			pull.call();
+			System.out.println("Pulled: " + repository.getDirectory()
+			    .toString());
 		} catch (GitAPIException e) {
 			throw GitException.general(e);
 		}
@@ -113,8 +117,8 @@ public class GitManagerImpl implements GitManager, AutoCloseable {
 	 * String)
 	 */
 	@Override
-	public void checkoutBranch(Component parent, String branchName, boolean pullAfterCheckout, ProgressMonitor monitor)
-	    throws GitException {
+	public void checkoutBranch(Component parent, String branchName, boolean pullAfterCheckout,
+	    ProgressMonitorView monitor) throws GitException {
 		try {
 			CheckoutCommand checkout = git.checkout();
 			checkout.setCreateBranch(false);
@@ -232,12 +236,12 @@ public class GitManagerImpl implements GitManager, AutoCloseable {
 
 			@Override
 			public void checkoutBranch(Component parent, String branchName, boolean pullAfterCheckout,
-			    ProgressMonitor monitor) throws GitException {
+			    ProgressMonitorView monitor) throws GitException {
 
 			}
 
 			@Override
-			public void pull(ProgressMonitor monitor) {
+			public void pull(ProgressMonitorView monitor) {
 
 			}
 		};

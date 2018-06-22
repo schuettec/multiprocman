@@ -9,8 +9,6 @@ import java.util.Map;
 
 import javax.swing.ImageIcon;
 
-import org.eclipse.jgit.lib.ProgressMonitor;
-
 import com.github.schuettec.multiprocman.Counter;
 import com.github.schuettec.multiprocman.ProcessDescriptor;
 
@@ -35,7 +33,7 @@ public class BranchSelection {
 		return processDescriptor.isPullAfterCheckout();
 	}
 
-	public void checkoutBranch(Component component, String branchName, ProgressMonitor monitor) throws GitException {
+	public void checkoutBranch(Component component, String branchName, ProgressMonitorView monitor) throws GitException {
 		processDescriptor.checkoutBranch(component, branchName, monitor);
 	}
 

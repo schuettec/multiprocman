@@ -52,7 +52,7 @@ public class GitBranchSelection extends JDialog {
 	private static final String LOCAL_PREFIX = "refs/heads/";
 
 	protected static final String[] columnNames = {
-	    "", "Application", "Branch selection", "Pull before"
+	    "", "Application", "Branch selection", "Checkout and pull"
 	};
 
 	private final JPanel contentPanel = new JPanel();

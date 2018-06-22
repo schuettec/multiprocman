@@ -3,14 +3,12 @@ package com.github.schuettec.multiprocman.git;
 import java.awt.Component;
 import java.util.List;
 
-import org.eclipse.jgit.lib.ProgressMonitor;
-
 public interface GitManager {
 
-	public void checkoutBranch(Component parent, String branchName, boolean pullAfterCheckout, ProgressMonitor monitor)
-	    throws GitException;
+	public void checkoutBranch(Component parent, String branchName, boolean pullAfterCheckout,
+	    ProgressMonitorView monitor) throws GitException;
 
-	public default void checkoutBranch(String branchName, boolean pullAfterCheckout, ProgressMonitor monitor)
+	public default void checkoutBranch(String branchName, boolean pullAfterCheckout, ProgressMonitorView monitor)
 	    throws GitException {
 		checkoutBranch(null, branchName, pullAfterCheckout, monitor);
 	}
@@ -23,6 +21,6 @@ public interface GitManager {
 
 	public abstract String currentBranch() throws GitException;
 
-	public abstract void pull(ProgressMonitor monitor) throws GitException;
+	public abstract void pull(ProgressMonitorView monitor) throws GitException;
 
 }

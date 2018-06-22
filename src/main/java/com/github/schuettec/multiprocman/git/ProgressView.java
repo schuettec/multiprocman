@@ -8,7 +8,6 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.util.Collections;
 import java.util.List;
-import java.util.concurrent.atomic.AtomicInteger;
 
 import javax.swing.DefaultListModel;
 import javax.swing.JButton;
@@ -23,8 +22,6 @@ import javax.swing.ListCellRenderer;
 import javax.swing.SwingWorker;
 import javax.swing.border.EmptyBorder;
 
-import org.eclipse.jgit.lib.ProgressMonitor;
-
 import com.github.schuettec.multiprocman.ExceptionDialog;
 import com.github.schuettec.multiprocman.Resources;
 import com.github.schuettec.multiprocman.themes.ThemeUtil;
@@ -35,7 +32,6 @@ public class ProgressView extends JDialog {
 	private GitWorker worker;
 	private DefaultListModel<GitMonitor> listModel;
 
-	private AtomicInteger waitingFor = new AtomicInteger();
 	private JList list;
 
 	public static void main(String[] args) {
@@ -48,13 +44,12 @@ public class ProgressView extends JDialog {
 	public ProgressView(List<BranchSelection> branchSelections) {
 
 		this.worker = new GitWorker(branchSelections);
-		this.waitingFor.set(branchSelections.size());
 
 		ThemeUtil.setLookAndFeel();
 		setIconImage(Resources.getApplicationIcon());
 		setDefaultCloseOperation(JFrame.DO_NOTHING_ON_CLOSE);
-		setPreferredSize(new Dimension(480, 640));
-		this.setSize(new Dimension(480, 640));
+		setPreferredSize(new Dimension(300, 480));
+		this.setSize(new Dimension(300, 480));
 		ThemeUtil.loadWindow(this);
 		ThemeUtil.installListeners(this);
 		setModal(true);
@@ -137,10 +132,10 @@ public class ProgressView extends JDialog {
 
 	}
 
-	public class GitMonitor implements ProgressMonitor {
+	public class GitMonitor implements ProgressMonitorView {
 
 		protected BranchSelection selection;
-		protected String title = "";
+		protected String title = "Awaiting operation...";
 		protected int totalWork = 100;
 		protected int completed = 0;
 		protected boolean cancelled = false;
@@ -185,7 +180,7 @@ public class ProgressView extends JDialog {
 
 		@Override
 		public void endTask() {
-			disposeOnDemand();
+			this.completed = totalWork;
 		}
 
 		@Override
@@ -196,6 +191,11 @@ public class ProgressView extends JDialog {
 		public void setCancelled(boolean cancelled) {
 			this.title = title + " (cancelled)";
 			this.cancelled = cancelled;
+		}
+
+		@Override
+		public Component getRootComponent() {
+			return ProgressView.this;
 		}
 
 	}
@@ -216,6 +216,11 @@ public class ProgressView extends JDialog {
 				BranchSelection b = branchSelections.get(i);
 				GitMonitor monitor = new GitMonitor(b);
 				listModel.addElement(monitor);
+			}
+
+			for (int i = 0; i < branchSelections.size(); i++) {
+				BranchSelection b = branchSelections.get(i);
+				GitMonitor monitor = listModel.get(i);
 				try {
 					b.checkoutBranch(ProgressView.this, b.getSelectedBranch(), monitor);
 				} catch (Exception e) {
@@ -224,20 +229,14 @@ public class ProgressView extends JDialog {
 					    b.getSelectedBranch(), b.getTitle());
 					monitor.setCancelled(true);
 					worker.cancel(false);
-					disposeOnDemand();
 					break;
 				}
 			}
 
+			ProgressView.this.dispose();
 			return null;
 		}
 
 	}
 
-	private void disposeOnDemand() {
-		int jobsWaiting = waitingFor.decrementAndGet();
-		if (jobsWaiting <= 0) {
-			ProgressView.this.dispose();
-		}
-	}
 }

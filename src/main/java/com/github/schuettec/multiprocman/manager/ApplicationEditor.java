@@ -653,7 +653,7 @@ public class ApplicationEditor extends JDialog {
 		tabbedPane.addTab("Git support", null, pnlGit, null);
 
 		JLabel lblNewLabel_2 = new JLabel(
-		    "<html>On this page you can enable Git support for your application launcher. If enabled, the execution directory of a launcher is interpreted as a Git repositor. Further options are available to change branches for execution and pull before launching.</html>");
+		    "<html>On this page you can enable Git support for your application launcher. If enabled, the execution directory of a launcher is interpreted as a Git repository. Further options are available to change branches for execution and pull before launching.</html>");
 
 		checkEnableGitSupport = new JCheckBox("Enable Git support");
 		checkEnableGitSupport.addChangeListener(new ChangeListener() {

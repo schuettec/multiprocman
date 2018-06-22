@@ -19,12 +19,11 @@ import java.util.regex.Pattern;
 
 import javax.swing.ImageIcon;
 
-import org.eclipse.jgit.lib.ProgressMonitor;
-
 import com.github.schuettec.multiprocman.git.DefaultCredentialsCallback;
 import com.github.schuettec.multiprocman.git.GitException;
 import com.github.schuettec.multiprocman.git.GitManager;
 import com.github.schuettec.multiprocman.git.GitManagerImpl;
+import com.github.schuettec.multiprocman.git.ProgressMonitorView;
 
 public class ProcessDescriptor implements Serializable {
 
@@ -95,7 +94,7 @@ public class ProcessDescriptor implements Serializable {
 		return !gitOperation().hasUncomittedChanges();
 	}
 
-	public void checkoutBranch(Component component, String branchName, ProgressMonitor monitor) throws GitException {
+	public void checkoutBranch(Component component, String branchName, ProgressMonitorView monitor) throws GitException {
 		gitOperation().checkoutBranch(component, branchName, this.pullAfterCheckout, monitor);
 	}
 
