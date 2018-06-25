@@ -367,7 +367,7 @@ public class MainFrame extends JFrame implements WindowListener, ProcessListener
 				    .setVisible(true);
 			}
 		});
-
+		mntmNewProcess.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_N, InputEvent.CTRL_MASK));
 		mnFile.add(mntmNewProcess);
 
 		separator_2 = new JSeparator();

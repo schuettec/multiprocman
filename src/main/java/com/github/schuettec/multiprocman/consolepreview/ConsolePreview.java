@@ -1,9 +1,8 @@
 package com.github.schuettec.multiprocman.consolepreview;
 
-import static java.lang.Character.isWhitespace;
-
 import java.awt.AlphaComposite;
 import java.awt.BasicStroke;
+import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.FontMetrics;
@@ -15,7 +14,7 @@ import java.awt.geom.Rectangle2D;
 import java.awt.image.BufferedImage;
 import java.util.List;
 
-import javax.swing.BorderFactory;
+import javax.swing.JFrame;
 import javax.swing.JPanel;
 import javax.swing.plaf.BorderUIResource;
 
@@ -27,6 +26,7 @@ import com.github.schuettec.multiprocman.ProcessController.State;
 import com.github.schuettec.multiprocman.ProcessDescriptor;
 import com.github.schuettec.multiprocman.ProcessListener;
 import com.github.schuettec.multiprocman.Resources;
+import com.github.schuettec.multiprocman.console.AnsiColorTextPane;
 
 public class ConsolePreview extends JPanel implements AppendListener, ProcessListener {
 
@@ -60,6 +60,40 @@ public class ConsolePreview extends JPanel implements AppendListener, ProcessLis
 	private State processState;
 	private ProcessController controller;
 	private BufferedImage titleImage;
+
+	public static void main(String[] args) {
+		JFrame frame = new JFrame();
+		AnsiColorTextPane ansiText = new AnsiColorTextPane();
+		ProcessDescriptor processDescriptor = new ProcessDescriptor();
+		processDescriptor.setTitle("title");
+		ConsolePreview preview = new ConsolePreview(new ProcessController(processDescriptor));
+		ansiText.addAppendListener(preview);
+		frame.add(preview, BorderLayout.NORTH);
+		frame.add(ansiText, BorderLayout.CENTER);
+		ansiText.appendANSI("Listening for transport dt_socket at address: 5012\n"
+		    + "2018-06-25 12:56:24.920  INFO [user-service] [,] 17528 --- [           main] s.c.a.AnnotationConfigApplicationContext : Refreshing org.springframework.context.annotation.AnnotationConfigApplicationContext@38aa816f: startup date [Mon Jun 25 12:56:24 CEST 2018]; root of context hierarchy\n"
+		    + "2018-06-25 12:56:25.273  INFO [user-service] [,] 17528 --- [           main] f.a.AutowiredAnnotationBeanPostProcessor : JSR-330 'javax.inject.Inject' annotation found and supported for autowiring\n"
+		    + "2018-06-25 12:56:25.364  INFO [user-service] [,] 17528 --- [           main] trationDelegate$BeanPostProcessorChecker : Bean 'configurationPropertiesRebinderAutoConfiguration' of type [org.springframework.cloud.autoconfigure.ConfigurationPropertiesRebinderAutoConfiguration$$EnhancerBySpringCGLIB$$66b84db6] is not eligible for getting processed by all BeanPostProcessors (for example: not eligible for auto-proxying)\n"
+		    + "                    ________________________________________________\n"
+		    + "                   |  _____  ______      _   _ ________          __ |\n"
+		    + "            /|     | |  __ \\|  ____|    | \\ | |  ____\\ \\        / / |\n"
+		    + "            ||     | | |__) | |__ ______|  \\| | |__   \\ \\  /\\  / /  |\n"
+		    + "       .----|-----,| |  _  /|  __|______| . ` |  __|   \\ \\/  \\/ /   |\n"
+		    + "       ||  ||   ==|| | | \\ \\| |____     | |\\  | |____   \\  /\\  /    |\n"
+		    + "  .-----'--'|   ==|| |_|  \\_\\______|    |_| \\_|______|   \\/  \\/     |\n"
+		    + "  |)-      ~|     ||________________________________________________|\n"
+		    + "  | ___     |     |____.________  ________________________________|\n"
+		    + " [_/.-.\\\"--\"-------- //.-.  .-.\\\\/                 \\\\ .-.  .-. //\n"
+		    + "   ( o )`===\"\"\"\"\"\"\"\"\"`( o )( o )                    `( o )( o )`\n"
+		    + "    '-'                '-'  '-'                       '-'  '-'\n" + "\n" + " user-service v0.0.1\n" + "\n"
+		    + "\n"
+		    + "2018-06-25 12:56:26.309  INFO [renew-user-service] [,] 17528 --- [           main] c.r.r.u.UserServiceApplication           : The following profiles are active: dev\n"
+		    + "2018-06-25 12:56:26.364  INFO [renew-user-service] [,] 17528 --- [           main] ationConfigEmbeddedWebApplicationContext : Refreshing",
+		    false);
+		frame.pack();
+		frame.setLocationRelativeTo(null);
+		frame.setVisible(true);
+	}
 
 	public ConsolePreview(ProcessController controller) {
 		super();
@@ -206,8 +240,6 @@ public class ConsolePreview extends JPanel implements AppendListener, ProcessLis
 				// Trigger line break
 				bufferedImage = cropImage(bufferedImage);
 				curX = INITIAL_X;
-			} else if (isWhitespace(c)) {
-				// Do nothing
 			} else {
 				// Paint charatcer
 				Graphics2D g = (Graphics2D) bufferedImage.getGraphics();
