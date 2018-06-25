@@ -51,6 +51,7 @@ import com.github.schuettec.multiprocman.console.AutoScrollToBottomListener;
 import com.github.schuettec.multiprocman.console.ScrollableAnsiColorTextPaneContainer;
 import com.github.schuettec.multiprocman.console.SearchFieldListener;
 import com.github.schuettec.multiprocman.consolepreview.ConsolePreview;
+import com.github.schuettec.multiprocman.git.GitManagerImpl;
 import com.github.schuettec.multiprocman.manager.ProcessManager;
 import com.github.schuettec.multiprocman.themes.ThemeUtil;
 
@@ -534,6 +535,7 @@ public class MainFrame extends JFrame implements WindowListener, ProcessListener
 			public void run() {
 				ProcessController.shutdown();
 				ThemeUtil.stopJavaFX();
+				GitManagerImpl.closeAll();
 				setVisible(false);
 				dispose();
 				System.exit(0);

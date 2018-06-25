@@ -56,6 +56,8 @@ import javax.swing.SwingConstants;
 import javax.swing.SwingUtilities;
 import javax.swing.border.BevelBorder;
 import javax.swing.border.EmptyBorder;
+import javax.swing.event.ChangeEvent;
+import javax.swing.event.ChangeListener;
 import javax.swing.table.DefaultTableModel;
 import javax.swing.table.TableCellRenderer;
 import javax.swing.table.TableColumn;
@@ -93,6 +95,8 @@ public class ApplicationEditor extends JDialog {
 	private JTextArea txtTermCommand;
 	private JRadioButton rdbtnUseCustomCommand;
 	private JCheckBox chckbxTermUseVariableSubst;
+	private JCheckBox checkEnableGitSupport;
+	private JCheckBox checkPullAfterCheckout;
 
 	/**
 	 * Create the dialog.
@@ -645,6 +649,44 @@ public class ApplicationEditor extends JDialog {
 		scrollPane.setViewportView(txtCommand);
 		mainPanel.setLayout(gl_contentPanel);
 
+		JPanel pnlGit = new JPanel();
+		tabbedPane.addTab("Git support", null, pnlGit, null);
+
+		JLabel lblNewLabel_2 = new JLabel(
+		    "<html>On this page you can enable Git support for your application launcher. If enabled, the execution directory of a launcher is interpreted as a Git repository. Further options are available to change branches for execution and pull before launching.</html>");
+
+		checkEnableGitSupport = new JCheckBox("Enable Git support");
+		checkEnableGitSupport.addChangeListener(new ChangeListener() {
+
+			@Override
+			public void stateChanged(ChangeEvent e) {
+				checkPullAfterCheckout.setEnabled(checkEnableGitSupport.isSelected());
+			}
+		});
+
+		checkPullAfterCheckout = new JCheckBox("Pull after checkout");
+		GroupLayout gl_pnlGit = new GroupLayout(pnlGit);
+		gl_pnlGit.setHorizontalGroup(gl_pnlGit.createParallelGroup(Alignment.LEADING)
+		    .addGroup(gl_pnlGit.createSequentialGroup()
+		        .addContainerGap()
+		        .addGroup(gl_pnlGit.createParallelGroup(Alignment.LEADING)
+		            .addComponent(checkEnableGitSupport, GroupLayout.DEFAULT_SIZE, 499, Short.MAX_VALUE)
+		            .addComponent(lblNewLabel_2, GroupLayout.DEFAULT_SIZE, 499, Short.MAX_VALUE)
+		            .addGroup(gl_pnlGit.createSequentialGroup()
+		                .addGap(21)
+		                .addComponent(checkPullAfterCheckout, GroupLayout.DEFAULT_SIZE, 478, Short.MAX_VALUE)))
+		        .addContainerGap()));
+		gl_pnlGit.setVerticalGroup(gl_pnlGit.createParallelGroup(Alignment.LEADING)
+		    .addGroup(gl_pnlGit.createSequentialGroup()
+		        .addContainerGap()
+		        .addComponent(lblNewLabel_2, GroupLayout.PREFERRED_SIZE, 49, GroupLayout.PREFERRED_SIZE)
+		        .addPreferredGap(ComponentPlacement.RELATED)
+		        .addComponent(checkEnableGitSupport)
+		        .addPreferredGap(ComponentPlacement.UNRELATED)
+		        .addComponent(checkPullAfterCheckout)
+		        .addContainerGap(369, Short.MAX_VALUE)));
+		pnlGit.setLayout(gl_pnlGit);
+
 		{
 			JPanel buttonPane = new JPanel();
 			buttonPane.setLayout(new FlowLayout(FlowLayout.RIGHT));
@@ -798,6 +840,11 @@ public class ApplicationEditor extends JDialog {
 			chckbxTermUseVariableSubst.setSelected(processDescriptor.isTerminationVariableSubstitution());
 			txtTermCommand.setText(processDescriptor.getTerminationCommand());
 
+			checkEnableGitSupport.setSelected(processDescriptor.isEnableGitSupport());
+			checkPullAfterCheckout.setSelected(processDescriptor.isPullAfterCheckout());
+
+			checkPullAfterCheckout.setEnabled(checkEnableGitSupport.isSelected());
+
 		}
 	}
 
@@ -872,6 +919,8 @@ public class ApplicationEditor extends JDialog {
 		    .setTerminationVariableSubstitution(chckbxTermUseVariableSubst.isSelected());
 		ApplicationEditor.this.processDescriptor.setTerminationCommand(txtTermCommand.getText());
 
+		ApplicationEditor.this.processDescriptor.setEnableGitSupport(checkEnableGitSupport.isSelected());
+		ApplicationEditor.this.processDescriptor.setPullAfterCheckout(checkPullAfterCheckout.isSelected());
 		dispose();
 	}
 

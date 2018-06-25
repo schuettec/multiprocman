@@ -1,9 +1,11 @@
 package com.github.schuettec.multiprocman;
 
+import static java.util.Objects.isNull;
 import static java.util.Objects.nonNull;
 import static java.util.Objects.requireNonNull;
 
 import java.awt.Color;
+import java.awt.Component;
 import java.awt.image.BufferedImage;
 import java.io.Serializable;
 import java.nio.charset.Charset;
@@ -16,6 +18,12 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import javax.swing.ImageIcon;
+
+import com.github.schuettec.multiprocman.git.DefaultCredentialsCallback;
+import com.github.schuettec.multiprocman.git.GitException;
+import com.github.schuettec.multiprocman.git.GitManager;
+import com.github.schuettec.multiprocman.git.GitManagerImpl;
+import com.github.schuettec.multiprocman.git.ProgressMonitorView;
 
 public class ProcessDescriptor implements Serializable {
 
@@ -43,6 +51,11 @@ public class ProcessDescriptor implements Serializable {
 
 	private List<Counter> counters;
 
+	private boolean enableGitSupport;
+	private boolean pullAfterCheckout;
+
+	private transient GitManager gitManager;
+
 	public ProcessDescriptor() {
 		super();
 		setCharset(Charset.defaultCharset());
@@ -50,6 +63,43 @@ public class ProcessDescriptor implements Serializable {
 		setVariableSubstitution(true);
 		setColor(Color.GREEN);
 		setMaxLineNumbers(MAX_LINES_DEFAULT);
+		setEnableGitSupport(false);
+		setPullAfterCheckout(true);
+	}
+
+	private GitManager gitOperation() throws GitException {
+		if (isEnableGitSupport()) {
+			if (isNull(this.gitManager)) {
+				this.gitManager = new GitManagerImpl(new DefaultCredentialsCallback(), getExecutionDirectoryForExecution());
+			}
+		} else {
+			this.gitManager = GitManagerImpl.noop();
+		}
+		return this.gitManager;
+	}
+
+	public String getCurrentBranch() throws GitException {
+		return gitOperation().currentBranch();
+	}
+
+	public List<String> getAllBranches() throws GitException {
+		return gitOperation().branchList();
+	}
+
+	public boolean isPullAfterCheckout() {
+		return pullAfterCheckout;
+	}
+
+	public boolean isSaveToCheckout() throws GitException {
+		return !gitOperation().hasUncomittedChanges();
+	}
+
+	public void checkoutBranch(Component component, String branchName, ProgressMonitorView monitor) throws GitException {
+		gitOperation().checkoutBranch(component, branchName, this.pullAfterCheckout, monitor);
+	}
+
+	public void setPullAfterCheckout(boolean pullBeforeCheckout) {
+		this.pullAfterCheckout = pullBeforeCheckout;
 	}
 
 	public static String substituteCommand(String command) {
@@ -64,6 +114,14 @@ public class ProcessDescriptor implements Serializable {
 			    Matcher.quoteReplacement(entry.getValue()));
 		}
 		return substitute;
+	}
+
+	public boolean isEnableGitSupport() {
+		return enableGitSupport;
+	}
+
+	public void setEnableGitSupport(boolean enableGitSupport) {
+		this.enableGitSupport = enableGitSupport;
 	}
 
 	public int getMaxLineNumbers() {
@@ -190,8 +248,9 @@ public class ProcessDescriptor implements Serializable {
 	}
 
 	/**
-	 * @return Returns the substituted command if environment variable substitution was enabled. Otherwise the command is
-	 *         returned without any modification.
+	 * @return Returns the substituted command if environment variable substitution
+	 *         was enabled. Otherwise the command is returned without any
+	 *         modification.
 	 */
 	public String getCommandForExecution() {
 		if (variableSubstitution) {
@@ -202,8 +261,9 @@ public class ProcessDescriptor implements Serializable {
 	}
 
 	/**
-	 * @return Returns the substituted command if environment variable substitution was enabled. Otherwise the command is
-	 *         returned without any modification.
+	 * @return Returns the substituted command if environment variable substitution
+	 *         was enabled. Otherwise the command is returned without any
+	 *         modification.
 	 */
 	public String getTerminationCommandForExecution() {
 		if (terminationVariableSubstitution) {
