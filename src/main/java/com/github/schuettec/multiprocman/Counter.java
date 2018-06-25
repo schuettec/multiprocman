@@ -49,7 +49,7 @@ public class Counter {
 
 	private boolean compile(boolean raiseException) {
 		try {
-			this.pattern = Pattern.compile(regexp);
+			this.pattern = Pattern.compile(regexp, Pattern.CASE_INSENSITIVE);
 			return true;
 		} catch (PatternSyntaxException e) {
 			if (raiseException) {
