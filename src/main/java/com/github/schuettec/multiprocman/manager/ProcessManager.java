@@ -16,6 +16,7 @@ import java.awt.event.WindowEvent;
 import java.awt.event.WindowListener;
 import java.io.File;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.Iterator;
 import java.util.List;
 
@@ -50,6 +51,8 @@ import com.github.schuettec.multiprocman.MainFrame;
 import com.github.schuettec.multiprocman.ProcessController;
 import com.github.schuettec.multiprocman.ProcessDescriptor;
 import com.github.schuettec.multiprocman.Resources;
+import com.github.schuettec.multiprocman.git.GitBranchSelection;
+import com.github.schuettec.multiprocman.git.GitManagerImpl;
 import com.github.schuettec.multiprocman.themes.ThemeUtil;
 
 import javafx.stage.FileChooser.ExtensionFilter;
@@ -385,6 +388,7 @@ public class ProcessManager extends JFrame {
 				if (!MainFrame.getInstance()
 				    .isVisible()) {
 					ThemeUtil.stopJavaFX();
+					GitManagerImpl.closeAll();
 					dispose();
 					System.exit(0);
 				}
@@ -540,17 +544,14 @@ public class ProcessManager extends JFrame {
 									JOptionPane.showMessageDialog(ProcessManager.this, "Please select the category to start first.",
 									    "No selection", JOptionPane.WARNING_MESSAGE);
 								} else {
-									MainFrame mainFrame = MainFrame.getInstance();
-									mainFrame.setVisible(true);
 									Category selected = lstCategories.getSelectedValue();
 									DefaultListModel<ProcessDescriptor> processTemplates = selected.getProcessTemplates();
 									ProcessDescriptor[] array = new ProcessDescriptor[processTemplates.size()];
 									processTemplates.copyInto(array);
-									startAll(mainFrame, Arrays.asList(array)
-									    .iterator());
-									setVisible(false);
+									startAllOrHandleCancel(array);
 								}
 							}
+
 						});
 						btnRunCategory.setToolTipText("Run all applications in category.");
 						toolBar.add(btnRunCategory);
@@ -671,22 +672,50 @@ public class ProcessManager extends JFrame {
 		super.dispose();
 	}
 
+	private void startAllOrHandleCancel(ProcessDescriptor[] array) {
+		boolean cancelled = startAll(Arrays.asList(array));
+		if (cancelled) {
+			JOptionPane.showMessageDialog(ProcessManager.this, "The launch was cancelled.", "Launch cancelled",
+			    JOptionPane.INFORMATION_MESSAGE);
+		} else {
+			setVisible(false);
+		}
+	}
+
 	private void runSelectedApplication() {
 		int selectedIndex = lstProcesses.getSelectedIndex();
 		if (selectedIndex == -1) {
 			JOptionPane.showMessageDialog(ProcessManager.this, "Please select the application to start first.",
 			    "No selection", JOptionPane.WARNING_MESSAGE);
 		} else {
-			MainFrame mainFrame = MainFrame.getInstance();
-			mainFrame.setVisible(true);
 			List<ProcessDescriptor> selected = lstProcesses.getSelectedValuesList();
-			Iterator<ProcessDescriptor> iterator = selected.iterator();
-			startAll(mainFrame, iterator);
-			setVisible(false);
+			startAllOrHandleCancel(selected.toArray(new ProcessDescriptor[selected.size()]));
 		}
 	}
 
-	private void startAll(MainFrame mainFrame, Iterator<ProcessDescriptor> iterator) {
+	private boolean startAll(Collection<ProcessDescriptor> descriptors) {
+
+		GitBranchSelection branchSelection = new GitBranchSelection();
+		Iterator<ProcessDescriptor> iterator = descriptors.iterator();
+		while (iterator.hasNext()) {
+			ProcessDescriptor descriptor = iterator.next();
+			if (descriptor.isEnableGitSupport()) {
+				branchSelection.addProcessDescriptor(descriptor);
+			}
+		}
+		boolean cancelled = branchSelection.showBranchSelection(this);
+		if (cancelled) {
+			return cancelled;
+		}
+
+		MainFrame mainFrame = MainFrame.getInstance();
+		mainFrame.setVisible(true);
+		_startAll(mainFrame, descriptors);
+		return false;
+	}
+
+	private void _startAll(MainFrame mainFrame, Collection<ProcessDescriptor> descriptors) {
+		Iterator<ProcessDescriptor> iterator = descriptors.iterator();
 		while (iterator.hasNext()) {
 			ProcessDescriptor descriptor = iterator.next();
 			ProcessController c = new ProcessController(descriptor);
