@@ -52,7 +52,7 @@ public class GitBranchSelection extends JDialog {
 	private static final String LOCAL_PREFIX = "refs/heads/";
 
 	protected static final String[] columnNames = {
-	    "", "Application", "Branch selection", "Checkout and pull"
+	    "Safe to checkout", "Application", "Branch selection", "Pull after checkout"
 	};
 
 	private final JPanel contentPanel = new JPanel();
@@ -387,11 +387,13 @@ public class GitBranchSelection extends JDialog {
 			if (column == BRANCH_COL) {
 				descriptors.get(row)
 				    .setSelectedBranch((String) value);
+				checkPreconditions();
 				fireTableRowsUpdated(row, row);
 			}
 			if (column == PULL_COL) {
 				descriptors.get(row)
-				    .setPullBeforeCheckout((boolean) value);
+				    .setPullAfterCheckout((boolean) value);
+				checkPreconditions();
 				fireTableRowsUpdated(row, row);
 			}
 		}

@@ -694,18 +694,21 @@ public class ProcessManager extends JFrame {
 	}
 
 	private boolean startAll(Collection<ProcessDescriptor> descriptors) {
-
+		boolean addedSomething = false;
 		GitBranchSelection branchSelection = new GitBranchSelection();
 		Iterator<ProcessDescriptor> iterator = descriptors.iterator();
 		while (iterator.hasNext()) {
 			ProcessDescriptor descriptor = iterator.next();
 			if (descriptor.isEnableGitSupport()) {
 				branchSelection.addProcessDescriptor(descriptor);
+				addedSomething = true;
 			}
 		}
-		boolean cancelled = branchSelection.showBranchSelection(this);
-		if (cancelled) {
-			return cancelled;
+		if (addedSomething) {
+			boolean cancelled = branchSelection.showBranchSelection(this);
+			if (cancelled) {
+				return cancelled;
+			}
 		}
 
 		MainFrame mainFrame = MainFrame.getInstance();

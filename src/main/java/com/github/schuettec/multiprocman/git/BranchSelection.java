@@ -39,10 +39,17 @@ public class BranchSelection {
 
 	public void setPullAfterCheckout(boolean pullBeforeCheckout) {
 		processDescriptor.setPullAfterCheckout(pullBeforeCheckout);
+		clearCache();
+		try {
+			isSaveToCheckout();
+		} catch (GitException e) {
+			this.isSaveToCheckOut = false;
+		}
 	}
 
 	public void setSelectedBranch(String selectedBranch) {
 		this.selectedBranch = selectedBranch;
+		clearCache();
 	}
 
 	public ProcessDescriptor getProcessDescriptor() {
@@ -51,10 +58,6 @@ public class BranchSelection {
 
 	public boolean isPullBeforeCheckout() {
 		return processDescriptor.isPullAfterCheckout();
-	}
-
-	public void setPullBeforeCheckout(boolean pullBeforeCheckout) {
-		processDescriptor.setPullAfterCheckout(pullBeforeCheckout);
 	}
 
 	@Override
@@ -84,7 +87,12 @@ public class BranchSelection {
 
 	public boolean isSaveToCheckout() throws GitException {
 		if (this.isSaveToCheckOut == null) {
-			this.isSaveToCheckOut = processDescriptor.isSaveToCheckout();
+			if (processDescriptor.getCurrentBranch()
+			    .equals(selectedBranch) && !isPullAfterCheckout()) {
+				this.isSaveToCheckOut = true;
+			} else {
+				this.isSaveToCheckOut = processDescriptor.isSaveToCheckout();
+			}
 		}
 		return this.isSaveToCheckOut;
 	}

@@ -119,11 +119,14 @@ public class GitManagerImpl implements GitManager, AutoCloseable {
 	@Override
 	public void checkoutBranch(Component parent, String branchName, boolean pullAfterCheckout,
 	    ProgressMonitorView monitor) throws GitException {
+
 		try {
-			CheckoutCommand checkout = git.checkout();
-			checkout.setCreateBranch(false);
-			checkout.setName(branchName);
-			checkout.call();
+			if (!branchName.equals(currentBranch())) {
+				CheckoutCommand checkout = git.checkout();
+				checkout.setCreateBranch(false);
+				checkout.setName(branchName);
+				checkout.call();
+			}
 
 			if (pullAfterCheckout) {
 				pull(monitor);
