@@ -147,6 +147,8 @@ public class ProcessController {
 				ByteArrayOutputStream errorBuffer = new ByteArrayOutputStream();
 				AtomicInteger errorBufferSize = new AtomicInteger(0);
 
+				Charset charset = processDescriptor.getCharset();
+
 				EventJoin inputJoin = new EventJoin(new EventJoin.Callback() {
 
 					@Override
@@ -157,7 +159,7 @@ public class ProcessController {
 								byteArray = inputBuffer.toByteArray();
 								inputBuffer.reset();
 								inputBufferSize.set(0);
-								appendInEDT(new String(byteArray));
+								appendInEDT(new String(byteArray, charset));
 							}
 						}
 					}
@@ -173,22 +175,21 @@ public class ProcessController {
 								byteArray = errorBuffer.toByteArray();
 								errorBuffer.reset();
 								errorBufferSize.set(0);
-								appendInEDT(new String(byteArray));
+								appendInEDT(new String(byteArray, charset));
 							}
 						}
 					}
 				}, 250, TimeUnit.MILLISECONDS);
 
-				Charset charset = processDescriptor.getCharset();
 				try {
 					do {
 
 						waitForStreams(inputStream, errorStream);
 
-						buffer(inputStream, inputBufferSize, inputBuffer, charset);
+						buffer(inputStream, inputBufferSize, inputBuffer);
 						inputJoin.noticeEvent();
 
-						buffer(errorStream, errorBufferSize, errorBuffer, charset);
+						buffer(errorStream, errorBufferSize, errorBuffer);
 						errorJoin.noticeEvent();
 
 					} while (hasOutput(inputStream, errorStream) || process.isAlive());
@@ -223,8 +224,8 @@ public class ProcessController {
 			}
 
 			private void buffer(final InputStream inputStream, AtomicInteger inputBufferSize,
-			    ByteArrayOutputStream inputBuffer, Charset charset) throws IOException {
-				Chunk inputChunk = readNext(charset, inputStream);
+			    ByteArrayOutputStream inputBuffer) throws IOException {
+				Chunk inputChunk = readNext(inputStream);
 				if (nonNull(inputChunk)) {
 					synchronized (inputBuffer) {
 						inputBuffer.write(inputChunk.getData(), 0, inputChunk.getAmount());
@@ -233,7 +234,7 @@ public class ProcessController {
 				}
 			}
 
-			private Chunk readNext(Charset charset, InputStream stream) throws IOException {
+			private Chunk readNext(InputStream stream) throws IOException {
 				int available = 0;
 				if ((available = stream.available()) > 0) {
 					available = min(MAX_READ_AMOUNT_SIZE, available);
