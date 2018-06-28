@@ -222,7 +222,7 @@ public class ProcessController {
 				Chunk inputChunk = readNext(charset, inputStream);
 				if (nonNull(inputChunk)) {
 					if (containsControllChars(inputChunk)) {
-						appendBufferInEDT(inputBuffer, inputBufferSize);
+						appendInEDT(new String(inputChunk.getData(), 0, inputChunk.getAmount(), charset));
 					} else {
 						// If input chunk does not contain ASCII control codes it can be buffered.
 						synchronized (inputBuffer) {
