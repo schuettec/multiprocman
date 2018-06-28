@@ -153,15 +153,7 @@ public class ProcessController {
 
 					@Override
 					public void eventCallback() {
-						synchronized (inputBuffer) {
-							if (inputBufferSize.get() > 0) {
-								byte[] byteArray = null;
-								byteArray = inputBuffer.toByteArray();
-								inputBuffer.reset();
-								inputBufferSize.set(0);
-								appendInEDT(new String(byteArray, charset));
-							}
-						}
+						appendBufferInEDT(inputBuffer, inputBufferSize);
 					}
 				}, 250, TimeUnit.MILLISECONDS);
 
@@ -169,15 +161,7 @@ public class ProcessController {
 
 					@Override
 					public void eventCallback() {
-						synchronized (errorBuffer) {
-							if (errorBufferSize.get() > 0) {
-								byte[] byteArray = null;
-								byteArray = errorBuffer.toByteArray();
-								errorBuffer.reset();
-								errorBufferSize.set(0);
-								appendInEDT(new String(byteArray, charset));
-							}
-						}
+						appendBufferInEDT(errorBuffer, errorBufferSize);
 					}
 				}, 250, TimeUnit.MILLISECONDS);
 
@@ -186,11 +170,9 @@ public class ProcessController {
 
 						waitForStreams(inputStream, errorStream);
 
-						buffer(inputStream, inputBufferSize, inputBuffer);
-						inputJoin.noticeEvent();
+						buffer(inputStream, inputBufferSize, inputBuffer, charset, inputJoin);
 
-						buffer(errorStream, errorBufferSize, errorBuffer);
-						errorJoin.noticeEvent();
+						buffer(errorStream, errorBufferSize, errorBuffer, charset, errorJoin);
 
 					} while (hasOutput(inputStream, errorStream) || process.isAlive());
 
@@ -209,6 +191,18 @@ public class ProcessController {
 				}
 			}
 
+			private void appendBufferInEDT(ByteArrayOutputStream buffer, AtomicInteger bufferSize) {
+				synchronized (buffer) {
+					if (bufferSize.get() > 0) {
+						byte[] byteArray = null;
+						byteArray = buffer.toByteArray();
+						buffer.reset();
+						bufferSize.set(0);
+						appendInEDT(new String(byteArray));
+					}
+				}
+			}
+
 			private void waitForStreams(final InputStream inputStream, final InputStream errorStream) throws IOException {
 				if (!hasOutput(inputStream, errorStream)) {
 					try {
@@ -224,17 +218,33 @@ public class ProcessController {
 			}
 
 			private void buffer(final InputStream inputStream, AtomicInteger inputBufferSize,
-			    ByteArrayOutputStream inputBuffer) throws IOException {
-				Chunk inputChunk = readNext(inputStream);
+			    ByteArrayOutputStream inputBuffer, Charset charset, EventJoin inputJoin) throws IOException {
+				Chunk inputChunk = readNext(charset, inputStream);
 				if (nonNull(inputChunk)) {
-					synchronized (inputBuffer) {
-						inputBuffer.write(inputChunk.getData(), 0, inputChunk.getAmount());
-						inputBufferSize.addAndGet(inputChunk.getAmount());
+					if (containsControllChars(inputChunk)) {
+						appendInEDT(new String(inputChunk.getData(), 0, inputChunk.getAmount(), charset));
+					} else {
+						// If input chunk does not contain ASCII control codes it can be buffered.
+						synchronized (inputBuffer) {
+							inputBuffer.write(inputChunk.getData(), 0, inputChunk.getAmount());
+							inputBufferSize.addAndGet(inputChunk.getAmount());
+						}
+						inputJoin.noticeEvent();
 					}
 				}
 			}
 
-			private Chunk readNext(InputStream stream) throws IOException {
+			private boolean containsControllChars(Chunk inputChunk) {
+				byte[] data = inputChunk.getData();
+				for (int i = 0; i < inputChunk.getAmount(); i++) {
+					if (ASCIICode.isSupported(data[i])) {
+						return true;
+					}
+				}
+				return false;
+			}
+
+			private Chunk readNext(Charset charset, InputStream stream) throws IOException {
 				int available = 0;
 				if ((available = stream.available()) > 0) {
 					available = min(MAX_READ_AMOUNT_SIZE, available);
