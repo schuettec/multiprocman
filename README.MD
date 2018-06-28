@@ -145,6 +145,6 @@ Here is how to setup a Gradle Wrapper launch configuration:
 * Set the working directory to the Gradle project folder to work with
 * Use the charset UTF-8
 * Use the following command - customize the parts in `<>`
-  * __Command__: `java.exe -Dorg.gradle.appname=<APP-NAME> -classpath ".\gradle\wrapper\gradle-wrapper.jar"  org.gradle.wrapper.GradleWrapperMain <TASK-AND-OTHER-COMMAND-LINE-OPTIONS>`.
+  * __Command__: `${JAVA_HOME}\bin\java.exe -Dorg.gradle.appname=<APP-NAME> -classpath ".\gradle\wrapper\gradle-wrapper.jar"  org.gradle.wrapper.GradleWrapperMain <TASK-AND-OTHER-COMMAND-LINE-OPTIONS>`.
 
 
