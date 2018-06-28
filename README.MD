@@ -10,9 +10,9 @@
 7. [Environment](#environment)
 8. [Counter expressions](#counter-expressions)
 9. [Variable substitutions](#variable-substitutions)
-10.[Git support](#git-support)
-11.[Checkout branch](#checkout-branch)
-12.[Pull](#pull)
+10. [Git support](#git-support)
+11. [Checkout branch](#checkout-branch)
+12. [Pull](#pull)
 13. [How to run Gradle builds](#how-to-run-gradle-builds)
 
 ## Long story short
