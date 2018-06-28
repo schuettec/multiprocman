@@ -58,12 +58,14 @@ public class WordSearch {
 
 	private void scrollToOccurrence() {
 		try {
-			Integer index = occurences.get(lastOccurence);
-			painter.setCurrentIndex(index);
-			Rectangle rect = comp.modelToView(index);
-			comp.scrollRectToVisible(rect);
-			comp.moveCaretPosition(index);
-			comp.repaint();
+			if (occurences.contains(lastOccurence)) {
+				Integer index = occurences.get(lastOccurence);
+				painter.setCurrentIndex(index);
+				Rectangle rect = comp.modelToView(index);
+				comp.scrollRectToVisible(rect);
+				comp.moveCaretPosition(index);
+				comp.repaint();
+			}
 		} catch (BadLocationException e) {
 			e.printStackTrace();
 		}
