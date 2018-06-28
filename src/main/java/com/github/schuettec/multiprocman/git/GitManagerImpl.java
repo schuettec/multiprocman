@@ -11,6 +11,7 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 import org.eclipse.jgit.api.CheckoutCommand;
+import org.eclipse.jgit.api.CreateBranchCommand.SetupUpstreamMode;
 import org.eclipse.jgit.api.Git;
 import org.eclipse.jgit.api.ListBranchCommand.ListMode;
 import org.eclipse.jgit.api.PullCommand;
@@ -102,8 +103,6 @@ public class GitManagerImpl implements GitManager, AutoCloseable {
 		this.rootComponent = monitor.getRootComponent();
 		try {
 			pull.call();
-			System.out.println("Pulled: " + repository.getDirectory()
-			    .toString());
 		} catch (GitAPIException e) {
 			throw GitException.general(e);
 		}
@@ -122,10 +121,22 @@ public class GitManagerImpl implements GitManager, AutoCloseable {
 
 		try {
 			if (!branchName.equals(currentBranch())) {
-				CheckoutCommand checkout = git.checkout();
-				checkout.setCreateBranch(false);
-				checkout.setName(branchName);
-				checkout.call();
+				if (GitManager.isRemoteBranch(branchName)) {
+					String localTrackingName = branchName.replace(REMOTE_PREFIX, "");
+					String remoteOriginName = "origin/" + localTrackingName;
+					git.checkout()
+					    .setCreateBranch(true)
+					    .setName(localTrackingName)
+					    .setUpstreamMode(SetupUpstreamMode.TRACK)
+					    .setStartPoint(remoteOriginName)
+					    .call();
+
+				} else {
+					CheckoutCommand checkout = git.checkout();
+					checkout.setCreateBranch(false);
+					checkout.setName(branchName);
+					checkout.call();
+				}
 			}
 
 			if (pullAfterCheckout) {

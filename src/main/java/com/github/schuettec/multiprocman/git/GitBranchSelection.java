@@ -1,5 +1,8 @@
 package com.github.schuettec.multiprocman.git;
 
+import static com.github.schuettec.multiprocman.git.GitManager.LOCAL_PREFIX;
+import static com.github.schuettec.multiprocman.git.GitManager.REMOTE_PREFIX;
+import static com.github.schuettec.multiprocman.git.GitManager.isLocalBranch;
 import static java.util.Objects.isNull;
 import static java.util.Objects.nonNull;
 
@@ -48,8 +51,6 @@ public class GitBranchSelection extends JDialog {
 	private static final int TITLE_COL = 1;
 	private static final int BRANCH_COL = 2;
 	private static final int PULL_COL = 3;
-	private static final String REMOTE_PREFIX = "refs/remotes/origin/";
-	private static final String LOCAL_PREFIX = "refs/heads/";
 
 	protected static final String[] columnNames = {
 	    "Ready", "Application", "Branch selection", "Pull after checkout"
@@ -268,6 +269,10 @@ public class GitBranchSelection extends JDialog {
 		}
 	}
 
+	public boolean hasTasksToShow() {
+		return !descriptors.isEmpty();
+	}
+
 	private void performCancel() {
 		this.wasCancelled = true;
 		this.dispose();
@@ -287,10 +292,10 @@ public class GitBranchSelection extends JDialog {
 		renderer.setFont(MONOSPACED);
 
 		if (nonNull(branchName)) {
-			if (branchName.startsWith(LOCAL_PREFIX)) {
+			if (isLocalBranch(branchName)) {
 				renderer.setIcon(new ImageIcon(Resources.getLocal()));
 				renderer.setText(branchName.replace(LOCAL_PREFIX, ""));
-			} else if (branchName.startsWith(REMOTE_PREFIX)) {
+			} else if (GitManager.isRemoteBranch(branchName)) {
 				renderer.setIcon(new ImageIcon(Resources.getRemote()));
 				renderer.setText(branchName.replace(REMOTE_PREFIX, ""));
 			} else {

@@ -5,6 +5,17 @@ import java.util.List;
 
 public interface GitManager {
 
+	static final String REMOTE_PREFIX = "refs/remotes/origin/";
+	static final String LOCAL_PREFIX = "refs/heads/";
+
+	public static boolean isLocalBranch(String branchname) {
+		return branchname.startsWith(LOCAL_PREFIX);
+	}
+
+	public static boolean isRemoteBranch(String branchname) {
+		return branchname.startsWith(REMOTE_PREFIX);
+	}
+
 	public void checkoutBranch(Component parent, String branchName, boolean pullAfterCheckout,
 	    ProgressMonitorView monitor) throws GitException;
 

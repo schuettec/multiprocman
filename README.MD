@@ -112,6 +112,31 @@ When specifying the command for the launch configuration the variable substituti
 	* Test the variable substitution using the button "Show substitution"
 * __Note: The environment variables configured in tab "Environment" do not have an effect on the substitution.__ The substitution only uses the current environment variables seen by the running Multi-Process Manager instance.
 
+## Git support
+
+Git support enables the Multi-Process Manager to easily switch and pull branches before launching a launch configuration. If enabled, the working directory of the launch configuration is interpreted as a Git repository.
+
+To enable Git support use the "Git support" tab in the launch configuration editor.
+![alt text](etc/screenshots/08.png)
+
+### Checkout branch
+
+If enabled a Git branch selection dialog is displayed showing the current branch options for switching to another branch as well as pulling the latest changes after checkout.
+
+![alt text](etc/screenshots/09.png)
+
+__Note: Switching branches or pulling is not enabled if Git detects uncommitted changes or a dirty worktree. Then the branch selection window shows a warning sign in the corresponding column of the table and the OK button is disabled. In this case please commit your changes manually an hit the refresh button to refresh the validation.__
+
+You can choose to checkout to local and remote branches. If a remote branch is selected a new local tracking branch is created and checked out.
+
+### Pull
+
+You can configure a launch configuration to perform a pull after the branch was checked out. You can do this either in the launch configuration editor (see above) or in the branch selection dialog.
+
+![alt text](etc/screenshots/10.png)
+
+When performing a pull operation Git tries to connect to the upstream to fetch the latest changes. This may trigger the configured authentication of your Git repository and you will be asked to either enter HTTPS credentials or the passphrase to use your SSH private key for authentication.
+
 # How to run Gradle builds
 
 Launching Gradle builds using the Gradle wrapper needs a little more configuration than just calling the Gradle Wrapper Sh-/Batch-Script. The problem is that Gradle the script forks another JVM process. When stopping the task with the Multi-Process Manager only the script process terminates. The Gradle build will be running in background.

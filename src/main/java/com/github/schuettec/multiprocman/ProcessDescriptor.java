@@ -70,6 +70,9 @@ public class ProcessDescriptor implements Serializable {
 	private GitManager gitOperation() throws GitException {
 		if (isEnableGitSupport()) {
 			if (isNull(this.gitManager)) {
+				if (!hasExecutionDirectory()) {
+					this.gitManager = GitManagerImpl.noop();
+				}
 				this.gitManager = new GitManagerImpl(new DefaultCredentialsCallback(), getExecutionDirectoryForExecution());
 			}
 		} else {

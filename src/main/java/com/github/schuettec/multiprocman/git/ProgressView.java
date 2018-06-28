@@ -164,7 +164,6 @@ public class ProgressView extends JDialog {
 
 		@Override
 		public void beginTask(String title, int totalWork) {
-			System.out.println(totalWork + " in total for '" + title + "'");
 			this.title = title + ": " + selection.getTitle();
 			this.totalWork = totalWork;
 			this.completed = 0;
@@ -173,7 +172,6 @@ public class ProgressView extends JDialog {
 
 		@Override
 		public void update(int completed) {
-			System.out.println(totalWork + " completed");
 			this.completed = completed;
 			list.repaint();
 		}
