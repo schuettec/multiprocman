@@ -128,9 +128,11 @@ If enabled a Git branch selection dialog is displayed showing the current branch
 
 ![alt text](etc/screenshots/09.png)
 
+You can choose to checkout local or remote branches. If a remote branch is selected a new local tracking branch is created and checked out.
+
+
 __Note: Switching branches or pulling is not enabled if Git detects uncommitted changes or a dirty worktree. Then the branch selection window shows a warning sign in the corresponding column of the table and the OK button is disabled. In this case please commit your changes manually an hit the refresh button to refresh the validation.__
 
-You can choose to checkout to local and remote branches. If a remote branch is selected a new local tracking branch is created and checked out.
 
 ### Pull
 
