@@ -99,6 +99,7 @@ public class ProcessController {
 
 	public boolean start() {
 		try {
+			consoleScroller.setAutoScrollToBottom(true);
 			String command = processDescriptor.getCommandForExecution();
 			this.process = executeCommand(command);
 			startProcessObserver();
@@ -153,7 +154,7 @@ public class ProcessController {
 
 					@Override
 					public void eventCallback() {
-						appendBufferInEDT(inputBuffer, inputBufferSize);
+						appendBufferInEDT(inputBuffer, inputBufferSize, charset);
 					}
 				}, 250, TimeUnit.MILLISECONDS);
 
@@ -161,7 +162,7 @@ public class ProcessController {
 
 					@Override
 					public void eventCallback() {
-						appendBufferInEDT(errorBuffer, errorBufferSize);
+						appendBufferInEDT(errorBuffer, errorBufferSize, charset);
 					}
 				}, 250, TimeUnit.MILLISECONDS);
 
@@ -191,14 +192,14 @@ public class ProcessController {
 				}
 			}
 
-			private void appendBufferInEDT(ByteArrayOutputStream buffer, AtomicInteger bufferSize) {
+			private void appendBufferInEDT(ByteArrayOutputStream buffer, AtomicInteger bufferSize, Charset charset) {
 				synchronized (buffer) {
 					if (bufferSize.get() > 0) {
 						byte[] byteArray = null;
 						byteArray = buffer.toByteArray();
 						buffer.reset();
 						bufferSize.set(0);
-						appendInEDT(new String(byteArray));
+						appendInEDT(new String(byteArray, charset));
 					}
 				}
 			}
