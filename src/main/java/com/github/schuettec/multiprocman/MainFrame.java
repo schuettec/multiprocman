@@ -17,6 +17,7 @@ import java.awt.event.WindowEvent;
 import java.awt.event.WindowListener;
 import java.io.File;
 import java.util.Arrays;
+import java.util.Enumeration;
 import java.util.List;
 
 import javax.swing.AbstractAction;
@@ -130,6 +131,7 @@ public class MainFrame extends JFrame implements WindowListener, ProcessListener
 	private JButton btnClose;
 
 	private List<Component> defaultToolbarButtons;
+	private JToolBar allProcessesToolbar;
 
 	private static class Holder {
 		private static final MainFrame INSTANCE = new MainFrame();
@@ -184,8 +186,8 @@ public class MainFrame extends JFrame implements WindowListener, ProcessListener
 		panel = new JPanel();
 		contentPane.add(panel, BorderLayout.NORTH);
 		this.processList = new JList<>(processes);
-		processList.setVisibleRowCount(1);
-		processList.setLayoutOrientation(JList.HORIZONTAL_WRAP);
+		this.processList.setVisibleRowCount(1);
+		this.processList.setLayoutOrientation(JList.HORIZONTAL_WRAP);
 		this.processList.setCellRenderer(new ConsolePreviewCellRenderer());
 		this.processList.addListSelectionListener(new ListSelectionListener() {
 
@@ -201,10 +203,10 @@ public class MainFrame extends JFrame implements WindowListener, ProcessListener
 
 		});
 		panel.setLayout(new BorderLayout(0, 0));
-		processList.setDragEnabled(true);
-		processList.setDropMode(DropMode.INSERT);
-		processList.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
-		processList.setTransferHandler(new TransferHandler() {
+		this.processList.setDragEnabled(true);
+		this.processList.setDropMode(DropMode.INSERT);
+		this.processList.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
+		this.processList.setTransferHandler(new TransferHandler() {
 			private int index;
 			private boolean beforeIndex = false; // Start with `false` therefore if it is removed from or added to the
 			// list it still works
@@ -257,12 +259,192 @@ public class MainFrame extends JFrame implements WindowListener, ProcessListener
 		scrollPane.setPreferredSize(new Dimension(ConsolePreview.WIDTH, ConsolePreview.HEIGHT));
 		panel.add(scrollPane);
 
+		allProcessesToolbar = new JToolBar(JToolBar.VERTICAL);
+		// toolBar.setLayout(new FlowLayout(FlowLayout.LEFT, 2, 2));
+		allProcessesToolbar.setRollover(true);
+		allProcessesToolbar.setFloatable(false);
+		panel.add(allProcessesToolbar, BorderLayout.EAST);
+		buildAllProcessesToolbar();
+
 		toolBar = new JToolBar();
 		toolBar.setLayout(new FlowLayout(FlowLayout.LEFT, 2, 2));
 		toolBar.setRollover(true);
-		panel.add(toolBar, BorderLayout.SOUTH);
 		toolBar.setFloatable(false);
+		panel.add(toolBar, BorderLayout.SOUTH);
 
+		buildProcessToolbar();
+
+		// Build menu
+
+		menuBar = new JMenuBar();
+		setJMenuBar(menuBar);
+
+		mnFile = new JMenu("File");
+		menuBar.add(mnFile);
+
+		mntmNewProcess = new JMenuItem(new AbstractAction("New...") {
+
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				ProcessManager.getInstance()
+				    .setVisible(true);
+			}
+		});
+		mntmNewProcess.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_N, InputEvent.CTRL_MASK));
+		mnFile.add(mntmNewProcess);
+
+		separator_2 = new JSeparator();
+		mnFile.add(separator_2);
+
+		mntmSave = new JMenuItem(new AbstractAction("Save As...") {
+
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				saveAs();
+			}
+
+		});
+		mntmSave.setEnabled(false);
+		mntmSave.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_S, InputEvent.CTRL_MASK));
+		mnFile.add(mntmSave);
+
+		separator_1 = new JSeparator();
+		mnFile.add(separator_1);
+
+		mntmExit = new JMenuItem(new AbstractAction("Exit") {
+
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				SwingUtilities.invokeLater(new Runnable() {
+
+					@Override
+					public void run() {
+						exit();
+					}
+				});
+			}
+		});
+		mntmExit.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_Q, InputEvent.CTRL_MASK));
+		mnFile.add(mntmExit);
+
+		mnView = new JMenu("View");
+		menuBar.add(mnView);
+
+		chckbxmntmFind = new JCheckBoxMenuItem(new AbstractAction("Find") {
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				if (chckbxmntmFind.isSelected()) {
+					currentProcess.getConsoleScroller()
+					    .startSearch();
+				} else {
+					currentProcess.getConsoleScroller()
+					    .finishSearch();
+				}
+			}
+		});
+		chckbxmntmFind.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_F, InputEvent.CTRL_MASK));
+		mnView.add(chckbxmntmFind);
+
+		chckbxmntmAutoScrollTo = new JCheckBoxMenuItem("Auto scroll to bottom");
+		chckbxmntmAutoScrollTo.setModel(autoScrollToBottomToggleModel);
+		mnView.add(chckbxmntmAutoScrollTo);
+
+		this.defaultToolbarButtons = Arrays.asList(new Component[] {
+		    btnClose, btnSave, btnClear, btnStop, btnStopForcibly, btnRestart
+		});
+	}
+
+	private void buildAllProcessesToolbar() {
+		btnClear = new JButton(new AbstractAction(null, new ImageIcon(Resources.getClear())) {
+
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				Enumeration<ProcessController> elements = processes.elements();
+				while (elements.hasMoreElements()) {
+					ProcessController pc = elements.nextElement();
+					pc.clearConsole();
+				}
+			}
+
+		});
+		btnClear.setToolTipText("Clear console");
+		allProcessesToolbar.add(btnClear);
+		allProcessesToolbar.addSeparator();
+
+		btnRestart = new JButton(new AbstractAction(null, new ImageIcon(Resources.getRestart())) {
+
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				SwingUtilities.invokeLater(new Runnable() {
+
+					@Override
+					public void run() {
+						Enumeration<ProcessController> elements = processes.elements();
+						while (elements.hasMoreElements()) {
+							ProcessController pc = elements.nextElement();
+							Cursor defaultCursor = Cursor.getDefaultCursor();
+							Cursor waitCursor = Cursor.getPredefinedCursor(Cursor.WAIT_CURSOR);
+							setCursor(waitCursor);
+							pc.stop(true);
+							clearConsole();
+							pc.start();
+							setCursor(defaultCursor);
+						}
+					}
+				});
+			}
+
+		});
+		btnRestart.setToolTipText("Restart");
+		allProcessesToolbar.add(btnRestart);
+
+		btnStop = new JButton(new AbstractAction(null, new ImageIcon(Resources.getStop())) {
+
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				Enumeration<ProcessController> elements = processes.elements();
+				while (elements.hasMoreElements()) {
+					ProcessController pc = elements.nextElement();
+					pc.stop(false);
+				}
+			}
+
+		});
+		btnStop.setToolTipText("Stop");
+		allProcessesToolbar.add(btnStop);
+
+		btnStopForcibly = new JButton(new AbstractAction(null, new ImageIcon(Resources.getStopForcibly())) {
+
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				Enumeration<ProcessController> elements = processes.elements();
+				while (elements.hasMoreElements()) {
+					ProcessController pc = elements.nextElement();
+					pc.stopForce(false);
+				}
+			}
+
+		});
+		btnStopForcibly.setToolTipText("Stop forcibly");
+		allProcessesToolbar.add(btnStopForcibly);
+		allProcessesToolbar.addSeparator();
+
+		btnClose = new JButton(new AbstractAction(null, new ImageIcon(Resources.getX())) {
+
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				for (int i = 0; i <= processes.getSize(); i++) {
+					ProcessController pc = processes.firstElement();
+					removeProcessController(pc);
+				}
+			}
+
+		});
+		btnClose.setToolTipText("Close view.");
+		allProcessesToolbar.add(btnClose);
+	}
+
+	private void buildProcessToolbar() {
 		btnSave = new JButton(new AbstractAction(null, new ImageIcon(Resources.getSave())) {
 
 			@Override
@@ -350,85 +532,6 @@ public class MainFrame extends JFrame implements WindowListener, ProcessListener
 		btnClose.setEnabled(false);
 		btnClose.setToolTipText("Close view.");
 		toolBar.add(btnClose);
-
-		// Build menu
-
-		menuBar = new JMenuBar();
-		setJMenuBar(menuBar);
-
-		mnFile = new JMenu("File");
-		menuBar.add(mnFile);
-
-		mntmNewProcess = new JMenuItem(new AbstractAction("New...") {
-
-			@Override
-			public void actionPerformed(ActionEvent e) {
-				ProcessManager.getInstance()
-				    .setVisible(true);
-			}
-		});
-		mntmNewProcess.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_N, InputEvent.CTRL_MASK));
-		mnFile.add(mntmNewProcess);
-
-		separator_2 = new JSeparator();
-		mnFile.add(separator_2);
-
-		mntmSave = new JMenuItem(new AbstractAction("Save As...") {
-
-			@Override
-			public void actionPerformed(ActionEvent e) {
-				saveAs();
-			}
-
-		});
-		mntmSave.setEnabled(false);
-		mntmSave.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_S, InputEvent.CTRL_MASK));
-		mnFile.add(mntmSave);
-
-		separator_1 = new JSeparator();
-		mnFile.add(separator_1);
-
-		mntmExit = new JMenuItem(new AbstractAction("Exit") {
-
-			@Override
-			public void actionPerformed(ActionEvent e) {
-				SwingUtilities.invokeLater(new Runnable() {
-
-					@Override
-					public void run() {
-						exit();
-					}
-				});
-			}
-		});
-		mntmExit.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_Q, InputEvent.CTRL_MASK));
-		mnFile.add(mntmExit);
-
-		mnView = new JMenu("View");
-		menuBar.add(mnView);
-
-		chckbxmntmFind = new JCheckBoxMenuItem(new AbstractAction("Find") {
-			@Override
-			public void actionPerformed(ActionEvent e) {
-				if (chckbxmntmFind.isSelected()) {
-					currentProcess.getConsoleScroller()
-					    .startSearch();
-				} else {
-					currentProcess.getConsoleScroller()
-					    .finishSearch();
-				}
-			}
-		});
-		chckbxmntmFind.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_F, InputEvent.CTRL_MASK));
-		mnView.add(chckbxmntmFind);
-
-		chckbxmntmAutoScrollTo = new JCheckBoxMenuItem("Auto scroll to bottom");
-		chckbxmntmAutoScrollTo.setModel(autoScrollToBottomToggleModel);
-		mnView.add(chckbxmntmAutoScrollTo);
-
-		this.defaultToolbarButtons = Arrays.asList(new Component[] {
-		    btnClose, btnSave, btnClear, btnStop, btnStopForcibly, btnRestart
-		});
 	}
 
 	@Override
