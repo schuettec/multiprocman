@@ -24,6 +24,7 @@ import com.github.schuettec.multiprocman.git.GitException;
 import com.github.schuettec.multiprocman.git.GitManager;
 import com.github.schuettec.multiprocman.git.GitManagerImpl;
 import com.github.schuettec.multiprocman.git.ProgressMonitorView;
+import com.github.schuettec.multiprocman.manager.ProcessManager;
 
 public class ProcessDescriptor implements Serializable {
 
@@ -73,7 +74,8 @@ public class ProcessDescriptor implements Serializable {
 				if (!hasExecutionDirectory()) {
 					this.gitManager = GitManagerImpl.noop();
 				}
-				this.gitManager = new GitManagerImpl(new DefaultCredentialsCallback(), getExecutionDirectoryForExecution());
+				this.gitManager = new GitManagerImpl(ProcessManager.getInstance(), new DefaultCredentialsCallback(),
+				    getExecutionDirectoryForExecution());
 			}
 		} else {
 			this.gitManager = GitManagerImpl.noop();
@@ -86,6 +88,7 @@ public class ProcessDescriptor implements Serializable {
 	}
 
 	public List<String> getAllBranches() throws GitException {
+		gitOperation().fetch();
 		return gitOperation().branchList();
 	}
 

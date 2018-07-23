@@ -1,5 +1,6 @@
 package com.github.schuettec.multiprocman.git;
 
+import static java.util.Objects.isNull;
 import static java.util.Objects.nonNull;
 
 import java.awt.Component;
@@ -12,6 +13,7 @@ import java.util.stream.Collectors;
 
 import org.eclipse.jgit.api.CheckoutCommand;
 import org.eclipse.jgit.api.CreateBranchCommand.SetupUpstreamMode;
+import org.eclipse.jgit.api.FetchCommand;
 import org.eclipse.jgit.api.Git;
 import org.eclipse.jgit.api.ListBranchCommand.ListMode;
 import org.eclipse.jgit.api.PullCommand;
@@ -26,6 +28,7 @@ import org.eclipse.jgit.lib.Repository;
 import org.eclipse.jgit.lib.RepositoryBuilder;
 import org.eclipse.jgit.transport.JschConfigSessionFactory;
 import org.eclipse.jgit.transport.OpenSshConfig;
+import org.eclipse.jgit.transport.RemoteConfig;
 import org.eclipse.jgit.transport.SshTransport;
 
 import com.jcraft.jsch.Session;
@@ -47,9 +50,8 @@ public class GitManagerImpl implements GitManager, AutoCloseable {
 	private JschConfigSessionFactory sshSessionFactory;
 	private Component rootComponent;
 
-	public GitManagerImpl(CredentialsCallback callback, String gitDir) throws GitException {
+	public GitManagerImpl(Component rootComponent, CredentialsCallback callback, String gitDir) throws GitException {
 		instances.add(this);
-		initialize(gitDir);
 		this.sshSessionFactory = new JschConfigSessionFactory() {
 			@Override
 			protected void configure(OpenSshConfig.Host host, Session session) {
@@ -86,6 +88,7 @@ public class GitManagerImpl implements GitManager, AutoCloseable {
 				});
 			}
 		};
+		initialize(rootComponent, gitDir);
 	}
 
 	@Override
@@ -100,11 +103,16 @@ public class GitManagerImpl implements GitManager, AutoCloseable {
 				sshTransport.setSshSessionFactory(sshSessionFactory);
 			}
 		});
-		this.rootComponent = monitor.getRootComponent();
+		Component oldRoot = this.rootComponent;
 		try {
+			this.rootComponent = monitor.getRootComponent();
 			pull.call();
 		} catch (GitAPIException e) {
 			throw GitException.general(e);
+		} finally {
+			if (nonNull(oldRoot)) {
+				this.rootComponent = oldRoot;
+			}
 		}
 	}
 
@@ -189,8 +197,9 @@ public class GitManagerImpl implements GitManager, AutoCloseable {
 		}
 	}
 
-	private void initialize(String gitDir) throws GitException {
+	private void initialize(Component rootComponent, String gitDir) throws GitException {
 		try {
+			this.rootComponent = rootComponent;
 			this.repository = new RepositoryBuilder().setMustExist(true)
 			    .setWorkTree(new File(gitDir))
 			    .build();
@@ -213,6 +222,31 @@ public class GitManagerImpl implements GitManager, AutoCloseable {
 				repository.close();
 			}
 		} catch (Exception e) {
+		}
+	}
+
+	@Override
+	public void fetch() throws GitException {
+		try {
+			if (isNull(rootComponent)) {
+				this.rootComponent = rootComponent;
+			}
+			List<RemoteConfig> remotes = git.remoteList()
+			    .call();
+			for (RemoteConfig remote : remotes) {
+				FetchCommand fetch = git.fetch();
+				fetch.setTransportConfigCallback(transport -> {
+					if (transport instanceof SshTransport) {
+						SshTransport sshTransport = (SshTransport) transport;
+						sshTransport.setSshSessionFactory(sshSessionFactory);
+					}
+				});
+				fetch.setRemote(remote.getName());
+				fetch.setRefSpecs(remote.getFetchRefSpecs());
+				fetch.call();
+			}
+		} catch (Exception e) {
+			throw GitException.general(e);
 		}
 	}
 
@@ -256,6 +290,11 @@ public class GitManagerImpl implements GitManager, AutoCloseable {
 
 			@Override
 			public void pull(ProgressMonitorView monitor) {
+
+			}
+
+			@Override
+			public void fetch() throws GitException {
 
 			}
 		};

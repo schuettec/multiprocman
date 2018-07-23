@@ -47,6 +47,7 @@ import javax.swing.border.EmptyBorder;
 import javax.swing.event.ListSelectionEvent;
 import javax.swing.event.ListSelectionListener;
 
+import com.github.schuettec.multiprocman.ProcessController.State;
 import com.github.schuettec.multiprocman.console.AnsiColorTextPane.ExportType;
 import com.github.schuettec.multiprocman.console.AutoScrollToBottomListener;
 import com.github.schuettec.multiprocman.console.ScrollableAnsiColorTextPaneContainer;
@@ -448,7 +449,9 @@ public class MainFrame extends JFrame implements WindowListener, ProcessListener
 			public void actionPerformed(ActionEvent e) {
 				for (int i = 0; i <= processes.getSize(); i++) {
 					ProcessController pc = processes.firstElement();
-					removeProcessController(pc);
+					if (pc.getState() != State.RUNNING) {
+						removeProcessController(pc);
+					}
 				}
 			}
 

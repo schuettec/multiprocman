@@ -24,6 +24,8 @@ public interface GitManager {
 		checkoutBranch(null, branchName, pullAfterCheckout, monitor);
 	}
 
+	public void fetch() throws GitException;
+
 	public abstract boolean hasUncomittedChanges() throws GitException;
 
 	public abstract List<String> branchList() throws GitException;
