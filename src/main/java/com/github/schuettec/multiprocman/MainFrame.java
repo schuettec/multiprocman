@@ -133,6 +133,8 @@ public class MainFrame extends JFrame implements WindowListener, ProcessListener
 	private List<Component> defaultToolbarButtons;
 	private JToolBar allProcessesToolbar;
 
+	private JMenuItem mntmNewFromSearchProcess;
+
 	private static class Holder {
 		private static final MainFrame INSTANCE = new MainFrame();
 	}
@@ -292,6 +294,17 @@ public class MainFrame extends JFrame implements WindowListener, ProcessListener
 		});
 		mntmNewProcess.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_N, InputEvent.CTRL_MASK));
 		mnFile.add(mntmNewProcess);
+
+		mntmNewFromSearchProcess = new JMenuItem(new AbstractAction("New from search...") {
+
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				new FindLauncherDialog(MainFrame.this);
+			}
+		});
+		mntmNewFromSearchProcess
+		    .setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_N, InputEvent.CTRL_MASK & InputEvent.SHIFT_MASK));
+		mnFile.add(mntmNewFromSearchProcess);
 
 		separator_2 = new JSeparator();
 		mnFile.add(separator_2);

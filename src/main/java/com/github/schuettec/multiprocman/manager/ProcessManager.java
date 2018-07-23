@@ -10,6 +10,8 @@ import java.awt.datatransfer.DataFlavor;
 import java.awt.datatransfer.StringSelection;
 import java.awt.datatransfer.Transferable;
 import java.awt.event.ActionEvent;
+import java.awt.event.InputEvent;
+import java.awt.event.KeyEvent;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.awt.event.WindowEvent;
@@ -25,6 +27,7 @@ import javax.swing.Action;
 import javax.swing.DefaultListModel;
 import javax.swing.DropMode;
 import javax.swing.ImageIcon;
+import javax.swing.InputMap;
 import javax.swing.JButton;
 import javax.swing.JComponent;
 import javax.swing.JFrame;
@@ -37,6 +40,7 @@ import javax.swing.JPopupMenu;
 import javax.swing.JScrollPane;
 import javax.swing.JSplitPane;
 import javax.swing.JToolBar;
+import javax.swing.KeyStroke;
 import javax.swing.ListSelectionModel;
 import javax.swing.SwingConstants;
 import javax.swing.SwingUtilities;
@@ -47,6 +51,7 @@ import javax.swing.event.ListSelectionListener;
 
 import com.github.schuettec.multiprocman.FileChooserCallback;
 import com.github.schuettec.multiprocman.FileUtil;
+import com.github.schuettec.multiprocman.FindLauncherDialog;
 import com.github.schuettec.multiprocman.MainFrame;
 import com.github.schuettec.multiprocman.ProcessController;
 import com.github.schuettec.multiprocman.ProcessDescriptor;
@@ -662,6 +667,23 @@ public class ProcessManager extends JFrame {
 			popupMenu.add(editCat);
 			popupMenu.add(removeCat);
 		}
+
+		String KEY = "findLauncher";
+		this.getRootPane()
+		    .getActionMap()
+		    .put(KEY, new AbstractAction() {
+
+			    @Override
+			    public void actionPerformed(ActionEvent e) {
+				    new FindLauncherDialog(ProcessManager.this);
+
+			    }
+		    });
+		InputMap im = this.getRootPane()
+		    .getInputMap();
+		im.put(KeyStroke.getKeyStroke(KeyEvent.VK_F, InputEvent.CTRL_MASK), KEY);
+		im.put(KeyStroke.getKeyStroke(KeyEvent.VK_N, InputEvent.CTRL_MASK), KEY);
+
 		setVisible(true);
 
 	}
@@ -673,7 +695,7 @@ public class ProcessManager extends JFrame {
 	}
 
 	private void startAllOrHandleCancel(ProcessDescriptor[] array) {
-		boolean cancelled = startAll(Arrays.asList(array));
+		boolean cancelled = startAll(this, Arrays.asList(array));
 		if (cancelled) {
 			JOptionPane.showMessageDialog(ProcessManager.this, "The launch was cancelled.", "Launch cancelled",
 			    JOptionPane.INFORMATION_MESSAGE);
@@ -693,7 +715,7 @@ public class ProcessManager extends JFrame {
 		}
 	}
 
-	private boolean startAll(Collection<ProcessDescriptor> descriptors) {
+	public static boolean startAll(Component parent, Collection<ProcessDescriptor> descriptors) {
 		GitBranchSelection branchSelection = new GitBranchSelection();
 		Iterator<ProcessDescriptor> iterator = descriptors.iterator();
 		while (iterator.hasNext()) {
@@ -703,7 +725,7 @@ public class ProcessManager extends JFrame {
 			}
 		}
 		if (branchSelection.hasTasksToShow()) {
-			boolean cancelled = branchSelection.showBranchSelection(this);
+			boolean cancelled = branchSelection.showBranchSelection(parent);
 			if (cancelled) {
 				return cancelled;
 			}
@@ -715,7 +737,7 @@ public class ProcessManager extends JFrame {
 		return false;
 	}
 
-	private void _startAll(MainFrame mainFrame, Collection<ProcessDescriptor> descriptors) {
+	public static void _startAll(MainFrame mainFrame, Collection<ProcessDescriptor> descriptors) {
 		Iterator<ProcessDescriptor> iterator = descriptors.iterator();
 		while (iterator.hasNext()) {
 			ProcessDescriptor descriptor = iterator.next();
