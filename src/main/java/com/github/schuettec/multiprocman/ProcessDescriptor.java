@@ -88,7 +88,6 @@ public class ProcessDescriptor implements Serializable {
 	}
 
 	public List<String> getAllBranches() throws GitException {
-		gitOperation().fetch();
 		return gitOperation().branchList();
 	}
 
