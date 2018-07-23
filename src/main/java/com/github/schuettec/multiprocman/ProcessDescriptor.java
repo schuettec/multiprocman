@@ -91,6 +91,10 @@ public class ProcessDescriptor implements Serializable {
 		return gitOperation().branchList();
 	}
 
+	public void fetch() throws GitException {
+		gitOperation().fetch();
+	}
+
 	public boolean isPullAfterCheckout() {
 		return pullAfterCheckout;
 	}

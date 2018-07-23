@@ -8,6 +8,7 @@ import static java.util.Objects.nonNull;
 
 import java.awt.BorderLayout;
 import java.awt.Component;
+import java.awt.Cursor;
 import java.awt.Dimension;
 import java.awt.Font;
 import java.awt.event.ActionEvent;
@@ -157,28 +158,66 @@ public class GitBranchSelection extends JDialog {
 			}
 		});
 		btnRefresh.setPreferredSize(new Dimension(91, 23));
+
+		JButton btnFetchAll = new JButton("Fetch all");
+		btnFetchAll.setMinimumSize(new Dimension(91, 23));
+		btnFetchAll.setMaximumSize(new Dimension(91, 23));
+		btnFetchAll.setPreferredSize(new Dimension(91, 23));
+		btnFetchAll.addActionListener(new ActionListener() {
+
+			@Override
+			public void actionPerformed(ActionEvent event) {
+				try {
+					setCursor(Cursor.getPredefinedCursor(Cursor.WAIT_CURSOR));
+					GitException exception = null;
+					for (BranchSelection desc : descriptors) {
+						desc.clearCache();
+						try {
+							desc.fetch();
+						} catch (GitException e) {
+							if (isNull(exception)) {
+								exception = e;
+							} else {
+								exception.addSuppressed(e);
+							}
+						}
+					}
+					table.repaint();
+					if (nonNull(exception)) {
+						ExceptionDialog.showException(GitBranchSelection.this, exception, "Error while performing GIT operations.");
+					}
+
+				} finally {
+					btnFetchAll.setEnabled(true);
+					setCursor(Cursor.getDefaultCursor());
+				}
+			}
+		});
+
 		GroupLayout gl_contentPanel = new GroupLayout(contentPanel);
-		gl_contentPanel.setHorizontalGroup(gl_contentPanel.createParallelGroup(Alignment.TRAILING)
-		    .addGroup(Alignment.LEADING, gl_contentPanel.createSequentialGroup()
+		gl_contentPanel.setHorizontalGroup(gl_contentPanel.createParallelGroup(Alignment.LEADING)
+		    .addGroup(gl_contentPanel.createSequentialGroup()
 		        .addContainerGap()
-		        .addGroup(gl_contentPanel.createParallelGroup(Alignment.LEADING)
-		            .addGroup(Alignment.TRAILING, gl_contentPanel.createSequentialGroup()
+		        .addGroup(gl_contentPanel.createParallelGroup(Alignment.TRAILING)
+		            .addGroup(gl_contentPanel.createSequentialGroup()
 		                .addComponent(btnRefresh, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE,
 		                    GroupLayout.PREFERRED_SIZE)
-		                .addPreferredGap(ComponentPlacement.RELATED, 127, Short.MAX_VALUE)
+		                .addPreferredGap(ComponentPlacement.RELATED)
+		                .addComponent(btnFetchAll)
+		                .addPreferredGap(ComponentPlacement.RELATED, 220, Short.MAX_VALUE)
 		                .addComponent(okButton, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE,
 		                    GroupLayout.PREFERRED_SIZE)
 		                .addPreferredGap(ComponentPlacement.RELATED)
 		                .addComponent(cancelButton, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE,
 		                    GroupLayout.PREFERRED_SIZE))
-		            .addComponent(lblSomeSelectedLaunch, GroupLayout.DEFAULT_SIZE, 406, Short.MAX_VALUE)
-		            .addComponent(scrollPane, Alignment.TRAILING, GroupLayout.DEFAULT_SIZE, 406, Short.MAX_VALUE))
+		            .addComponent(lblSomeSelectedLaunch, GroupLayout.DEFAULT_SIZE, 594, Short.MAX_VALUE)
+		            .addComponent(scrollPane, GroupLayout.DEFAULT_SIZE, 594, Short.MAX_VALUE))
 		        .addContainerGap()));
 		gl_contentPanel.setVerticalGroup(gl_contentPanel.createParallelGroup(Alignment.LEADING)
 		    .addGroup(gl_contentPanel.createSequentialGroup()
 		        .addComponent(lblSomeSelectedLaunch)
 		        .addGap(8)
-		        .addComponent(scrollPane, GroupLayout.DEFAULT_SIZE, 323, Short.MAX_VALUE)
+		        .addComponent(scrollPane, GroupLayout.DEFAULT_SIZE, 363, Short.MAX_VALUE)
 		        .addPreferredGap(ComponentPlacement.RELATED)
 		        .addGroup(gl_contentPanel.createParallelGroup(Alignment.BASELINE)
 		            .addComponent(cancelButton, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE,
@@ -186,7 +225,8 @@ public class GitBranchSelection extends JDialog {
 		            .addComponent(okButton, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE,
 		                GroupLayout.PREFERRED_SIZE)
 		            .addComponent(btnRefresh, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE,
-		                GroupLayout.PREFERRED_SIZE))
+		                GroupLayout.PREFERRED_SIZE)
+		            .addComponent(btnFetchAll))
 		        .addGap(3)));
 
 		table = new JTable(new ComboBoxTableModel());

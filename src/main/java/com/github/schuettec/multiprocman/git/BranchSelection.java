@@ -247,4 +247,8 @@ public class BranchSelection {
 		this.isSaveToCheckOut = null;
 	}
 
+	public void fetch() throws GitException {
+		processDescriptor.fetch();
+	}
+
 }
