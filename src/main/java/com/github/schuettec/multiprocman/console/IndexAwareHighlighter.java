@@ -28,6 +28,10 @@ public class IndexAwareHighlighter extends DefaultHighlightPainter {
 
 	@Override
 	public void paint(Graphics g, int offs0, int offs1, Shape bounds, JTextComponent c) {
+		if (currentIndex == null) {
+			return;
+		}
+
 		Rectangle alloc = bounds.getBounds();
 		try {
 			// --- determine locations ---
@@ -48,6 +52,7 @@ public class IndexAwareHighlighter extends DefaultHighlightPainter {
 			} else {
 				g.setColor(color);
 			}
+
 			if (p0.y == p1.y) {
 				// same line, render a rectangle
 				Rectangle r = p0.union(p1);
@@ -68,9 +73,12 @@ public class IndexAwareHighlighter extends DefaultHighlightPainter {
 
 	@Override
 	public Shape paintLayer(Graphics g, int offs0, int offs1, Shape bounds, JTextComponent c, View view) {
-
+		if (currentIndex == null) {
+			return null;
+		}
+		// --- render ---
 		Color color = null;
-		if (offs0 == currentIndex) {
+		if (offs0 >= currentIndex) {
 			color = currentIndexColor;
 		} else {
 			color = getColor();

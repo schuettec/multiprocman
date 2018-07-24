@@ -18,6 +18,7 @@ import java.awt.event.WindowListener;
 import java.io.File;
 import java.util.Arrays;
 import java.util.Enumeration;
+import java.util.LinkedList;
 import java.util.List;
 
 import javax.swing.AbstractAction;
@@ -188,10 +189,11 @@ public class MainFrame extends JFrame implements WindowListener, ProcessListener
 
 		panel = new JPanel();
 		contentPane.add(panel, BorderLayout.NORTH);
-		this.processList = new JList<>(processes);
+		this.processList = new JList<ProcessController>(processes);
 		this.processList.setVisibleRowCount(1);
 		this.processList.setLayoutOrientation(JList.HORIZONTAL_WRAP);
 		this.processList.setCellRenderer(new ConsolePreviewCellRenderer());
+
 		this.processList.addListSelectionListener(new ListSelectionListener() {
 
 			@Override
@@ -293,7 +295,7 @@ public class MainFrame extends JFrame implements WindowListener, ProcessListener
 				    .setVisible(true);
 			}
 		});
-		mntmNewProcess.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_N, InputEvent.CTRL_MASK));
+		mntmNewProcess.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_N, InputEvent.CTRL_DOWN_MASK));
 		mnFile.add(mntmNewProcess);
 
 		mntmNewFromSearchProcess = new JMenuItem(new AbstractAction("New from search...") {
@@ -304,7 +306,7 @@ public class MainFrame extends JFrame implements WindowListener, ProcessListener
 			}
 		});
 		mntmNewFromSearchProcess
-		    .setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_N, InputEvent.CTRL_MASK & InputEvent.SHIFT_MASK));
+		    .setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_N, InputEvent.CTRL_DOWN_MASK | InputEvent.SHIFT_DOWN_MASK));
 		mnFile.add(mntmNewFromSearchProcess);
 
 		separator_2 = new JSeparator();
@@ -319,7 +321,7 @@ public class MainFrame extends JFrame implements WindowListener, ProcessListener
 
 		});
 		mntmSave.setEnabled(false);
-		mntmSave.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_S, InputEvent.CTRL_MASK));
+		mntmSave.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_S, InputEvent.CTRL_DOWN_MASK));
 		mnFile.add(mntmSave);
 
 		separator_1 = new JSeparator();
@@ -338,7 +340,7 @@ public class MainFrame extends JFrame implements WindowListener, ProcessListener
 				});
 			}
 		});
-		mntmExit.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_Q, InputEvent.CTRL_MASK));
+		mntmExit.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_Q, InputEvent.CTRL_DOWN_MASK));
 		mnFile.add(mntmExit);
 
 		mnView = new JMenu("View");
@@ -356,7 +358,7 @@ public class MainFrame extends JFrame implements WindowListener, ProcessListener
 				}
 			}
 		});
-		chckbxmntmFind.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_F, InputEvent.CTRL_MASK));
+		chckbxmntmFind.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_F, InputEvent.CTRL_DOWN_MASK));
 		mnView.add(chckbxmntmFind);
 
 		chckbxmntmAutoScrollTo = new JCheckBoxMenuItem("Auto scroll to bottom");
@@ -447,11 +449,16 @@ public class MainFrame extends JFrame implements WindowListener, ProcessListener
 
 			@Override
 			public void actionPerformed(ActionEvent e) {
-				for (int i = 0; i <= processes.getSize(); i++) {
-					ProcessController pc = processes.firstElement();
+				List<ProcessController> toClose = new LinkedList<>();
+				Enumeration<ProcessController> elements = processes.elements();
+				while (elements.hasMoreElements()) {
+					ProcessController pc = elements.nextElement();
 					if (pc.getState() != State.RUNNING) {
-						removeProcessController(pc);
+						toClose.add(pc);
 					}
+				}
+				for (ProcessController pc : toClose) {
+					removeProcessController(pc);
 				}
 			}
 

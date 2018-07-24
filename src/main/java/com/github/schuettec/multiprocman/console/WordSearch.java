@@ -29,7 +29,8 @@ public class WordSearch {
 	public WordSearch(JTextComponent comp) {
 		this.comp = comp;
 		this.painter = new IndexAwareHighlighter(Color.CYAN.darker()
-		    .darker(), Color.CYAN);
+		    .darker()
+		    .darker(), Color.CYAN.darker());
 	}
 
 	public void clear() {
@@ -58,7 +59,7 @@ public class WordSearch {
 
 	private void scrollToOccurrence() {
 		try {
-			if (occurences.contains(lastOccurence)) {
+			if (occurences.get(lastOccurence) != null) {
 				Integer index = occurences.get(lastOccurence);
 				painter.setCurrentIndex(index);
 				Rectangle rect = comp.modelToView(index);
@@ -66,7 +67,7 @@ public class WordSearch {
 				comp.moveCaretPosition(index);
 				comp.repaint();
 			}
-		} catch (BadLocationException e) {
+		} catch (Exception e) {
 			e.printStackTrace();
 		}
 	}

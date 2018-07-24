@@ -217,6 +217,8 @@ public class ScrollableAnsiColorTextPaneContainer extends JScrollPane implements
 			}
 		});
 		setAutoScrollToBottom(true);
+
+		getVerticalScrollBar().setUnitIncrement(16);
 	}
 
 	@Override

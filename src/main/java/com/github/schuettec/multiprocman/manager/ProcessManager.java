@@ -87,7 +87,7 @@ public class ProcessManager extends JFrame {
 	public static void main(String[] args) {
 		try {
 			ThemeUtil.setLookAndFeel();
-			ProcessManager dialog = new ProcessManager();
+			ProcessManager dialog = ProcessManager.getInstance();
 			dialog.setVisible(true);
 		} catch (Exception e) {
 			e.printStackTrace();
