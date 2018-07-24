@@ -13,17 +13,20 @@ import java.awt.Dimension;
 import java.awt.Font;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.awt.event.KeyEvent;
 import java.awt.event.WindowEvent;
 import java.awt.event.WindowListener;
 import java.util.LinkedList;
 import java.util.List;
 
+import javax.swing.AbstractAction;
 import javax.swing.DefaultCellEditor;
 import javax.swing.DefaultComboBoxModel;
 import javax.swing.DefaultListCellRenderer;
 import javax.swing.GroupLayout;
 import javax.swing.GroupLayout.Alignment;
 import javax.swing.ImageIcon;
+import javax.swing.InputMap;
 import javax.swing.JButton;
 import javax.swing.JComboBox;
 import javax.swing.JDialog;
@@ -33,6 +36,7 @@ import javax.swing.JList;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JTable;
+import javax.swing.KeyStroke;
 import javax.swing.LayoutStyle.ComponentPlacement;
 import javax.swing.ListCellRenderer;
 import javax.swing.border.EmptyBorder;
@@ -128,10 +132,9 @@ public class GitBranchSelection extends JDialog {
 
 				@Override
 				public void actionPerformed(ActionEvent e) {
-					ProgressView pv = new ProgressView(descriptors);
-					wasCancelled = pv.showProgressAndPerform(GitBranchSelection.this);
-					GitBranchSelection.this.setVisible(false);
+					performOkay();
 				}
+
 			});
 			okButton.setPreferredSize(new Dimension(91, 23));
 			okButton.setActionCommand("OK");
@@ -257,6 +260,34 @@ public class GitBranchSelection extends JDialog {
 		    .setPreferredWidth(300);
 
 		table.setPreferredScrollableViewportSize(table.getPreferredSize());
+
+		String KEY = "okay";
+		this.getRootPane()
+		    .getActionMap()
+		    .put(KEY, new AbstractAction() {
+
+			    @Override
+			    public void actionPerformed(ActionEvent e) {
+				    performOkay();
+			    }
+		    });
+		InputMap im = this.getRootPane()
+		    .getInputMap();
+		im.put(KeyStroke.getKeyStroke(KeyEvent.VK_ENTER, 0), KEY);
+
+		KEY = "cancel";
+		this.getRootPane()
+		    .getActionMap()
+		    .put(KEY, new AbstractAction() {
+
+			    @Override
+			    public void actionPerformed(ActionEvent e) {
+				    performOkay();
+			    }
+		    });
+		im = this.getRootPane()
+		    .getInputMap();
+		im.put(KeyStroke.getKeyStroke(KeyEvent.VK_ESCAPE, 0), KEY);
 
 	}
 
@@ -459,5 +490,11 @@ public class GitBranchSelection extends JDialog {
 			return renderer;
 		}
 
+	}
+
+	private void performOkay() {
+		ProgressView pv = new ProgressView(descriptors);
+		wasCancelled = pv.showProgressAndPerform(GitBranchSelection.this);
+		GitBranchSelection.this.setVisible(false);
 	}
 }

@@ -668,10 +668,9 @@ public class ProcessManager extends JFrame {
 			popupMenu.add(removeCat);
 		}
 
-		String KEY = "findLauncher";
-		this.getRootPane()
-		    .getActionMap()
-		    .put(KEY, new AbstractAction() {
+		String KEY = "find";
+		getRootPane().getActionMap()
+		    .put(KEY, new AbstractAction("find") {
 
 			    @Override
 			    public void actionPerformed(ActionEvent e) {
@@ -679,10 +678,8 @@ public class ProcessManager extends JFrame {
 
 			    }
 		    });
-		InputMap im = this.getRootPane()
-		    .getInputMap();
-		im.put(KeyStroke.getKeyStroke(KeyEvent.VK_F, InputEvent.CTRL_MASK), KEY);
-		im.put(KeyStroke.getKeyStroke(KeyEvent.VK_N, InputEvent.CTRL_MASK), KEY);
+		InputMap im = getRootPane().getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW);
+		im.put(KeyStroke.getKeyStroke(KeyEvent.VK_N, InputEvent.CTRL_DOWN_MASK), KEY);
 
 		setVisible(true);
 

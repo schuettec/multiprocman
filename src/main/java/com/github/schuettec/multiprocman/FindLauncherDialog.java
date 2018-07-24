@@ -54,6 +54,14 @@ public class FindLauncherDialog extends JDialog {
 
 	private List<CategoryDecorator> allProcesses;
 
+	AbstractAction disposeAction = new AbstractAction("Cancel") {
+
+		@Override
+		public void actionPerformed(ActionEvent e) {
+			dispose();
+		}
+	};
+
 	/**
 	 * Launch the application.
 	 */
@@ -147,13 +155,7 @@ public class FindLauncherDialog extends JDialog {
 		String KEY = "closeDialog";
 		this.getRootPane()
 		    .getActionMap()
-		    .put(KEY, new AbstractAction() {
-
-			    @Override
-			    public void actionPerformed(ActionEvent e) {
-				    dispose();
-			    }
-		    });
+		    .put(KEY, disposeAction);
 		InputMap im = this.getRootPane()
 		    .getInputMap();
 		im.put(KeyStroke.getKeyStroke(KeyEvent.VK_ESCAPE, 0), KEY);
@@ -173,6 +175,7 @@ public class FindLauncherDialog extends JDialog {
 
 			@Override
 			public void keyReleased(KeyEvent e) {
+				refreshHits();
 			}
 
 			@Override
@@ -199,10 +202,10 @@ public class FindLauncherDialog extends JDialog {
 					}
 					selectionModel.setSelectionInterval(selectedIndex, selectedIndex);
 					list.ensureIndexIsVisible(list.getSelectedIndex());
+				} else if (e.getKeyCode() == KeyEvent.VK_ENTER) {
+					startSelectedProcess();
 				} else if (e.getKeyCode() == KeyEvent.VK_ESCAPE) {
 					dispose();
-				} else {
-					refreshHits();
 				}
 			}
 		});
@@ -229,6 +232,27 @@ public class FindLauncherDialog extends JDialog {
 		this.model = new DefaultListModel<>();
 		this.list = new JList<>(model);
 		list.setCellRenderer(new ListCellRenderer());
+		list.addKeyListener(new KeyListener() {
+
+			@Override
+			public void keyTyped(KeyEvent e) {
+
+			}
+
+			@Override
+			public void keyReleased(KeyEvent e) {
+
+			}
+
+			@Override
+			public void keyPressed(KeyEvent e) {
+				if (e.getKeyCode() == KeyEvent.VK_ENTER) {
+					startSelectedProcess();
+				} else if (e.getKeyCode() == KeyEvent.VK_ESCAPE) {
+					dispose();
+				}
+			}
+		});
 		list.addMouseListener(new MouseAdapter() {
 
 			@Override
@@ -296,17 +320,23 @@ public class FindLauncherDialog extends JDialog {
 		String search = textField.getText();
 		this.model.clear();
 		for (CategoryDecorator pd : allProcesses) {
-			if (isNull(search) && search.isEmpty()) {
+			if (isNull(search) || search.isEmpty()) {
 				model.addElement(pd);
 			} else {
-				if (pd.getTitle()
+				if (pd.getCategoryDescription()
 				    .contains(search)
+				    || pd.getCategoryName()
+				        .contains(search)
+				    || pd.getTitle()
+				        .contains(search)
 				    || pd.getCommand()
 				        .contains(search)) {
 					model.addElement(pd);
 				}
 			}
 		}
+		list.repaint();
+		System.out.println(model.getSize());
 	}
 
 	private void loadListModel() {
