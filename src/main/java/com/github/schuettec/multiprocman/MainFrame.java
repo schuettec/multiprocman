@@ -320,7 +320,6 @@ public class MainFrame extends JFrame implements WindowListener, ProcessListener
 			}
 
 		});
-		mntmSave.setEnabled(false);
 		mntmSave.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_S, InputEvent.CTRL_DOWN_MASK));
 		mnFile.add(mntmSave);
 
