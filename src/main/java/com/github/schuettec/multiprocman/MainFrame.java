@@ -54,6 +54,7 @@ import com.github.schuettec.multiprocman.console.AutoScrollToBottomListener;
 import com.github.schuettec.multiprocman.console.ScrollableAnsiColorTextPaneContainer;
 import com.github.schuettec.multiprocman.console.SearchFieldListener;
 import com.github.schuettec.multiprocman.consolepreview.ConsolePreview;
+import com.github.schuettec.multiprocman.git.GitBranchSelection;
 import com.github.schuettec.multiprocman.git.GitManagerImpl;
 import com.github.schuettec.multiprocman.manager.ProcessManager;
 import com.github.schuettec.multiprocman.themes.ThemeUtil;
@@ -443,7 +444,8 @@ public class MainFrame extends JFrame implements WindowListener, ProcessListener
 		btnStopForcibly.setToolTipText("Stop forcibly");
 		allProcessesToolbar.add(btnStopForcibly);
 		allProcessesToolbar.addSeparator();
-
+		addGitToToolbarForAll();
+		allProcessesToolbar.addSeparator();
 		btnClose = new JButton(new AbstractAction(null, new ImageIcon(Resources.getX())) {
 
 			@Override
@@ -587,6 +589,7 @@ public class MainFrame extends JFrame implements WindowListener, ProcessListener
 			consoleScroller.addAutoScrollToBottomListener(autoScrollToBottomToggleModel);
 			consoleScroller.addSearchFieldListener(this);
 
+			addGitToToolbarOnDemand(selectedValue);
 			addCounterToToolbar(selectedValue.getCounterExpressions());
 		}
 		this.currentProcess = selectedValue;
@@ -594,6 +597,46 @@ public class MainFrame extends JFrame implements WindowListener, ProcessListener
 
 		this.revalidate();
 		this.repaint();
+	}
+
+	private void addGitToToolbarForAll() {
+		allProcessesToolbar.add(new AbstractAction("Git") {
+
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				GitBranchSelection branchSelection = new GitBranchSelection();
+				Enumeration<ProcessController> elements = processes.elements();
+				while (elements.hasMoreElements()) {
+					ProcessDescriptor descriptor = elements.nextElement()
+					    .getProcessDescriptor();
+					if (descriptor.isEnableGitSupport()) {
+						branchSelection.addProcessDescriptor(descriptor);
+					}
+				}
+				if (branchSelection.hasTasksToShow()) {
+					branchSelection.showBranchSelection(MainFrame.this);
+				}
+			}
+		});
+	}
+
+	private void addGitToToolbarOnDemand(ProcessController pc) {
+		ProcessDescriptor processDescriptor = pc.getProcessDescriptor();
+		if (processDescriptor.isEnableGitSupport()) {
+			toolBar.add(new AbstractAction("Git") {
+
+				@Override
+				public void actionPerformed(ActionEvent e) {
+					GitBranchSelection branchSelection = new GitBranchSelection();
+					if (processDescriptor.isEnableGitSupport()) {
+						branchSelection.addProcessDescriptor(processDescriptor);
+					}
+					if (branchSelection.hasTasksToShow()) {
+						branchSelection.showBranchSelection(MainFrame.this);
+					}
+				}
+			});
+		}
 	}
 
 	private void addCounterToToolbar(CounterExpressions counterExpressions) {
