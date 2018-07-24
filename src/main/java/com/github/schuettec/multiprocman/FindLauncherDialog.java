@@ -199,6 +199,8 @@ public class FindLauncherDialog extends JDialog {
 					}
 					selectionModel.setSelectionInterval(selectedIndex, selectedIndex);
 					list.ensureIndexIsVisible(list.getSelectedIndex());
+				} else if (e.getKeyCode() == KeyEvent.VK_ESCAPE) {
+					dispose();
 				} else {
 					refreshHits();
 				}
