@@ -1,6 +1,7 @@
 package com.github.schuettec.multiprocman.git;
 
 import org.eclipse.jgit.api.errors.GitAPIException;
+import org.eclipse.jgit.api.errors.TransportException;
 
 public class GitException extends Exception {
 
@@ -38,6 +39,10 @@ public class GitException extends Exception {
 
 	public static GitException pull(GitAPIException e) {
 		return new GitException("Cannot pull due to an error while performing this GIT operation.", e);
+	}
+
+	public static GitException transportException(TransportException e) {
+		return new GitException("Cannot communicate with GIT repository. Wrong credentials supplied?", e);
 	}
 
 }

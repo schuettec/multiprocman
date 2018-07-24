@@ -126,4 +126,10 @@ public class DefaultCredentialsCallback implements CredentialsCallback {
 		}
 	}
 
+	@Override
+	public void clearCache() {
+		passphrases.clear();
+		passwords.clear();
+	}
+
 }

@@ -23,6 +23,7 @@ import org.eclipse.jgit.api.errors.CheckoutConflictException;
 import org.eclipse.jgit.api.errors.GitAPIException;
 import org.eclipse.jgit.api.errors.InvalidRefNameException;
 import org.eclipse.jgit.api.errors.RefNotFoundException;
+import org.eclipse.jgit.api.errors.TransportException;
 import org.eclipse.jgit.lib.Ref;
 import org.eclipse.jgit.lib.Repository;
 import org.eclipse.jgit.lib.RepositoryBuilder;
@@ -49,9 +50,11 @@ public class GitManagerImpl implements GitManager, AutoCloseable {
 	private Git git;
 	private JschConfigSessionFactory sshSessionFactory;
 	private Component rootComponent;
+	private CredentialsCallback callback;
 
 	public GitManagerImpl(Component rootComponent, CredentialsCallback callback, String gitDir) throws GitException {
 		instances.add(this);
+		this.callback = callback;
 		this.sshSessionFactory = new JschConfigSessionFactory() {
 			@Override
 			protected void configure(OpenSshConfig.Host host, Session session) {
@@ -107,8 +110,13 @@ public class GitManagerImpl implements GitManager, AutoCloseable {
 		try {
 			this.rootComponent = monitor.getRootComponent();
 			pull.call();
+		} catch (TransportException e) {
+			callback.clearCache();
+			throw GitException.transportException(e);
 		} catch (GitAPIException e) {
 			throw GitException.general(e);
+		} catch (Exception e) {
+			e.printStackTrace();
 		} finally {
 			if (nonNull(oldRoot)) {
 				this.rootComponent = oldRoot;
@@ -245,6 +253,9 @@ public class GitManagerImpl implements GitManager, AutoCloseable {
 				fetch.setRefSpecs(remote.getFetchRefSpecs());
 				fetch.call();
 			}
+		} catch (TransportException e) {
+			callback.clearCache();
+			throw GitException.transportException(e);
 		} catch (Exception e) {
 			throw GitException.general(e);
 		}

@@ -15,4 +15,6 @@ public interface CredentialsCallback {
 	public boolean promptYesNo(String message, Component rootComponent);
 
 	public void showMessage(String message, Component rootComponent);
+
+	public void clearCache();
 }
