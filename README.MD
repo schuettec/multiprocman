@@ -14,6 +14,7 @@
 11. [Checkout branch](#checkout-branch)
 12. [Pull](#pull)
 13. [How to run Gradle builds](#how-to-run-gradle-builds)
+14. [Icon in Windows Taskbar](#icon-windows-taskbar)
 
 ## Long story short
 
@@ -151,5 +152,16 @@ Here is how to setup a Gradle Wrapper launch configuration:
 * Use the charset UTF-8
 * Use the following command - customize the parts in `<>`
   * __Command__: `${JAVA_HOME}\bin\java.exe -Dorg.gradle.appname=<APP-NAME> -classpath ".\gradle\wrapper\gradle-wrapper.jar"  org.gradle.wrapper.GradleWrapperMain <TASK-AND-OTHER-COMMAND-LINE-OPTIONS>`.
+
+# Icon in Windows Taskbar
+
+This project does not create an install package. Currently the build produces a plain JAR file. Nevertheless it is easy to integrate the Multi Process Manager into your Windows Taskbar.
+
+1. Create a Windows Link
+2. Set the target to `C:\Windows\explorer.exe <PATH_TO_JAR>\multiprocman-x.x.xx-jar-with-dependencies.jar`
+3. Extract the App-Icon from the application jar
+4. Setup the Icon and hit ok
+5. Drag&Drop the link to your taskbar
+6. You may remove the link just created
 
 
