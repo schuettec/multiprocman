@@ -35,11 +35,17 @@ public class Statistics {
 
 	public static String size(long bytes) {
 		String hrSize = "";
+		if (bytes == 0) {
+			return "0 bytes";
+		}
 		double k = bytes / 1024.0;
 		double m = k / 1024.0;
 		double g = m / 1024.0;
 		double t = g / 1024.0;
 		DecimalFormat dec = new DecimalFormat("0.00");
+		if (k <= 1) {
+			hrSize = bytes + " bytes";
+		}
 		if (k > 1) {
 			hrSize = dec.format(k)
 			    .concat("KB");

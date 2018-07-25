@@ -862,13 +862,9 @@ public class MainFrame extends JFrame implements WindowListener, ProcessListener
 	}
 
 	private void refreshInfoBar(ProcessController controller) {
-		SwingUtilities.invokeLater(new Runnable() {
-			@Override
-			public void run() {
-				Statistics statistics = controller.getStatistics();
-				lblAppOutput.setText(statistics.overallOutbutAmountPresentable());
-			}
-		});
+		Statistics statistics = controller.getStatistics();
+		String appOutput = statistics.overallOutbutAmountPresentable();
+		lblAppOutput.setText(appOutput);
 	}
 
 	private void processCurrentState() {

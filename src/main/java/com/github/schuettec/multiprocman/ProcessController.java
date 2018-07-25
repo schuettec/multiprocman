@@ -106,6 +106,7 @@ public class ProcessController {
 
 	public boolean start() {
 		try {
+			statistics.clear();
 			consoleScroller.setAutoScrollToBottom(true);
 			String command = processDescriptor.getCommandForExecution();
 			this.process = executeCommand(command);
@@ -185,14 +186,20 @@ public class ProcessController {
 					} while (hasOutput(inputStream, errorStream) || process.isAlive());
 
 				} catch (Exception e) {
+					ExceptionDialog.showException(textPane, e, "Exception occurre while capturing the process output.");
 					updateState(State.ABANDONED);
 				}
 				try {
-					int exitValue = process.waitFor();
-					if (exitValue == 0) {
-						updateState(State.STOPPED_OK);
+					boolean exited = process.waitFor(10l, TimeUnit.SECONDS);
+					if (exited) {
+						int exitValue = process.exitValue();
+						if (exitValue == 0) {
+							updateState(State.STOPPED_OK);
+						} else {
+							updateState(State.STOPPED_ALERT);
+						}
 					} else {
-						updateState(State.STOPPED_ALERT);
+						updateState(State.ABANDONED);
 					}
 					controllers.remove(ProcessController.this);
 				} catch (InterruptedException e) {
@@ -228,8 +235,8 @@ public class ProcessController {
 			private void buffer(final InputStream inputStream, AtomicInteger inputBufferSize,
 			    ByteArrayOutputStream inputBuffer, Charset charset, EventJoin inputJoin) throws IOException {
 				Chunk inputChunk = readNext(charset, inputStream);
-				statistics.reportOutputAmount(inputChunk.getAmount());
 				if (nonNull(inputChunk)) {
+					statistics.reportOutputAmount(inputChunk.getAmount());
 					if (containsControllChars(inputChunk)) {
 						appendInEDT(new String(inputChunk.getData(), 0, inputChunk.getAmount(), charset));
 					} else {
