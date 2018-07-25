@@ -336,7 +336,6 @@ public class FindLauncherDialog extends JDialog {
 			}
 		}
 		list.repaint();
-		System.out.println(model.getSize());
 	}
 
 	private void loadListModel() {
