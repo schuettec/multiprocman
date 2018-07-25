@@ -636,6 +636,18 @@ public class MainFrame extends JFrame implements WindowListener, ProcessListener
 		ProcessDescriptor processDescriptor = selectedValue.getProcessDescriptor();
 		boolean enableGitSupport = processDescriptor.isEnableGitSupport();
 		pnlGitInfo.setVisible(enableGitSupport);
+
+		this.currentProcess = selectedValue;
+		refreshCurrentBranch();
+		processCurrentState();
+
+		this.revalidate();
+		this.repaint();
+	}
+
+	private void refreshCurrentBranch() {
+		ProcessDescriptor processDescriptor = currentProcess.getProcessDescriptor();
+		boolean enableGitSupport = processDescriptor.isEnableGitSupport();
 		if (enableGitSupport) {
 			try {
 				String currentBranch = processDescriptor.getCurrentBranch();
@@ -650,16 +662,10 @@ public class MainFrame extends JFrame implements WindowListener, ProcessListener
 				lblCurrentBranch.setText("N/A");
 			}
 		}
-
-		this.currentProcess = selectedValue;
-		processCurrentState();
-
-		this.revalidate();
-		this.repaint();
 	}
 
 	private void addGitToToolbarForAll() {
-		allProcessesToolbar.add(new AbstractAction("Git") {
+		allProcessesToolbar.add(new AbstractAction("", new ImageIcon(Resources.getBranch())) {
 
 			@Override
 			public void actionPerformed(ActionEvent e) {
@@ -674,6 +680,7 @@ public class MainFrame extends JFrame implements WindowListener, ProcessListener
 				}
 				if (branchSelection.hasTasksToShow()) {
 					branchSelection.showBranchSelection(MainFrame.this);
+					refreshInfoBar();
 				}
 			}
 		});
@@ -682,7 +689,8 @@ public class MainFrame extends JFrame implements WindowListener, ProcessListener
 	private void addGitToToolbarOnDemand(ProcessController pc) {
 		ProcessDescriptor processDescriptor = pc.getProcessDescriptor();
 		if (processDescriptor.isEnableGitSupport()) {
-			toolBar.add(new AbstractAction("Git") {
+			toolBar.addSeparator();
+			toolBar.add(new AbstractAction("", new ImageIcon(Resources.getBranch())) {
 
 				@Override
 				public void actionPerformed(ActionEvent e) {
@@ -692,9 +700,11 @@ public class MainFrame extends JFrame implements WindowListener, ProcessListener
 					}
 					if (branchSelection.hasTasksToShow()) {
 						branchSelection.showBranchSelection(MainFrame.this);
+						refreshInfoBar();
 					}
 				}
 			});
+			toolBar.addSeparator();
 		}
 	}
 
@@ -856,13 +866,14 @@ public class MainFrame extends JFrame implements WindowListener, ProcessListener
 	@Override
 	public void processUpdate(ProcessController controller) {
 		this.processList.repaint();
-		refreshInfoBar(controller);
+		refreshInfoBar();
 		processCurrentState();
 
 	}
 
-	private void refreshInfoBar(ProcessController controller) {
-		Statistics statistics = controller.getStatistics();
+	private void refreshInfoBar() {
+		refreshCurrentBranch();
+		Statistics statistics = currentProcess.getStatistics();
 		String appOutput = statistics.overallOutbutAmountPresentable();
 		lblAppOutput.setText(appOutput);
 	}
