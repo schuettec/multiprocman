@@ -145,6 +145,9 @@ public class MainFrame extends JFrame implements WindowListener, ProcessListener
 	private JMenuItem mntmNewFromSearchProcess;
 	private JPanel pnlGitInfo;
 	private JLabel lblCurrentBranch;
+	private JPanel pnlInfo;
+	private JLabel lblOutputSoFar;
+	private JLabel lblAppOutput;
 
 	private static class Holder {
 		private static final MainFrame INSTANCE = new MainFrame();
@@ -207,6 +210,21 @@ public class MainFrame extends JFrame implements WindowListener, ProcessListener
 
 		lblCurrentBranch = new JLabel("");
 		pnlGitInfo.add(lblCurrentBranch);
+
+		pnlInfo = new JPanel();
+		pnlInfo.setBorder(new SoftBevelBorder(BevelBorder.RAISED, null, null, null, null));
+		FlowLayout flowLayout_1 = (FlowLayout) pnlInfo.getLayout();
+		flowLayout_1.setAlignment(FlowLayout.LEFT);
+		flowLayout_1.setVgap(0);
+		flowLayout_1.setHgap(0);
+		footer.add(pnlInfo, BorderLayout.CENTER);
+
+		lblOutputSoFar = new JLabel("Output so far: ");
+		pnlInfo.add(lblOutputSoFar);
+
+		lblAppOutput = new JLabel();
+		lblAppOutput.setText("0 bytes");
+		pnlInfo.add(lblAppOutput);
 
 		this.processes = new DefaultListModel<ProcessController>();
 
@@ -838,8 +856,19 @@ public class MainFrame extends JFrame implements WindowListener, ProcessListener
 	@Override
 	public void processUpdate(ProcessController controller) {
 		this.processList.repaint();
+		refreshInfoBar(controller);
 		processCurrentState();
 
+	}
+
+	private void refreshInfoBar(ProcessController controller) {
+		SwingUtilities.invokeLater(new Runnable() {
+			@Override
+			public void run() {
+				Statistics statistics = controller.getStatistics();
+				lblAppOutput.setText(statistics.overallOutbutAmountPresentable());
+			}
+		});
 	}
 
 	private void processCurrentState() {

@@ -70,8 +70,11 @@ public class ProcessController {
 	private Process process;
 	private State state;
 
+	private Statistics statistics;
+
 	public ProcessController(ProcessDescriptor processDescriptor) {
 		this.processDescriptor = processDescriptor;
+		this.statistics = new Statistics();
 
 		this.textPane = new AnsiColorTextPane(new LimitedStyledDocument(processDescriptor.getMaxLineNumbers()));
 		ThemeUtil.theme(textPane, AnsiColorTextPaneTheme.class);
@@ -83,6 +86,10 @@ public class ProcessController {
 
 		this.textPane.addAppendListener(counterExpressions);
 		this.state = State.NOT_STARTED;
+	}
+
+	public Statistics getStatistics() {
+		return statistics;
 	}
 
 	public ProcessDescriptor getProcessDescriptor() {
@@ -221,6 +228,7 @@ public class ProcessController {
 			private void buffer(final InputStream inputStream, AtomicInteger inputBufferSize,
 			    ByteArrayOutputStream inputBuffer, Charset charset, EventJoin inputJoin) throws IOException {
 				Chunk inputChunk = readNext(charset, inputStream);
+				statistics.reportOutputAmount(inputChunk.getAmount());
 				if (nonNull(inputChunk)) {
 					if (containsControllChars(inputChunk)) {
 						appendInEDT(new String(inputChunk.getData(), 0, inputChunk.getAmount(), charset));
