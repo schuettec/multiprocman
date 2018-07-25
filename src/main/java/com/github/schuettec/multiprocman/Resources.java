@@ -39,6 +39,7 @@ public class Resources {
 	private static BufferedImage remote;
 	private static BufferedImage local;
 	private static BufferedImage ok;
+	private static BufferedImage branch;
 
 	static {
 		try {
@@ -71,10 +72,15 @@ public class Resources {
 			remote = ImageIO.read(getResource("/remote.png"));
 			local = ImageIO.read(getResource("/local.png"));
 			ok = ImageIO.read(getResource("/ok.png"));
+			branch = ImageIO.read(getResource("/branch.png"));
 		} catch (IOException e) {
 			ExceptionDialog.showException(null, e, "Some application resources could not be found!");
 		}
 
+	}
+
+	public static BufferedImage getBranch() {
+		return branch;
 	}
 
 	public static BufferedImage getOk() {
