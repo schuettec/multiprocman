@@ -1,5 +1,7 @@
 package com.github.schuettec.multiprocman;
 
+import static com.github.schuettec.multiprocman.git.GitManager.LOCAL_PREFIX;
+import static com.github.schuettec.multiprocman.git.GitManager.REMOTE_PREFIX;
 import static java.util.Objects.nonNull;
 
 import java.awt.BorderLayout;
@@ -29,6 +31,7 @@ import javax.swing.JButton;
 import javax.swing.JCheckBoxMenuItem;
 import javax.swing.JComponent;
 import javax.swing.JFrame;
+import javax.swing.JLabel;
 import javax.swing.JList;
 import javax.swing.JMenu;
 import javax.swing.JMenuBar;
@@ -44,7 +47,9 @@ import javax.swing.ListSelectionModel;
 import javax.swing.SwingConstants;
 import javax.swing.SwingUtilities;
 import javax.swing.TransferHandler;
+import javax.swing.border.BevelBorder;
 import javax.swing.border.EmptyBorder;
+import javax.swing.border.SoftBevelBorder;
 import javax.swing.event.ListSelectionEvent;
 import javax.swing.event.ListSelectionListener;
 
@@ -55,6 +60,7 @@ import com.github.schuettec.multiprocman.console.ScrollableAnsiColorTextPaneCont
 import com.github.schuettec.multiprocman.console.SearchFieldListener;
 import com.github.schuettec.multiprocman.consolepreview.ConsolePreview;
 import com.github.schuettec.multiprocman.git.GitBranchSelection;
+import com.github.schuettec.multiprocman.git.GitException;
 import com.github.schuettec.multiprocman.git.GitManagerImpl;
 import com.github.schuettec.multiprocman.manager.ProcessManager;
 import com.github.schuettec.multiprocman.themes.ThemeUtil;
@@ -137,6 +143,8 @@ public class MainFrame extends JFrame implements WindowListener, ProcessListener
 	private JToolBar allProcessesToolbar;
 
 	private JMenuItem mntmNewFromSearchProcess;
+	private JPanel pnlGitInfo;
+	private JLabel lblCurrentBranch;
 
 	private static class Holder {
 		private static final MainFrame INSTANCE = new MainFrame();
@@ -175,16 +183,30 @@ public class MainFrame extends JFrame implements WindowListener, ProcessListener
 
 		footer = new JPanel();
 		footerContainer.add(footer, BorderLayout.CENTER);
-		footer.setLayout(new FlowLayout(FlowLayout.RIGHT, 0, 0));
 
 		tglScrollToBottom = new JToggleButton(scrollToBottomAction);
+		tglScrollToBottom.setPreferredSize(new Dimension(38, 20));
 		tglScrollToBottom.setIcon(new ImageIcon(Resources.getScrollLock()));
 		tglScrollToBottom.setSelectedIcon(new ImageIcon(Resources.getScrollFree()));
 		this.autoScrollToBottomToggleModel = new ListeningToggleButtonModel();
 		tglScrollToBottom.setModel(autoScrollToBottomToggleModel);
+		footer.setLayout(new BorderLayout(5, 5));
 		tglScrollToBottom.setIcon(new ImageIcon(Resources.getScrollLock()));
 
-		footer.add(tglScrollToBottom);
+		footer.add(tglScrollToBottom, BorderLayout.EAST);
+
+		pnlGitInfo = new JPanel();
+		FlowLayout flowLayout = (FlowLayout) pnlGitInfo.getLayout();
+		flowLayout.setVgap(0);
+		flowLayout.setHgap(0);
+		pnlGitInfo.setBorder(new SoftBevelBorder(BevelBorder.RAISED, null, null, null, null));
+		footer.add(pnlGitInfo, BorderLayout.WEST);
+
+		JLabel lblCurrentBranchTitle = new JLabel(new ImageIcon(Resources.getBranch()));
+		pnlGitInfo.add(lblCurrentBranchTitle);
+
+		lblCurrentBranch = new JLabel("");
+		pnlGitInfo.add(lblCurrentBranch);
 
 		this.processes = new DefaultListModel<ProcessController>();
 
@@ -592,6 +614,25 @@ public class MainFrame extends JFrame implements WindowListener, ProcessListener
 			addGitToToolbarOnDemand(selectedValue);
 			addCounterToToolbar(selectedValue.getCounterExpressions());
 		}
+
+		ProcessDescriptor processDescriptor = selectedValue.getProcessDescriptor();
+		boolean enableGitSupport = processDescriptor.isEnableGitSupport();
+		pnlGitInfo.setVisible(enableGitSupport);
+		if (enableGitSupport) {
+			try {
+				String currentBranch = processDescriptor.getCurrentBranch();
+				String presentableBranchName = currentBranch;
+				if (currentBranch.startsWith(LOCAL_PREFIX)) {
+					presentableBranchName = currentBranch.replace(LOCAL_PREFIX, "") + " (local)";
+				} else if (currentBranch.startsWith(REMOTE_PREFIX)) {
+					presentableBranchName = currentBranch.replace(LOCAL_PREFIX, "") + " (remote)";
+				}
+				lblCurrentBranch.setText(presentableBranchName);
+			} catch (GitException e) {
+				lblCurrentBranch.setText("N/A");
+			}
+		}
+
 		this.currentProcess = selectedValue;
 		processCurrentState();
 
