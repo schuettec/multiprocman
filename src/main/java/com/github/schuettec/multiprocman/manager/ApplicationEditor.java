@@ -223,6 +223,25 @@ public class ApplicationEditor extends JDialog {
 		scrollPane_3.setViewportView(txtTermCommand);
 		terminatePanel.setLayout(gl_terminatePanel);
 		tabbedPane.add("Environment", environmentPanel);
+
+		JPanel pnlVariables = new JPanel();
+		tabbedPane.addTab("Variables", null, pnlVariables, "Variables and promts");
+
+		JLabel lblVariablesDefinedOn = new JLabel(
+		    "<html>Variables defined on this page can be used in the execution command. A variable can be configured to trigger an input prompt when the application is launched.</html>");
+		lblVariablesDefinedOn.setVerticalAlignment(SwingConstants.TOP);
+		GroupLayout gl_pnlVariables = new GroupLayout(pnlVariables);
+		gl_pnlVariables.setHorizontalGroup(gl_pnlVariables.createParallelGroup(Alignment.LEADING)
+		    .addGroup(gl_pnlVariables.createSequentialGroup()
+		        .addContainerGap()
+		        .addComponent(lblVariablesDefinedOn, GroupLayout.DEFAULT_SIZE, 499, Short.MAX_VALUE)
+		        .addContainerGap()));
+		gl_pnlVariables.setVerticalGroup(gl_pnlVariables.createParallelGroup(Alignment.LEADING)
+		    .addGroup(gl_pnlVariables.createSequentialGroup()
+		        .addContainerGap()
+		        .addComponent(lblVariablesDefinedOn, GroupLayout.PREFERRED_SIZE, 44, GroupLayout.PREFERRED_SIZE)
+		        .addContainerGap(425, Short.MAX_VALUE)));
+		pnlVariables.setLayout(gl_pnlVariables);
 		tabbedPane.add("Counter expressions", counterPanel);
 
 		JLabel lblyouCanAdd = new JLabel(

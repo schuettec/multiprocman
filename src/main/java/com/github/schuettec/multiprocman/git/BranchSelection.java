@@ -207,14 +207,6 @@ public class BranchSelection {
 		processDescriptor.setSupportAsciiCodes(supportAsciiCodes);
 	}
 
-	public String getCommandForExecution() {
-		return processDescriptor.getCommandForExecution();
-	}
-
-	public String getTerminationCommandForExecution() {
-		return processDescriptor.getTerminationCommandForExecution();
-	}
-
 	public boolean isTerminationVariableSubstitution() {
 		return processDescriptor.isTerminationVariableSubstitution();
 	}
