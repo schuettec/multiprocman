@@ -94,6 +94,14 @@ public class ProcessManager extends JFrame {
 		}
 	}
 
+	private Action findAction = new AbstractAction("Search launcher") {
+
+		@Override
+		public void actionPerformed(ActionEvent e) {
+			new FindLauncherDialog(ProcessManager.this);
+		}
+	};
+
 	private Action newCategory = new AbstractAction(null, new ImageIcon(Resources.getFolderPlus())) {
 
 		/**
@@ -670,14 +678,7 @@ public class ProcessManager extends JFrame {
 
 		String KEY = "find";
 		getRootPane().getActionMap()
-		    .put(KEY, new AbstractAction("find") {
-
-			    @Override
-			    public void actionPerformed(ActionEvent e) {
-				    new FindLauncherDialog(ProcessManager.this);
-
-			    }
-		    });
+		    .put(KEY, findAction);
 		InputMap im = getRootPane().getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW);
 		im.put(KeyStroke.getKeyStroke(KeyEvent.VK_N, InputEvent.CTRL_DOWN_MASK), KEY);
 

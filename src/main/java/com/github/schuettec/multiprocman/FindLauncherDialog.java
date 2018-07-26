@@ -149,8 +149,6 @@ public class FindLauncherDialog extends JDialog {
 		this.setSize(new Dimension(280, 480));
 		setModal(true);
 		this.setLocationRelativeTo(parent);
-		ThemeUtil.loadWindow(this);
-		ThemeUtil.installListeners(this);
 
 		String KEY = "closeDialog";
 		this.getRootPane()
