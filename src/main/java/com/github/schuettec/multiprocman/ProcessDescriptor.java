@@ -18,6 +18,7 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import javax.swing.ImageIcon;
+import javax.swing.JOptionPane;
 
 import com.github.schuettec.multiprocman.git.DefaultCredentialsCallback;
 import com.github.schuettec.multiprocman.git.GitException;
@@ -25,6 +26,7 @@ import com.github.schuettec.multiprocman.git.GitManager;
 import com.github.schuettec.multiprocman.git.GitManagerImpl;
 import com.github.schuettec.multiprocman.git.ProgressMonitorView;
 import com.github.schuettec.multiprocman.manager.ProcessManager;
+import com.github.schuettec.multiprocman.manager.PromptVariable;
 
 public class ProcessDescriptor implements Serializable {
 
@@ -51,6 +53,7 @@ public class ProcessDescriptor implements Serializable {
 	private int maxLineNumbers;
 
 	private List<Counter> counters;
+	private List<PromptVariable> promptVariables;
 
 	private boolean enableGitSupport;
 	private boolean pullAfterCheckout;
@@ -316,6 +319,36 @@ public class ProcessDescriptor implements Serializable {
 		} else {
 			return executionDirectory;
 		}
+	}
+
+	public boolean promptVariables(Component parent) {
+		boolean cancelled = false;
+		Iterator<PromptVariable> iterator = this.promptVariables.iterator();
+		while (!cancelled && iterator.hasNext()) {
+			PromptVariable pv = iterator.next();
+			Object result = null;
+			if (pv.isSelection()) {
+				result = JOptionPane.showInputDialog(parent, pv.getMessage(), "Enter value for variable",
+				    JOptionPane.INFORMATION_MESSAGE, null, pv.getSelectionValues(), pv.getLastValue());
+			} else {
+				result = JOptionPane.showInputDialog(parent, pv.getMessage(), "Enter value for variable",
+				    JOptionPane.INFORMATION_MESSAGE);
+			}
+			pv.setLastValue((String) result);
+		}
+		return cancelled;
+	}
+
+	public boolean hasPromptVariables() {
+		return nonNull(promptVariables) && !promptVariables.isEmpty();
+	}
+
+	public List<PromptVariable> getPromptVariables() {
+		return this.promptVariables;
+	}
+
+	public void setPromptVariables(List<PromptVariable> promptVariables) {
+		this.promptVariables = promptVariables;
 	}
 
 }

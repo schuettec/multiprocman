@@ -251,7 +251,7 @@ public class ApplicationEditor extends JDialog {
 		        .addContainerGap(GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)));
 
 		this.promptVariables = new DefaultTableModel(new Object[][] {}, new String[] {
-		    "Name", "Message", "Default", "Prompt"
+		    "Name", "Message", "Default", "Prompt", "Selection", "Selection values (CSV)"
 		}) {
 			@Override
 			public Class getColumnClass(int column) {
@@ -275,7 +275,7 @@ public class ApplicationEditor extends JDialog {
 			@Override
 			public void actionPerformed(ActionEvent e) {
 				promptVariables.addRow(new Object[] {
-				    "", "", "", true
+				    "", "", "", true, false, ""
 				});
 			}
 		});
@@ -924,6 +924,14 @@ public class ApplicationEditor extends JDialog {
 
 			checkPullAfterCheckout.setEnabled(checkEnableGitSupport.isSelected());
 
+			if (processDescriptor.hasPromptVariables()) {
+				for (PromptVariable pv : processDescriptor.getPromptVariables()) {
+					promptVariables.addRow(new Object[] {
+					    pv.getName(), pv.getMessage(), pv.getDefaultValue(), pv.isPrompt(), pv.isSelection(),
+					    pv.getSelectionValuesAsCSV()
+					});
+				}
+			}
 		}
 	}
 
@@ -1000,6 +1008,20 @@ public class ApplicationEditor extends JDialog {
 
 		ApplicationEditor.this.processDescriptor.setEnableGitSupport(checkEnableGitSupport.isSelected());
 		ApplicationEditor.this.processDescriptor.setPullAfterCheckout(checkPullAfterCheckout.isSelected());
+
+		List<PromptVariable> toSet = new LinkedList<>();
+		for (int i = 0; i < promptVariables.getRowCount(); i++) {
+			String name = ((String) promptVariables.getValueAt(i, 0)).trim();
+			String message = ((String) promptVariables.getValueAt(i, 1)).trim();
+			String defaultValue = ((String) promptVariables.getValueAt(i, 2)).trim();
+			boolean prompt = (boolean) promptVariables.getValueAt(i, 3);
+			boolean selection = (boolean) promptVariables.getValueAt(i, 4);
+			String selectionValues = (String) promptVariables.getValueAt(i, 5);
+			toSet.add(new PromptVariable(name, message, defaultValue, prompt, selection,
+			    PromptVariable.parseSelectionValues(selectionValues)));
+		}
+		ApplicationEditor.this.processDescriptor.setPromptVariables(toSet);
+
 		dispose();
 	}
 

@@ -3,6 +3,7 @@ package com.github.schuettec.multiprocman;
 import static java.lang.Math.min;
 import static java.util.Objects.nonNull;
 
+import java.awt.Component;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.IOException;
@@ -75,7 +76,6 @@ public class ProcessController {
 	public ProcessController(ProcessDescriptor processDescriptor) {
 		this.processDescriptor = processDescriptor;
 		this.statistics = new Statistics();
-
 		this.textPane = new AnsiColorTextPane(new LimitedStyledDocument(processDescriptor.getMaxLineNumbers()));
 		ThemeUtil.theme(textPane, AnsiColorTextPaneTheme.class);
 		this.consoleScroller = new ScrollableAnsiColorTextPaneContainer(textPane);
@@ -83,7 +83,6 @@ public class ProcessController {
 		this.textPane.addAppendListener(consolePreview);
 		processListener.addListener(consolePreview);
 		this.counterExpressions = new CounterExpressions(this);
-
 		this.textPane.addAppendListener(counterExpressions);
 		this.state = State.NOT_STARTED;
 	}
@@ -102,6 +101,11 @@ public class ProcessController {
 
 	public void removeProcessListener(ProcessListener l) {
 		processListener.removeListener(l);
+	}
+
+	public boolean startWithVariables(Component parent) {
+
+		return start();
 	}
 
 	public boolean start() {
