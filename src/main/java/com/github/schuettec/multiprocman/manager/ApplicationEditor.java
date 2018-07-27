@@ -84,7 +84,7 @@ public class ApplicationEditor extends JDialog {
 	private JTextArea txtCommand;
 	private JTabbedPane tabbedPane;
 	private JTable tblEnv;
-	private DefaultTableModel variables;
+	private DefaultTableModel envVariables;
 	private JTable tblExpressions;
 	private DefaultTableModel expressions;
 	private JCheckBox chckbxEnablesExperimentalAscii;
@@ -97,6 +97,8 @@ public class ApplicationEditor extends JDialog {
 	private JCheckBox chckbxTermUseVariableSubst;
 	private JCheckBox checkEnableGitSupport;
 	private JCheckBox checkPullAfterCheckout;
+	private JTable tblVariables;
+	private DefaultTableModel promptVariables;
 
 	/**
 	 * Create the dialog.
@@ -230,17 +232,75 @@ public class ApplicationEditor extends JDialog {
 		JLabel lblVariablesDefinedOn = new JLabel(
 		    "<html>Variables defined on this page can be used in the execution command. A variable can be configured to trigger an input prompt when the application is launched.</html>");
 		lblVariablesDefinedOn.setVerticalAlignment(SwingConstants.TOP);
+
+		JScrollPane scrollPane_4 = new JScrollPane();
 		GroupLayout gl_pnlVariables = new GroupLayout(pnlVariables);
 		gl_pnlVariables.setHorizontalGroup(gl_pnlVariables.createParallelGroup(Alignment.LEADING)
 		    .addGroup(gl_pnlVariables.createSequentialGroup()
 		        .addContainerGap()
-		        .addComponent(lblVariablesDefinedOn, GroupLayout.DEFAULT_SIZE, 499, Short.MAX_VALUE)
+		        .addGroup(gl_pnlVariables.createParallelGroup(Alignment.LEADING)
+		            .addComponent(lblVariablesDefinedOn, GroupLayout.DEFAULT_SIZE, 499, Short.MAX_VALUE)
+		            .addComponent(scrollPane_4, GroupLayout.DEFAULT_SIZE, 499, Short.MAX_VALUE))
 		        .addContainerGap()));
 		gl_pnlVariables.setVerticalGroup(gl_pnlVariables.createParallelGroup(Alignment.LEADING)
 		    .addGroup(gl_pnlVariables.createSequentialGroup()
 		        .addContainerGap()
 		        .addComponent(lblVariablesDefinedOn, GroupLayout.PREFERRED_SIZE, 44, GroupLayout.PREFERRED_SIZE)
-		        .addContainerGap(425, Short.MAX_VALUE)));
+		        .addPreferredGap(ComponentPlacement.RELATED)
+		        .addComponent(scrollPane_4, GroupLayout.PREFERRED_SIZE, 408, GroupLayout.PREFERRED_SIZE)
+		        .addContainerGap(GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)));
+
+		this.promptVariables = new DefaultTableModel(new Object[][] {}, new String[] {
+		    "Name", "Message", "Default", "Prompt"
+		}) {
+			@Override
+			public Class getColumnClass(int column) {
+				return getValueAt(0, column).getClass();
+			}
+		};
+		tblVariables = new JTable(promptVariables);
+		tblVariables.getColumnModel()
+		    .getColumn(3)
+		    .setPreferredWidth(10);
+		scrollPane_4.setViewportView(tblVariables);
+
+		JToolBar toolbarVariables = new JToolBar();
+		toolbarVariables.setRollover(true);
+		toolbarVariables.setOrientation(SwingConstants.VERTICAL);
+		toolbarVariables.setFloatable(false);
+		scrollPane_4.setRowHeaderView(toolbarVariables);
+
+		JButton btnPlusVariables = new JButton(new AbstractAction(null, new ImageIcon(Resources.getPlus())) {
+
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				promptVariables.addRow(new Object[] {
+				    "", "", "", true
+				});
+			}
+		});
+		btnPlusVariables.setToolTipText("Add new variables.");
+		toolbarVariables.add(btnPlusVariables);
+
+		JButton btnMinusVariables = new JButton(new AbstractAction(null, new ImageIcon(Resources.getMinus())) {
+
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				int row = tblVariables.getSelectedRow();
+				if (row == -1) {
+					JOptionPane.showMessageDialog(ApplicationEditor.this, "Please select the variable to remove first.",
+					    "No selection", JOptionPane.WARNING_MESSAGE);
+				} else {
+					promptVariables.removeRow(row);
+					if (promptVariables.getRowCount() > 0) {
+						tblVariables.setRowSelectionInterval(promptVariables.getRowCount() - 1, promptVariables.getRowCount() - 1);
+					}
+				}
+			}
+		});
+		btnMinusVariables.setToolTipText("Remove variable.");
+		toolbarVariables.add(btnMinusVariables);
+
 		pnlVariables.setLayout(gl_pnlVariables);
 		tabbedPane.add("Counter expressions", counterPanel);
 
@@ -350,10 +410,10 @@ public class ApplicationEditor extends JDialog {
 		        .addContainerGap()));
 
 		tblEnv = new JTable();
-		this.variables = new DefaultTableModel(new Object[][] {}, new String[] {
+		this.envVariables = new DefaultTableModel(new Object[][] {}, new String[] {
 		    "Variable name", "Value"
 		});
-		tblEnv.setModel(variables);
+		tblEnv.setModel(envVariables);
 		scrollPane_1.setViewportView(tblEnv);
 
 		JToolBar toolBar = new JToolBar();
@@ -366,7 +426,7 @@ public class ApplicationEditor extends JDialog {
 
 			@Override
 			public void actionPerformed(ActionEvent e) {
-				variables.addRow(new String[] {
+				envVariables.addRow(new String[] {
 				    "", ""
 				});
 			}
@@ -382,9 +442,9 @@ public class ApplicationEditor extends JDialog {
 					JOptionPane.showMessageDialog(ApplicationEditor.this, "Please select the variable to remove first.",
 					    "No selection", JOptionPane.WARNING_MESSAGE);
 				} else {
-					variables.removeRow(row);
-					if (variables.getRowCount() > 0) {
-						tblEnv.setRowSelectionInterval(variables.getRowCount() - 1, variables.getRowCount() - 1);
+					envVariables.removeRow(row);
+					if (envVariables.getRowCount() > 0) {
+						tblEnv.setRowSelectionInterval(envVariables.getRowCount() - 1, envVariables.getRowCount() - 1);
 					}
 				}
 			}
@@ -837,7 +897,7 @@ public class ApplicationEditor extends JDialog {
 					String value = entry.getValue();
 					if (!key.trim()
 					    .isEmpty()) {
-						variables.addRow(new String[] {
+						envVariables.addRow(new String[] {
 						    key.trim(), value
 						});
 					}
@@ -906,9 +966,9 @@ public class ApplicationEditor extends JDialog {
 		ApplicationEditor.this.processDescriptor.setCharset((Charset) comboBox.getSelectedItem());
 
 		Map<String, String> vars = new HashMap<>();
-		for (int i = 0; i < variables.getRowCount(); i++) {
-			String key = (String) variables.getValueAt(i, 0);
-			String value = (String) variables.getValueAt(i, 1);
+		for (int i = 0; i < envVariables.getRowCount(); i++) {
+			String key = (String) envVariables.getValueAt(i, 0);
+			String value = (String) envVariables.getValueAt(i, 1);
 			vars.put(key, value);
 		}
 		if (!vars.isEmpty()) {
