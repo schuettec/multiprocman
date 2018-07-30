@@ -37,7 +37,6 @@ import javax.swing.JScrollPane;
 import javax.swing.JTextField;
 import javax.swing.KeyStroke;
 import javax.swing.LayoutStyle.ComponentPlacement;
-import javax.swing.ListSelectionModel;
 import javax.swing.border.EmptyBorder;
 
 import com.github.schuettec.multiprocman.manager.Categories;
@@ -146,7 +145,7 @@ public class FindLauncherDialog extends JDialog {
 		setTitle("Find launcher...");
 		setIconImage(Resources.getApplicationIcon());
 		setPreferredSize(new Dimension(280, 480));
-		this.setSize(new Dimension(280, 480));
+		this.setSize(new Dimension(416, 480));
 		setModal(true);
 		this.setLocationRelativeTo(parent);
 
@@ -162,9 +161,11 @@ public class FindLauncherDialog extends JDialog {
 		contentPanel.setBorder(new EmptyBorder(5, 5, 5, 5));
 		getContentPane().add(contentPanel, BorderLayout.CENTER);
 
-		JLabel lblSearchForLauncher = new JLabel("Search launcher:");
+		JLabel lblSearchForLauncher = new JLabel("<html><u>S</u>earch launcher:");
 
 		textField = new JTextField();
+		lblSearchForLauncher.setLabelFor(textField);
+		lblSearchForLauncher.setDisplayedMnemonic(KeyEvent.VK_S);
 		textField.addKeyListener(new KeyListener() {
 
 			@Override
@@ -179,29 +180,16 @@ public class FindLauncherDialog extends JDialog {
 			@Override
 			public void keyPressed(KeyEvent e) {
 				if (e.getKeyCode() == KeyEvent.VK_DOWN) {
-					ListSelectionModel selectionModel = list.getSelectionModel();
-					int selectedIndex = list.getSelectedIndex();
-					selectionModel.clearSelection();
-					selectedIndex++;
-					if (selectedIndex >= list.getModel()
-					    .getSize()) {
-						selectedIndex = 0;
-					}
-					selectionModel.setSelectionInterval(selectedIndex, selectedIndex);
+					list.getSelectionModel()
+					    .setSelectionInterval(0, 0);
 					list.ensureIndexIsVisible(list.getSelectedIndex());
 					list.requestFocusInWindow();
 				} else if (e.getKeyCode() == KeyEvent.VK_UP) {
-					ListSelectionModel selectionModel = list.getSelectionModel();
-					int selectedIndex = list.getSelectedIndex();
-					selectionModel.clearSelection();
-					selectedIndex--;
-					if (selectedIndex < 0) {
-						selectedIndex = list.getModel()
-						    .getSize() - 1;
-						list.requestFocusInWindow();
-					}
-					selectionModel.setSelectionInterval(selectedIndex, selectedIndex);
+					list.getSelectionModel()
+					    .setSelectionInterval(0, 0);
 					list.ensureIndexIsVisible(list.getSelectedIndex());
+					list.requestFocusInWindow();
+
 				} else if (e.getKeyCode() == KeyEvent.VK_ENTER) {
 					startSelectedProcess();
 				} else if (e.getKeyCode() == KeyEvent.VK_ESCAPE) {
@@ -216,18 +204,23 @@ public class FindLauncherDialog extends JDialog {
 		GroupLayout gl_contentPanel = new GroupLayout(contentPanel);
 		gl_contentPanel.setHorizontalGroup(gl_contentPanel.createParallelGroup(Alignment.LEADING)
 		    .addGroup(gl_contentPanel.createSequentialGroup()
-		        .addComponent(lblSearchForLauncher)
-		        .addPreferredGap(ComponentPlacement.UNRELATED)
-		        .addComponent(textField, GroupLayout.DEFAULT_SIZE, 206, Short.MAX_VALUE))
-		    .addComponent(scrollPane, GroupLayout.DEFAULT_SIZE, 297, Short.MAX_VALUE));
+		        .addContainerGap()
+		        .addGroup(gl_contentPanel.createParallelGroup(Alignment.LEADING)
+		            .addComponent(scrollPane, GroupLayout.DEFAULT_SIZE, 284, Short.MAX_VALUE)
+		            .addGroup(gl_contentPanel.createSequentialGroup()
+		                .addComponent(lblSearchForLauncher, GroupLayout.PREFERRED_SIZE, 83, GroupLayout.PREFERRED_SIZE)
+		                .addPreferredGap(ComponentPlacement.RELATED)
+		                .addComponent(textField, GroupLayout.DEFAULT_SIZE, 197, Short.MAX_VALUE)))
+		        .addContainerGap()));
 		gl_contentPanel.setVerticalGroup(gl_contentPanel.createParallelGroup(Alignment.LEADING)
 		    .addGroup(gl_contentPanel.createSequentialGroup()
+		        .addContainerGap()
 		        .addGroup(gl_contentPanel.createParallelGroup(Alignment.BASELINE)
 		            .addComponent(textField, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE,
 		                GroupLayout.PREFERRED_SIZE)
 		            .addComponent(lblSearchForLauncher))
 		        .addPreferredGap(ComponentPlacement.RELATED)
-		        .addComponent(scrollPane, GroupLayout.DEFAULT_SIZE, 192, Short.MAX_VALUE)));
+		        .addComponent(scrollPane, GroupLayout.DEFAULT_SIZE, 361, Short.MAX_VALUE)));
 
 		this.model = new DefaultListModel<>();
 		this.list = new JList<>(model);
@@ -269,7 +262,9 @@ public class FindLauncherDialog extends JDialog {
 		{
 
 			JPanel buttonPane = new JPanel();
-			buttonPane.setLayout(new FlowLayout(FlowLayout.RIGHT));
+			FlowLayout fl_buttonPane = new FlowLayout(FlowLayout.RIGHT);
+			fl_buttonPane.setHgap(15);
+			buttonPane.setLayout(fl_buttonPane);
 
 			getContentPane().add(buttonPane, BorderLayout.SOUTH);
 			{
