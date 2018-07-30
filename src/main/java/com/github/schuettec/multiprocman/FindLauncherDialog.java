@@ -189,6 +189,7 @@ public class FindLauncherDialog extends JDialog {
 					}
 					selectionModel.setSelectionInterval(selectedIndex, selectedIndex);
 					list.ensureIndexIsVisible(list.getSelectedIndex());
+					list.requestFocusInWindow();
 				} else if (e.getKeyCode() == KeyEvent.VK_UP) {
 					ListSelectionModel selectionModel = list.getSelectionModel();
 					int selectedIndex = list.getSelectedIndex();
@@ -197,6 +198,7 @@ public class FindLauncherDialog extends JDialog {
 					if (selectedIndex < 0) {
 						selectedIndex = list.getModel()
 						    .getSize() - 1;
+						list.requestFocusInWindow();
 					}
 					selectionModel.setSelectionInterval(selectedIndex, selectedIndex);
 					list.ensureIndexIsVisible(list.getSelectedIndex());
