@@ -1,6 +1,5 @@
 package com.github.schuettec.multiprocman.git;
 
-import static java.util.Objects.isNull;
 import static java.util.Objects.nonNull;
 
 import java.awt.Component;
@@ -236,9 +235,6 @@ public class GitManagerImpl implements GitManager, AutoCloseable {
 	@Override
 	public void fetch() throws GitException {
 		try {
-			if (isNull(rootComponent)) {
-				this.rootComponent = rootComponent;
-			}
 			List<RemoteConfig> remotes = git.remoteList()
 			    .call();
 			for (RemoteConfig remote : remotes) {
