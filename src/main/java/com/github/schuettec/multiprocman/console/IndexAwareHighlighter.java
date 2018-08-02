@@ -41,7 +41,7 @@ public class IndexAwareHighlighter extends DefaultHighlightPainter {
 
 			// --- render ---
 			Color color = null;
-			if (offs0 >= currentIndex) {
+			if (offs0 == currentIndex) {
 				color = currentIndexColor;
 			} else {
 				color = getColor();
@@ -78,7 +78,7 @@ public class IndexAwareHighlighter extends DefaultHighlightPainter {
 		}
 		// --- render ---
 		Color color = null;
-		if (offs0 >= currentIndex) {
+		if (offs0 == currentIndex) {
 			color = currentIndexColor;
 		} else {
 			color = getColor();
