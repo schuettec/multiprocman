@@ -646,20 +646,22 @@ public class MainFrame extends JFrame implements WindowListener, ProcessListener
 	}
 
 	private void refreshCurrentBranch() {
-		ProcessDescriptor processDescriptor = currentProcess.getProcessDescriptor();
-		boolean enableGitSupport = processDescriptor.isEnableGitSupport();
-		if (enableGitSupport) {
-			try {
-				String currentBranch = processDescriptor.getCurrentBranch();
-				String presentableBranchName = currentBranch;
-				if (currentBranch.startsWith(LOCAL_PREFIX)) {
-					presentableBranchName = currentBranch.replace(LOCAL_PREFIX, "") + " (local)";
-				} else if (currentBranch.startsWith(REMOTE_PREFIX)) {
-					presentableBranchName = currentBranch.replace(LOCAL_PREFIX, "") + " (remote)";
+		if (nonNull(currentProcess)) {
+			ProcessDescriptor processDescriptor = currentProcess.getProcessDescriptor();
+			boolean enableGitSupport = processDescriptor.isEnableGitSupport();
+			if (enableGitSupport) {
+				try {
+					String currentBranch = processDescriptor.getCurrentBranch();
+					String presentableBranchName = currentBranch;
+					if (currentBranch.startsWith(LOCAL_PREFIX)) {
+						presentableBranchName = currentBranch.replace(LOCAL_PREFIX, "") + " (local)";
+					} else if (currentBranch.startsWith(REMOTE_PREFIX)) {
+						presentableBranchName = currentBranch.replace(LOCAL_PREFIX, "") + " (remote)";
+					}
+					lblCurrentBranch.setText(presentableBranchName);
+				} catch (GitException e) {
+					lblCurrentBranch.setText("N/A");
 				}
-				lblCurrentBranch.setText(presentableBranchName);
-			} catch (GitException e) {
-				lblCurrentBranch.setText("N/A");
 			}
 		}
 	}
@@ -873,9 +875,11 @@ public class MainFrame extends JFrame implements WindowListener, ProcessListener
 
 	private void refreshInfoBar() {
 		refreshCurrentBranch();
-		Statistics statistics = currentProcess.getStatistics();
-		String appOutput = statistics.overallOutbutAmountPresentable();
-		lblAppOutput.setText(appOutput);
+		if (nonNull(currentProcess)) {
+			Statistics statistics = currentProcess.getStatistics();
+			String appOutput = statistics.overallOutbutAmountPresentable();
+			lblAppOutput.setText(appOutput);
+		}
 	}
 
 	private void processCurrentState() {

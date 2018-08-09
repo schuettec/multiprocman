@@ -733,19 +733,32 @@ public class ProcessManager extends JFrame {
 		}
 
 		MainFrame mainFrame = MainFrame.getInstance();
-		mainFrame.setVisible(true);
-		_startAll(mainFrame, descriptors);
-		return false;
+		boolean started = _startAll(parent, mainFrame, descriptors);
+		if (started) {
+			mainFrame.setVisible(true);
+			return false;
+		}
+		return true;
 	}
 
-	public static void _startAll(MainFrame mainFrame, Collection<ProcessDescriptor> descriptors) {
+	/**
+	 * Starts all {@link ProcessDescriptor}s and returns <code>true</code> if there was added at least one started
+	 * process. <code>false</code> is returned if there was no process started and the main frame should be closed.
+	 *
+	 */
+	public static boolean _startAll(Component parent, MainFrame mainFrame, Collection<ProcessDescriptor> descriptors) {
+		boolean added = false;
 		Iterator<ProcessDescriptor> iterator = descriptors.iterator();
 		while (iterator.hasNext()) {
 			ProcessDescriptor descriptor = iterator.next();
 			ProcessController c = new ProcessController(descriptor);
-			mainFrame.addProcessController(c);
-			c.start();
+			boolean cancelled = c.startWithVariables(parent);
+			if (!cancelled) {
+				mainFrame.addProcessController(c);
+				added = true;
+			}
 		}
+		return added;
 	}
 
 	private static void addPopup(Component component, final JPopupMenu popup) {

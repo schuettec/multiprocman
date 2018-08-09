@@ -18,6 +18,7 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import javax.swing.ImageIcon;
+import javax.swing.JOptionPane;
 
 import com.github.schuettec.multiprocman.git.DefaultCredentialsCallback;
 import com.github.schuettec.multiprocman.git.GitException;
@@ -25,8 +26,13 @@ import com.github.schuettec.multiprocman.git.GitManager;
 import com.github.schuettec.multiprocman.git.GitManagerImpl;
 import com.github.schuettec.multiprocman.git.ProgressMonitorView;
 import com.github.schuettec.multiprocman.manager.ProcessManager;
+import com.github.schuettec.multiprocman.manager.PromptVariable;
 
 public class ProcessDescriptor implements Serializable {
+
+	private static final char PROMPT_VARIABLE_INDICATOR_CHAR = '!';
+
+	private static final char ENV_VAR_INDICATOR_CHAR = '$';
 
 	private static final int MAX_LINES_DEFAULT = 200;
 
@@ -51,6 +57,7 @@ public class ProcessDescriptor implements Serializable {
 	private int maxLineNumbers;
 
 	private List<Counter> counters;
+	private List<PromptVariable> promptVariables;
 
 	private boolean enableGitSupport;
 	private boolean pullAfterCheckout;
@@ -111,14 +118,30 @@ public class ProcessDescriptor implements Serializable {
 		this.pullAfterCheckout = pullBeforeCheckout;
 	}
 
-	public static String substituteCommand(String command) {
+	public String fillPromptVariables(String command) {
+		if (hasPromptVariables()) {
+			Iterator<PromptVariable> it = promptVariables.iterator();
+			String substitute = command;
+			while (it.hasNext()) {
+				PromptVariable pv = it.next();
+				String substitution = getVariablePlaceholder(PROMPT_VARIABLE_INDICATOR_CHAR, pv.getName());
+				substitute = substitute.replaceAll("(?i)" + Pattern.quote(substitution),
+				    Matcher.quoteReplacement(pv.getLastValue()));
+			}
+			return substitute;
+		} else {
+			return command;
+		}
+	}
+
+	public static String fillEnvironmentVariables(String command) {
 		Map<String, String> getenv = System.getenv();
 		Iterator<Entry<String, String>> it = getenv.entrySet()
 		    .iterator();
 		String substitute = command;
 		while (it.hasNext()) {
 			Entry<String, String> entry = it.next();
-			String substitution = getVariablePlaceholder(entry.getKey());
+			String substitution = getVariablePlaceholder(ENV_VAR_INDICATOR_CHAR, entry.getKey());
 			substitute = substitute.replaceAll("(?i)" + Pattern.quote(substitution),
 			    Matcher.quoteReplacement(entry.getValue()));
 		}
@@ -262,11 +285,14 @@ public class ProcessDescriptor implements Serializable {
 	 *         modification.
 	 */
 	public String getCommandForExecution() {
-		if (variableSubstitution) {
-			return substituteCommand(command);
-		} else {
-			return command;
+		String commandResult = command;
+		if (hasPromptVariables()) {
+			commandResult = fillPromptVariables(commandResult);
 		}
+		if (variableSubstitution) {
+			return fillEnvironmentVariables(commandResult);
+		}
+		return commandResult;
 	}
 
 	/**
@@ -276,7 +302,7 @@ public class ProcessDescriptor implements Serializable {
 	 */
 	public String getTerminationCommandForExecution() {
 		if (terminationVariableSubstitution) {
-			return substituteCommand(terminationCommand);
+			return fillEnvironmentVariables(terminationCommand);
 		} else {
 			return terminationCommand;
 		}
@@ -306,16 +332,60 @@ public class ProcessDescriptor implements Serializable {
 		this.terminationCommand = terminationCommand;
 	}
 
-	public static String getVariablePlaceholder(String variable) {
-		return "${" + variable + "}";
+	public static String getEnvironmentVariablePlaceholder(String variable) {
+		return getVariablePlaceholder(ENV_VAR_INDICATOR_CHAR, variable);
+	}
+
+	public static String getVariablePlaceholder(char indicatorChar, String variable) {
+		return indicatorChar + "{" + variable + "}";
 	}
 
 	public String getExecutionDirectoryForExecution() {
 		if (variableSubstitution) {
-			return substituteCommand(this.executionDirectory);
+			return fillEnvironmentVariables(this.executionDirectory);
 		} else {
 			return executionDirectory;
 		}
+	}
+
+	public boolean promptVariables(Component parent) {
+		if (!hasPromptVariables()) {
+			return false;
+		}
+		boolean cancelled = false;
+		Iterator<PromptVariable> iterator = this.promptVariables.iterator();
+		while (!cancelled && iterator.hasNext()) {
+			PromptVariable pv = iterator.next();
+			Object result = null;
+			if (pv.isSelection()) {
+				result = JOptionPane.showInputDialog(parent, pv.getMessage(), "Select value for variable",
+				    JOptionPane.INFORMATION_MESSAGE, null, pv.getSelectionValues(), pv.getLastValue());
+			} else {
+				result = JOptionPane.showInputDialog(parent, pv.getMessage(), "Enter value for variable",
+				    JOptionPane.INFORMATION_MESSAGE, null, null, pv.getLastValue());
+				// result = JOptionPane.showInputDialog(parent, pv.getMessage(), "Enter value for variable",
+				// JOptionPane.INFORMATION_MESSAGE);
+			}
+
+			if (result == null) {
+				cancelled = true;
+			} else {
+				pv.setLastValue((String) result);
+			}
+		}
+		return cancelled;
+	}
+
+	public boolean hasPromptVariables() {
+		return nonNull(promptVariables) && !promptVariables.isEmpty();
+	}
+
+	public List<PromptVariable> getPromptVariables() {
+		return this.promptVariables;
+	}
+
+	public void setPromptVariables(List<PromptVariable> promptVariables) {
+		this.promptVariables = promptVariables;
 	}
 
 }
