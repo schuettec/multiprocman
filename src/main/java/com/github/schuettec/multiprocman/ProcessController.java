@@ -297,9 +297,11 @@ public class ProcessController {
 	}
 
 	public void stop(boolean waitFor) {
-		updateState(State.STOPPING);
-		_stopProcess(false);
-		waitForOnDemand(waitFor);
+		if (state == State.RUNNING || state == State.ABANDONED) {
+			updateState(State.STOPPING);
+			_stopProcess(false);
+			waitForOnDemand(waitFor);
+		}
 	}
 
 	private void _stopProcess(boolean force) {
