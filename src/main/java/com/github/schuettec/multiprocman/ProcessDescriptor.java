@@ -287,7 +287,7 @@ public class ProcessDescriptor implements Serializable {
 	public String getCommandForExecution() {
 		String commandResult = command;
 		if (hasPromptVariables()) {
-			fillPromptVariables(command);
+			commandResult = fillPromptVariables(commandResult);
 		}
 		if (variableSubstitution) {
 			return fillEnvironmentVariables(commandResult);
@@ -349,6 +349,9 @@ public class ProcessDescriptor implements Serializable {
 	}
 
 	public boolean promptVariables(Component parent) {
+		if (!hasPromptVariables()) {
+			return false;
+		}
 		boolean cancelled = false;
 		Iterator<PromptVariable> iterator = this.promptVariables.iterator();
 		while (!cancelled && iterator.hasNext()) {

@@ -733,7 +733,7 @@ public class ProcessManager extends JFrame {
 		}
 
 		MainFrame mainFrame = MainFrame.getInstance();
-		boolean started = _startAll(mainFrame, descriptors);
+		boolean started = _startAll(parent, mainFrame, descriptors);
 		if (started) {
 			mainFrame.setVisible(true);
 			return false;
@@ -746,13 +746,13 @@ public class ProcessManager extends JFrame {
 	 * process. <code>false</code> is returned if there was no process started and the main frame should be closed.
 	 *
 	 */
-	public static boolean _startAll(MainFrame mainFrame, Collection<ProcessDescriptor> descriptors) {
+	public static boolean _startAll(Component parent, MainFrame mainFrame, Collection<ProcessDescriptor> descriptors) {
 		boolean added = false;
 		Iterator<ProcessDescriptor> iterator = descriptors.iterator();
 		while (iterator.hasNext()) {
 			ProcessDescriptor descriptor = iterator.next();
 			ProcessController c = new ProcessController(descriptor);
-			boolean cancelled = c.startWithVariables(mainFrame);
+			boolean cancelled = c.startWithVariables(parent);
 			if (!cancelled) {
 				mainFrame.addProcessController(c);
 				added = true;
