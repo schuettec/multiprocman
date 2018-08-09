@@ -721,6 +721,13 @@ public class ProcessManager extends JFrame {
 		Iterator<ProcessDescriptor> iterator = descriptors.iterator();
 		while (iterator.hasNext()) {
 			ProcessDescriptor descriptor = iterator.next();
+			if (descriptor.hasPromptVariables()) {
+				boolean promptVariablesCancelled = descriptor.promptVariables(parent);
+				if (promptVariablesCancelled) {
+					return true;
+				}
+			}
+
 			if (descriptor.isEnableGitSupport()) {
 				branchSelection.addProcessDescriptor(descriptor);
 			}
@@ -752,8 +759,8 @@ public class ProcessManager extends JFrame {
 		while (iterator.hasNext()) {
 			ProcessDescriptor descriptor = iterator.next();
 			ProcessController c = new ProcessController(descriptor);
-			boolean cancelled = c.startWithVariables(parent);
-			if (!cancelled) {
+			boolean started = c.start();
+			if (started) {
 				mainFrame.addProcessController(c);
 				added = true;
 			}

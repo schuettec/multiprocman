@@ -342,7 +342,11 @@ public class ProcessDescriptor implements Serializable {
 
 	public String getExecutionDirectoryForExecution() {
 		if (variableSubstitution) {
-			return fillEnvironmentVariables(this.executionDirectory);
+			String dirResult = this.executionDirectory;
+			if (hasPromptVariables()) {
+				dirResult = fillPromptVariables(dirResult);
+			}
+			return fillEnvironmentVariables(dirResult);
 		} else {
 			return executionDirectory;
 		}
