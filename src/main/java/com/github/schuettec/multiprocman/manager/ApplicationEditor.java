@@ -1,5 +1,6 @@
 package com.github.schuettec.multiprocman.manager;
 
+import static com.github.schuettec.multiprocman.manager.PromptVariable.isValidVariableName;
 import static java.util.Objects.isNull;
 import static java.util.Objects.nonNull;
 
@@ -9,6 +10,7 @@ import java.awt.Component;
 import java.awt.Dimension;
 import java.awt.FlowLayout;
 import java.awt.Graphics2D;
+import java.awt.Toolkit;
 import java.awt.event.ActionEvent;
 import java.awt.event.KeyEvent;
 import java.awt.event.WindowEvent;
@@ -18,6 +20,7 @@ import java.io.File;
 import java.io.IOException;
 import java.nio.charset.Charset;
 import java.util.ArrayList;
+import java.util.EventObject;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.LinkedList;
@@ -30,6 +33,7 @@ import java.util.Vector;
 import javax.imageio.ImageIO;
 import javax.swing.AbstractAction;
 import javax.swing.ButtonGroup;
+import javax.swing.DefaultCellEditor;
 import javax.swing.DefaultComboBoxModel;
 import javax.swing.GroupLayout;
 import javax.swing.GroupLayout.Alignment;
@@ -56,6 +60,7 @@ import javax.swing.SwingConstants;
 import javax.swing.SwingUtilities;
 import javax.swing.border.BevelBorder;
 import javax.swing.border.EmptyBorder;
+import javax.swing.border.LineBorder;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
 import javax.swing.table.DefaultTableModel;
@@ -260,8 +265,8 @@ public class ApplicationEditor extends JDialog {
 		};
 		tblVariables = new JTable(promptVariables);
 		tblVariables.getColumnModel()
-		    .getColumn(3)
-		    .setPreferredWidth(10);
+		    .getColumn(0)
+		    .setCellEditor(new IntegerEditor());
 		scrollPane_4.setViewportView(tblVariables);
 
 		JToolBar toolbarVariables = new JToolBar();
@@ -819,9 +824,9 @@ public class ApplicationEditor extends JDialog {
 			public void actionPerformed(ActionEvent e) {
 				JOptionPane.showMessageDialog(ApplicationEditor.this,
 				    "<html><body><p style='width: 640px;'>The following command will be substituted:<br/><br/><tt>"
-				        + ProcessDescriptor.substituteCommand(textComp.getText())
+				        + ProcessDescriptor.fillEnvironmentVariables(textComp.getText())
 				        + "</tt></p><br/><br/>The following workind directory will be substituted:<br/><br><tt>"
-				        + ProcessDescriptor.substituteCommand(txtWorkingDir.getText()) + "</tt></body></html>",
+				        + ProcessDescriptor.fillEnvironmentVariables(txtWorkingDir.getText()) + "</tt></body></html>",
 				    "Command substitution", JOptionPane.INFORMATION_MESSAGE);
 			}
 		};
@@ -853,7 +858,7 @@ public class ApplicationEditor extends JDialog {
 					public void actionPerformed(ActionEvent e) {
 						diag.dispose();
 						String variable = (String) jcd.getSelectedItem();
-						String placeholder = ProcessDescriptor.getVariablePlaceholder(variable);
+						String placeholder = ProcessDescriptor.getEnvironmentVariablePlaceholder(variable);
 						textComponent.insert(placeholder, textComponent.getCaretPosition());
 					}
 				});
@@ -1036,5 +1041,85 @@ public class ApplicationEditor extends JDialog {
 
 	private ProcessDescriptor getProcessDescriptor() {
 		return this.processDescriptor;
+	}
+
+	class IntegerEditor extends DefaultCellEditor {
+		JTextField textField;
+		private boolean DEBUG = false;
+
+		public IntegerEditor() {
+			super(new JTextField());
+
+			setClickCountToStart(2);
+
+			textField = (JTextField) getComponent();
+			textField.setBorder(new LineBorder(Color.BLACK));
+
+			textField.setHorizontalAlignment(JTextField.TRAILING);
+
+			// React when the user presses Enter while the editor is
+			// active. (Tab is handled as specified by
+			// JFormattedTextField's focusLostBehavior property.)
+			textField.getInputMap()
+			    .put(KeyStroke.getKeyStroke(KeyEvent.VK_ENTER, 0), "check");
+
+			textField.getActionMap()
+			    .put("check", new AbstractAction() {
+				    @Override
+				    public void actionPerformed(ActionEvent e) {
+					    if (!isValidVariableName(textField.getText())) {
+						    revert();
+					    }
+					    textField.postActionEvent(); // stop editing
+				    }
+			    });
+		}
+
+		@Override
+		public boolean isCellEditable(EventObject event) {
+			return true;
+		}
+
+		// Override to invoke setValue on the formatted text field.
+		@Override
+		public Component getTableCellEditorComponent(JTable table, Object value, boolean isSelected, int row, int column) {
+			JTextField ftf = (JTextField) super.getTableCellEditorComponent(table, value, isSelected, row, column);
+			ftf.setText((String) value);
+			return ftf;
+		}
+
+		// Override to check whether the edit is valid,
+		// setting the value if it is and complaining if
+		// it isn't. If it's OK for the editor to go
+		// away, we need to invoke the superclass's version
+		// of this method so that everything gets cleaned up.
+		@Override
+		public boolean stopCellEditing() {
+			if (!isValidVariableName(textField.getText())) {
+				revert();
+			}
+
+			return super.stopCellEditing();
+		}
+
+		protected void revert() {
+			Toolkit.getDefaultToolkit()
+			    .beep();
+			textField.selectAll();
+			StringBuilder b = new StringBuilder("Variable names may not include the following characters: ");
+			String[] deniedStrings = PromptVariable.deniedStrings();
+			for (int i = 0; i < deniedStrings.length; i++) {
+				b.append("'")
+				    .append(deniedStrings[i])
+				    .append("'");
+				if (i < deniedStrings.length - 1) {
+					b.append(", ");
+				}
+			}
+			JOptionPane.showMessageDialog(ApplicationEditor.this, b.toString(), "Invalid expression",
+			    JOptionPane.ERROR_MESSAGE);
+			textField.setText(PromptVariable.escape(textField.getText()));
+		}
+
 	}
 }

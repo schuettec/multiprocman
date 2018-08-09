@@ -30,6 +30,10 @@ import com.github.schuettec.multiprocman.manager.PromptVariable;
 
 public class ProcessDescriptor implements Serializable {
 
+	private static final char PROMPT_VARIABLE_INDICATOR_CHAR = '!';
+
+	private static final char ENV_VAR_INDICATOR_CHAR = '$';
+
 	private static final int MAX_LINES_DEFAULT = 200;
 
 	/**
@@ -114,14 +118,30 @@ public class ProcessDescriptor implements Serializable {
 		this.pullAfterCheckout = pullBeforeCheckout;
 	}
 
-	public static String substituteCommand(String command) {
+	public String fillPromptVariables(String command) {
+		if (hasPromptVariables()) {
+			Iterator<PromptVariable> it = promptVariables.iterator();
+			String substitute = command;
+			while (it.hasNext()) {
+				PromptVariable pv = it.next();
+				String substitution = getVariablePlaceholder(PROMPT_VARIABLE_INDICATOR_CHAR, pv.getName());
+				substitute = substitute.replaceAll("(?i)" + Pattern.quote(substitution),
+				    Matcher.quoteReplacement(pv.getLastValue()));
+			}
+			return substitute;
+		} else {
+			return command;
+		}
+	}
+
+	public static String fillEnvironmentVariables(String command) {
 		Map<String, String> getenv = System.getenv();
 		Iterator<Entry<String, String>> it = getenv.entrySet()
 		    .iterator();
 		String substitute = command;
 		while (it.hasNext()) {
 			Entry<String, String> entry = it.next();
-			String substitution = getVariablePlaceholder(entry.getKey());
+			String substitution = getVariablePlaceholder(ENV_VAR_INDICATOR_CHAR, entry.getKey());
 			substitute = substitute.replaceAll("(?i)" + Pattern.quote(substitution),
 			    Matcher.quoteReplacement(entry.getValue()));
 		}
@@ -265,11 +285,14 @@ public class ProcessDescriptor implements Serializable {
 	 *         modification.
 	 */
 	public String getCommandForExecution() {
-		if (variableSubstitution) {
-			return substituteCommand(command);
-		} else {
-			return command;
+		String commandResult = command;
+		if (hasPromptVariables()) {
+			fillPromptVariables(command);
 		}
+		if (variableSubstitution) {
+			return fillEnvironmentVariables(commandResult);
+		}
+		return commandResult;
 	}
 
 	/**
@@ -279,7 +302,7 @@ public class ProcessDescriptor implements Serializable {
 	 */
 	public String getTerminationCommandForExecution() {
 		if (terminationVariableSubstitution) {
-			return substituteCommand(terminationCommand);
+			return fillEnvironmentVariables(terminationCommand);
 		} else {
 			return terminationCommand;
 		}
@@ -309,13 +332,17 @@ public class ProcessDescriptor implements Serializable {
 		this.terminationCommand = terminationCommand;
 	}
 
-	public static String getVariablePlaceholder(String variable) {
-		return "${" + variable + "}";
+	public static String getEnvironmentVariablePlaceholder(String variable) {
+		return getVariablePlaceholder(ENV_VAR_INDICATOR_CHAR, variable);
+	}
+
+	public static String getVariablePlaceholder(char indicatorChar, String variable) {
+		return indicatorChar + "{" + variable + "}";
 	}
 
 	public String getExecutionDirectoryForExecution() {
 		if (variableSubstitution) {
-			return substituteCommand(this.executionDirectory);
+			return fillEnvironmentVariables(this.executionDirectory);
 		} else {
 			return executionDirectory;
 		}
@@ -334,7 +361,12 @@ public class ProcessDescriptor implements Serializable {
 				result = JOptionPane.showInputDialog(parent, pv.getMessage(), "Enter value for variable",
 				    JOptionPane.INFORMATION_MESSAGE);
 			}
-			pv.setLastValue((String) result);
+
+			if (result == null) {
+				cancelled = true;
+			} else {
+				pv.setLastValue((String) result);
+			}
 		}
 		return cancelled;
 	}

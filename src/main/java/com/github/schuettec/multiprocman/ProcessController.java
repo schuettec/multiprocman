@@ -104,8 +104,11 @@ public class ProcessController {
 	}
 
 	public boolean startWithVariables(Component parent) {
-
-		return start();
+		boolean cancelled = processDescriptor.promptVariables(parent);
+		if (cancelled) {
+			return cancelled;
+		}
+		return !start();
 	}
 
 	public boolean start() {

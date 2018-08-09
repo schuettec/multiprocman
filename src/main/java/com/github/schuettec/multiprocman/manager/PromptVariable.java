@@ -30,6 +30,28 @@ public class PromptVariable {
 		this.selectionValues = selectionValues;
 	}
 
+	public static String[] deniedStrings() {
+		return new String[] {
+		    "!", "{", "}", " "
+		};
+	}
+
+	public static boolean isValidVariableName(String variableName) {
+		for (String denied : deniedStrings()) {
+			if (variableName.contains(denied)) {
+				return false;
+			}
+		}
+		return true;
+	}
+
+	public static String escape(String text) {
+		for (String denied : deniedStrings()) {
+			text = text.replace(denied, "");
+		}
+		return text;
+	}
+
 	public static String[] parseSelectionValues(String commaSeparated) {
 		String[] split = commaSeparated.split(",");
 		for (int i = 0; i < split.length; i++) {
