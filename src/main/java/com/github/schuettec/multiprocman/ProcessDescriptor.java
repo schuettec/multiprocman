@@ -358,11 +358,13 @@ public class ProcessDescriptor implements Serializable {
 			PromptVariable pv = iterator.next();
 			Object result = null;
 			if (pv.isSelection()) {
-				result = JOptionPane.showInputDialog(parent, pv.getMessage(), "Enter value for variable",
+				result = JOptionPane.showInputDialog(parent, pv.getMessage(), "Select value for variable",
 				    JOptionPane.INFORMATION_MESSAGE, null, pv.getSelectionValues(), pv.getLastValue());
 			} else {
 				result = JOptionPane.showInputDialog(parent, pv.getMessage(), "Enter value for variable",
-				    JOptionPane.INFORMATION_MESSAGE);
+				    JOptionPane.INFORMATION_MESSAGE, null, null, pv.getLastValue());
+				// result = JOptionPane.showInputDialog(parent, pv.getMessage(), "Enter value for variable",
+				// JOptionPane.INFORMATION_MESSAGE);
 			}
 
 			if (result == null) {
