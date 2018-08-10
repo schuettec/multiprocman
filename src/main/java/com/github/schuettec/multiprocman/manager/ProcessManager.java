@@ -431,8 +431,6 @@ public class ProcessManager extends JFrame {
 			splitPane.setLeftComponent(scrollPane);
 			scrollPane.setPreferredSize(new Dimension(200, 2));
 			lstCategories = new JList<>(categories);
-			lstCategories.setDragEnabled(true);
-			lstCategories.setDropMode(DropMode.INSERT);
 			lstCategories.addListSelectionListener(new ListSelectionListener() {
 
 				@Override
@@ -448,6 +446,8 @@ public class ProcessManager extends JFrame {
 				}
 			});
 
+			lstCategories.setDragEnabled(true);
+			lstCategories.setDropMode(DropMode.INSERT);
 			lstCategories.setTransferHandler(new TransferHandler() {
 				/**
 				 *
@@ -588,6 +588,63 @@ public class ProcessManager extends JFrame {
 							}
 						}
 					});
+
+					lstProcesses.setDragEnabled(true);
+					lstProcesses.setDropMode(DropMode.INSERT);
+					lstProcesses.setTransferHandler(new TransferHandler() {
+						/**
+						 *
+						 */
+						private static final long serialVersionUID = 1L;
+						private int index;
+						private boolean beforeIndex = false;
+
+						@Override
+						public int getSourceActions(JComponent comp) {
+							return MOVE;
+						}
+
+						@Override
+						public Transferable createTransferable(JComponent comp) {
+							index = lstProcesses.getSelectedIndex();
+							return new StringSelection(String.valueOf(index));
+						}
+
+						@Override
+						public void exportDone(JComponent comp, Transferable trans, int action) {
+							if (action == MOVE) {
+								DefaultListModel<ProcessDescriptor> processes = currentCategory.getProcessTemplates();
+								if (beforeIndex)
+									processes.remove(index + 1);
+								else
+									processes.remove(index);
+							}
+						}
+
+						@Override
+						public boolean canImport(TransferHandler.TransferSupport support) {
+							return support.isDataFlavorSupported(DataFlavor.stringFlavor);
+						}
+
+						@Override
+						public boolean importData(TransferHandler.TransferSupport support) {
+							try {
+								String s = (String) support.getTransferable()
+								    .getTransferData(DataFlavor.stringFlavor);
+								JList.DropLocation dl = (JList.DropLocation) support.getDropLocation();
+								int newIndex = Integer.parseInt(s);
+								DefaultListModel<ProcessDescriptor> processes = currentCategory.getProcessTemplates();
+								ProcessDescriptor pd = processes.get(newIndex);
+								processes.add(dl.getIndex(), pd);
+								lstProcesses.setSelectedIndex(dl.getIndex());
+								beforeIndex = dl.getIndex() < index ? true : false;
+								return true;
+							} catch (Exception e) {
+							}
+							return false;
+						}
+					});
+
 					scrollPane_1.setViewportView(lstProcesses);
 				}
 				{
