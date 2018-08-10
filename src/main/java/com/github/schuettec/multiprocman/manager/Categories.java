@@ -1,5 +1,7 @@
 package com.github.schuettec.multiprocman.manager;
 
+import static java.util.Objects.requireNonNull;
+
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
@@ -8,6 +10,8 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.Enumeration;
+import java.util.LinkedList;
 import java.util.List;
 
 import javax.swing.DefaultListModel;
@@ -159,6 +163,25 @@ public class Categories extends DefaultListModel<Category> {
 			this.addElement(Category.defaultCategory());
 			saveToPreferences();
 		}
+	}
+
+	public List<ProcessDescriptor> findProcessDescriptor(String title) {
+		requireNonNull(title, "Title may not be null.");
+		List<ProcessDescriptor> result = new LinkedList<>();
+		Enumeration<Category> enm = this.elements();
+		while (enm.hasMoreElements()) {
+			Category cat = enm.nextElement();
+			Enumeration<ProcessDescriptor> pdEnm = cat.getProcessTemplates()
+			    .elements();
+			while (pdEnm.hasMoreElements()) {
+				ProcessDescriptor pd = pdEnm.nextElement();
+				if (pd.getTitle()
+				    .equals(title)) {
+					result.add(pd);
+				}
+			}
+		}
+		return result;
 	}
 
 	public void addCategory(ImageIcon icon, String name, String description) {

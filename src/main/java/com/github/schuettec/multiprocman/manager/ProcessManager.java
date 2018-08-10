@@ -87,8 +87,21 @@ public class ProcessManager extends JFrame {
 	public static void main(String[] args) {
 		try {
 			ThemeUtil.setLookAndFeel();
-			ProcessManager dialog = ProcessManager.getInstance();
-			dialog.setVisible(true);
+			if (args.length > 0) {
+				String launcherName = args[0];
+				Categories categories = new Categories();
+				List<ProcessDescriptor> results = categories.findProcessDescriptor(launcherName);
+				if (results.size() > 1) {
+					new FindLauncherDialog(null, launcherName);
+				} else {
+					ProcessDescriptor processDescriptor = results.get(0);
+					ProcessManager.startAll(null, Arrays.asList(processDescriptor));
+					return;
+				}
+			} else {
+				ProcessManager dialog = ProcessManager.getInstance();
+				dialog.setVisible(true);
+			}
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
@@ -591,10 +604,11 @@ public class ProcessManager extends JFrame {
 
 					lstProcesses.setDragEnabled(true);
 					lstProcesses.setDropMode(DropMode.INSERT);
+
 					lstProcesses.setTransferHandler(new TransferHandler() {
 						/**
-						 *
-						 */
+						*
+						*/
 						private static final long serialVersionUID = 1L;
 						private int index;
 						private boolean beforeIndex = false;
@@ -851,4 +865,5 @@ public class ProcessManager extends JFrame {
 			}
 		});
 	}
+
 }

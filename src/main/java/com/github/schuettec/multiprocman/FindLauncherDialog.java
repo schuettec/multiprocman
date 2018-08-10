@@ -137,16 +137,26 @@ public class FindLauncherDialog extends JDialog {
 		}
 	}
 
+	public FindLauncherDialog(Component parent, String searchLauncher) {
+		initialize(parent);
+		textField.setText(searchLauncher);
+		refreshHits();
+	}
+
 	/**
 	 * Create the dialog.
 	 */
 	public FindLauncherDialog(Component parent) {
+		initialize(parent);
+		setModal(true);
+	}
+
+	private void initialize(Component parent) {
 		ThemeUtil.setLookAndFeel();
 		setTitle("Find launcher...");
 		setIconImage(Resources.getApplicationIcon());
 		setPreferredSize(new Dimension(280, 480));
 		this.setSize(new Dimension(416, 480));
-		setModal(true);
 		this.setLocationRelativeTo(parent);
 
 		String KEY = "closeDialog";
