@@ -442,7 +442,7 @@ public class MainFrame extends JFrame implements WindowListener, ProcessListener
 							Cursor waitCursor = Cursor.getPredefinedCursor(Cursor.WAIT_CURSOR);
 							setCursor(waitCursor);
 							pc.stop(true);
-							clearConsole();
+							pc.clearConsole();
 							pc.start();
 							setCursor(defaultCursor);
 						}
