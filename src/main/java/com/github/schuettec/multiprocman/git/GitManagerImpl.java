@@ -5,9 +5,11 @@ import static java.util.Objects.nonNull;
 import java.awt.Component;
 import java.io.File;
 import java.io.IOException;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 import org.eclipse.jgit.api.CheckoutCommand;
@@ -26,10 +28,11 @@ import org.eclipse.jgit.api.errors.TransportException;
 import org.eclipse.jgit.lib.Ref;
 import org.eclipse.jgit.lib.Repository;
 import org.eclipse.jgit.lib.RepositoryBuilder;
+import org.eclipse.jgit.transport.FetchResult;
 import org.eclipse.jgit.transport.JschConfigSessionFactory;
 import org.eclipse.jgit.transport.OpenSshConfig;
-import org.eclipse.jgit.transport.RemoteConfig;
 import org.eclipse.jgit.transport.SshTransport;
+import org.eclipse.jgit.transport.TrackingRefUpdate;
 
 import com.jcraft.jsch.Session;
 import com.jcraft.jsch.UserInfo;
@@ -235,20 +238,15 @@ public class GitManagerImpl implements GitManager, AutoCloseable {
 	@Override
 	public void fetch() throws GitException {
 		try {
-			List<RemoteConfig> remotes = git.remoteList()
-			    .call();
-			for (RemoteConfig remote : remotes) {
-				FetchCommand fetch = git.fetch();
-				fetch.setTransportConfigCallback(transport -> {
-					if (transport instanceof SshTransport) {
-						SshTransport sshTransport = (SshTransport) transport;
-						sshTransport.setSshSessionFactory(sshSessionFactory);
-					}
-				});
-				fetch.setRemote(remote.getName());
-				fetch.setRefSpecs(remote.getFetchRefSpecs());
-				fetch.call();
-			}
+			FetchCommand fetch = git.fetch();
+			fetch.setTransportConfigCallback(transport -> {
+				if (transport instanceof SshTransport) {
+					SshTransport sshTransport = (SshTransport) transport;
+					sshTransport.setSshSessionFactory(sshSessionFactory);
+				}
+			});
+			fetch.setRemote("origin");
+			fetch.call();
 		} catch (TransportException e) {
 			callback.clearCache();
 			throw GitException.transportException(e);
