@@ -37,6 +37,7 @@ import javax.swing.JScrollPane;
 import javax.swing.JTextField;
 import javax.swing.KeyStroke;
 import javax.swing.LayoutStyle.ComponentPlacement;
+import javax.swing.SwingUtilities;
 import javax.swing.border.EmptyBorder;
 
 import com.github.schuettec.multiprocman.manager.Categories;
@@ -57,6 +58,7 @@ public class FindLauncherDialog extends JDialog {
 
 		@Override
 		public void actionPerformed(ActionEvent e) {
+			setVisible(false);
 			dispose();
 		}
 	};
@@ -148,7 +150,6 @@ public class FindLauncherDialog extends JDialog {
 	 */
 	public FindLauncherDialog(Component parent) {
 		initialize(parent);
-		setModal(true);
 	}
 
 	private void initialize(Component parent) {
@@ -201,8 +202,15 @@ public class FindLauncherDialog extends JDialog {
 					list.requestFocusInWindow();
 
 				} else if (e.getKeyCode() == KeyEvent.VK_ENTER) {
-					startSelectedProcess();
+					SwingUtilities.invokeLater(new Runnable() {
+
+						@Override
+						public void run() {
+							startSelectedProcess();
+						}
+					});
 				} else if (e.getKeyCode() == KeyEvent.VK_ESCAPE) {
+					setVisible(false);
 					dispose();
 				}
 			}
@@ -252,6 +260,7 @@ public class FindLauncherDialog extends JDialog {
 				if (e.getKeyCode() == KeyEvent.VK_ENTER) {
 					startSelectedProcess();
 				} else if (e.getKeyCode() == KeyEvent.VK_ESCAPE) {
+					setVisible(false);
 					dispose();
 				}
 			}
@@ -297,6 +306,7 @@ public class FindLauncherDialog extends JDialog {
 
 					@Override
 					public void actionPerformed(ActionEvent e) {
+						FindLauncherDialog.this.setVisible(false);
 						FindLauncherDialog.this.dispose();
 					}
 
@@ -362,6 +372,7 @@ public class FindLauncherDialog extends JDialog {
 		if (list.getSelectedIndex() > -1) {
 			CategoryDecorator selectedValue = list.getSelectedValue();
 			ProcessManager.startAll(FindLauncherDialog.this, asList(selectedValue.getProcessDescriptor()));
+			FindLauncherDialog.this.setVisible(false);
 			FindLauncherDialog.this.dispose();
 		}
 	}
