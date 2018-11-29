@@ -818,15 +818,16 @@ public class ApplicationEditor extends JDialog {
 	}
 
 	private AbstractAction showSubstitutionAction(JTextComponent textComp) {
-		return new AbstractAction("Show substitution") {
+		return new AbstractAction("Show env. variable substitution") {
 
 			@Override
 			public void actionPerformed(ActionEvent e) {
 				JOptionPane.showMessageDialog(ApplicationEditor.this,
-				    "<html><body><p style='width: 640px;'>The following command will be substituted:<br/><br/><tt>"
+				    "<html><body><p style='width: 640px;'>The following command will be substituted:<br/><tt>"
 				        + ProcessDescriptor.fillEnvironmentVariables(textComp.getText())
-				        + "</tt></p><br/><br/>The following workind directory will be substituted:<br/><br><tt>"
-				        + ProcessDescriptor.fillEnvironmentVariables(txtWorkingDir.getText()) + "</tt></body></html>",
+				        + "</tt></p>The following workind directory will be substituted:<br/><tt>"
+				        + ProcessDescriptor.fillEnvironmentVariables(txtWorkingDir.getText())
+				        + "</tt><br/><b>Note: Only enviornment variables have been replaced.</body></html>",
 				    "Command substitution", JOptionPane.INFORMATION_MESSAGE);
 			}
 		};
