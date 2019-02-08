@@ -9,6 +9,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.PrintStream;
 import java.nio.charset.Charset;
+import java.util.List;
 import java.util.Scanner;
 
 public class ProcessObserverImpl extends Thread implements ProcessObserver {
@@ -100,6 +101,12 @@ public class ProcessObserverImpl extends Thread implements ProcessObserver {
 		} else {
 			start();
 		}
+	}
+
+	@Override
+	public List<String> getLines(int lastLineInclusive, int maxLines) {
+
+		return null;
 	}
 
 }
