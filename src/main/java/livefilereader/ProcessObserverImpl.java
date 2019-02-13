@@ -65,7 +65,12 @@ public class ProcessObserverImpl extends Thread implements ProcessObserver, Proc
 			    FileOutputStream output = new FileOutputStream(outputFile);) {
 				callback.started(this, outputFile, defaultCharset);
 				while (process.isAlive()) {
+					boolean wasAscii = false;
 					int b = input.read();
+					// Only fire lastLineChanged event if input was an ASCII control
+					if (b == 0x8) {
+						wasAscii = true;
+					}
 					output.write(b);
 					output.flush();
 					if (addNew) {
@@ -81,7 +86,9 @@ public class ProcessObserverImpl extends Thread implements ProcessObserver, Proc
 					} else {
 						Integer byteOffset = lineXrefs.get(lines);
 						lineXrefs.put(lines, byteOffset + 1);
-						callback.lastLineChanged(lines);
+						if (wasAscii) {
+							callback.lastLineChanged(lines);
+						}
 					}
 					if (b == '\n') {
 						addNew = true;

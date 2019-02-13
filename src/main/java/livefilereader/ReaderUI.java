@@ -38,7 +38,7 @@ public class ReaderUI extends JFrame {
 					    "C:\\Users\\schuettec\\git\\multiprocman\\outputtest.jar"
 					};
 
-					String[] command = commandRandom;
+					String[] command = commandProgress;
 
 					ProcessBuilder builder = new ProcessBuilder(command);
 					builder.redirectErrorStream(true);
@@ -75,6 +75,8 @@ public class ReaderUI extends JFrame {
 		contentPane.setBorder(new EmptyBorder(5, 5, 5, 5));
 		contentPane.setLayout(new BorderLayout(0, 0));
 		setContentPane(contentPane);
+
+		this.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 
 		this.controller = controller;
 

@@ -20,15 +20,20 @@ import javax.swing.BoundedRangeModel;
 import javax.swing.JScrollBar;
 import javax.swing.JTextPane;
 import javax.swing.SwingUtilities;
+import javax.swing.text.BadLocationException;
+import javax.swing.text.Document;
 
 import org.apache.commons.lang3.exception.ExceptionUtils;
 
 import com.github.schuettec.multiprocman.ExceptionDialog;
+import com.github.schuettec.multiprocman.console.AnsiColorTextPane;
+import com.github.schuettec.multiprocman.themes.ThemeUtil;
+import com.github.schuettec.multiprocman.themes.console.AnsiColorTextPaneTheme;
 
 public class ReaderController implements ProcessCallback {
 
 	private JScrollBar lineScroller;
-	private JTextPane textView;
+	private AnsiColorTextPane textView;
 
 	private int currentLine = 0;
 	private int viewLines = 0;
@@ -79,10 +84,11 @@ public class ReaderController implements ProcessCallback {
 	public ReaderController() {
 		this.lineScroller = new JScrollBar(JScrollBar.VERTICAL);
 		this.lineScroller.addAdjustmentListener(scrollerListener);
-		this.textView = new JTextPane();
+		this.textView = new AnsiColorTextPane();
+		ThemeUtil.theme(textView, AnsiColorTextPaneTheme.class);
+
 		this.textView.addComponentListener(resizeListener);
 		this.textView.setEditable(false);
-		this.textView.setDoubleBuffered(true);
 
 	}
 
@@ -100,7 +106,13 @@ public class ReaderController implements ProcessCallback {
 		    .println("Requesting curLine: " + currentLine + " lines to read " + numberOfLines + " max lines: " + lines);
 		String content = readLinesFromFile(currentLine, numberOfLines);
 		String parsed = parseBackspace(content);
-		textView.setText(parsed);
+		Document document = textView.getDocument();
+		try {
+			document.remove(0, document.getLength());
+		} catch (BadLocationException e) {
+			e.printStackTrace();
+		}
+		textView.appendANSI(parsed, true);
 	}
 
 	private String parseBackspace(String content) {
