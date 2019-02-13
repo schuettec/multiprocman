@@ -1,15 +1,15 @@
 package livefilereader;
 
 import java.awt.BorderLayout;
-import java.awt.Color;
 import java.awt.EventQueue;
 import java.awt.font.TextLayout;
+import java.io.File;
 
 import javax.swing.JFrame;
 import javax.swing.JPanel;
 import javax.swing.JScrollBar;
+import javax.swing.JTextPane;
 import javax.swing.border.EmptyBorder;
-import javax.swing.border.LineBorder;
 
 /**
  * Use {@link TextLayout} to render text.
@@ -17,6 +17,7 @@ import javax.swing.border.LineBorder;
 public class ReaderUI extends JFrame {
 
 	private JPanel contentPane;
+	private ReaderController controller;
 
 	/**
 	 * Launch the application.
@@ -26,8 +27,37 @@ public class ReaderUI extends JFrame {
 			@Override
 			public void run() {
 				try {
-					ReaderUI frame = new ReaderUI();
+
+					String[] commandRandom = new String[] {
+					    "C:\\Program Files\\Java\\jdk1.8.0_191\\bin\\java.exe", "-jar",
+					    "C:\\Users\\schuettec\\git\\multiprocman\\randomOutput.jar"
+					};
+
+					String[] commandProgress = new String[] {
+					    "C:\\Program Files\\Java\\jdk1.8.0_191\\bin\\java.exe", "-jar",
+					    "C:\\Users\\schuettec\\git\\multiprocman\\outputtest.jar"
+					};
+
+					String[] command = commandRandom;
+
+					ProcessBuilder builder = new ProcessBuilder(command);
+					builder.redirectErrorStream(true);
+
+					ReaderController controller = new ReaderController();
+					ProcessObserver observer = new ProcessObserverImpl(builder, new File("output.txt"), controller);
+					observer.startProcess();
+
+					ReaderUI frame = new ReaderUI(controller);
 					frame.setVisible(true);
+
+					Runtime.getRuntime()
+					    .addShutdownHook(new Thread(new Runnable() {
+						    @Override
+						    public void run() {
+							    observer.stopProcess();
+						    }
+					    }));
+
 				} catch (Exception e) {
 					e.printStackTrace();
 				}
@@ -38,7 +68,7 @@ public class ReaderUI extends JFrame {
 	/**
 	 * Create the frame.
 	 */
-	public ReaderUI() {
+	public ReaderUI(ReaderController controller) {
 		setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 		setBounds(100, 100, 450, 300);
 		contentPane = new JPanel();
@@ -46,12 +76,12 @@ public class ReaderUI extends JFrame {
 		contentPane.setLayout(new BorderLayout(0, 0));
 		setContentPane(contentPane);
 
-		JScrollBar scrollBar = new JScrollBar();
-		contentPane.add(scrollBar, BorderLayout.EAST);
+		this.controller = controller;
 
-		JPanel panel = new JPanel();
-		panel.setBorder(new LineBorder(new Color(0, 0, 0)));
-		contentPane.add(panel, BorderLayout.CENTER);
+		JScrollBar lineScroller = controller.getLineScroller();
+		JTextPane textView = controller.getTextView();
+		contentPane.add(textView, BorderLayout.CENTER);
+		contentPane.add(lineScroller, BorderLayout.EAST);
 	}
 
 }

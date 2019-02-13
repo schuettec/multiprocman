@@ -3,21 +3,22 @@ package livefilereader;
 import static java.util.Objects.nonNull;
 import static java.util.Objects.requireNonNull;
 
+import java.io.BufferedInputStream;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.PrintStream;
 import java.nio.charset.Charset;
-import java.util.List;
-import java.util.Scanner;
+import java.util.concurrent.ConcurrentHashMap;
 
-public class ProcessObserverImpl extends Thread implements ProcessObserver {
+public class ProcessObserverImpl extends Thread implements ProcessObserver, ProcessOutputInfo {
 
 	private ProcessBuilder processBuilder;
 	private File outputFile;
 
-	private long lines = 0;
+	private ConcurrentHashMap<Integer, Integer> lineXrefs = new ConcurrentHashMap<>();
+
+	private int lines = 0;
 	private boolean running = false;
 	private ProcessCallback callback;
 	private Process process;
@@ -33,22 +34,62 @@ public class ProcessObserverImpl extends Thread implements ProcessObserver {
 		this.callback = callback;
 	}
 
+	/**
+	 * Returns the start byte offset of the specified line. The lines are counted starting with 0.
+	 *
+	 * @param line The line number starting with 0.
+	 */
+	@Override
+	public int getLineByteOffset(int line) {
+		if (line <= 0) {
+			return 0;
+		} else if (lineXrefs.size() > line) {
+			return lineXrefs.get(line);
+		} else {
+			System.out.println("Size: " + lineXrefs.size() + " line: " + line);
+			throw new IllegalArgumentException(
+			    String.format("Index out of bounds. Got %d lines but requesting line %d.", lineXrefs.size(), line));
+		}
+	}
+
 	@Override
 	public void run() {
+		// TODO: Use charset of launcher config here.
+		Charset defaultCharset = Charset.defaultCharset();
 		try {
 			this.process = processBuilder.start();
 			running = true;
-			InputStream inputStream = process.getInputStream();
-			FileOutputStream fos = new FileOutputStream(outputFile);
-			try (Scanner input = new Scanner(inputStream);
-			    PrintStream output = new PrintStream(fos, false, Charset.defaultCharset()
-			        .displayName())) {
-				while (process.isAlive() && input.hasNextLine()) {
-					output.println(input.nextLine());
+			boolean addNew = true;
+			InputStream inputStr = process.getInputStream();
+			try (BufferedInputStream input = new BufferedInputStream(inputStr);
+			    FileOutputStream output = new FileOutputStream(outputFile);) {
+				callback.started(this, outputFile, defaultCharset);
+				while (process.isAlive()) {
+					int b = input.read();
+					output.write(b);
 					output.flush();
-					lines++;
-					callback.output(lines);
+					if (addNew) {
+						lines++;
+						if (lineXrefs.isEmpty()) {
+							lineXrefs.put(lines, 1);
+						} else {
+							int lastLine = lines - 1;
+							Integer byteOffset = lineXrefs.get(lastLine);
+							lineXrefs.put(lines, byteOffset + 1);
+						}
+						callback.output(lines);
+					} else {
+						Integer byteOffset = lineXrefs.get(lines);
+						lineXrefs.put(lines, byteOffset + 1);
+						callback.lastLineChanged(lines);
+					}
+					if (b == '\n') {
+						addNew = true;
+					} else {
+						addNew = false;
+					}
 				}
+				callback.exited();
 			} catch (Exception e) {
 				stopProcess();
 				callback.cannotWriteOutput(outputFile, e);
@@ -69,7 +110,6 @@ public class ProcessObserverImpl extends Thread implements ProcessObserver {
 		if (nonNull(this.process)) {
 			this.process.destroy();
 			// Wait for or destroy forcibly.
-			this.process = null;
 			running = false;
 		}
 	}
@@ -101,12 +141,6 @@ public class ProcessObserverImpl extends Thread implements ProcessObserver {
 		} else {
 			start();
 		}
-	}
-
-	@Override
-	public List<String> getLines(int lastLineInclusive, int maxLines) {
-
-		return null;
 	}
 
 }
