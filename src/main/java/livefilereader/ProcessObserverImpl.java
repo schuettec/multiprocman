@@ -9,19 +9,19 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.charset.Charset;
-import java.util.concurrent.ConcurrentHashMap;
+
+import livefilereader.captor.InputCaptor;
+import livefilereader.captor.InputCaptorCallback;
 
 public class ProcessObserverImpl extends Thread implements ProcessObserver, ProcessOutputInfo {
 
 	private ProcessBuilder processBuilder;
 	private File outputFile;
 
-	private ConcurrentHashMap<Integer, Integer> lineXrefs = new ConcurrentHashMap<>();
-
-	private int lines = 0;
 	private boolean running = false;
 	private ProcessCallback callback;
 	private Process process;
+	private InputCaptor captor;
 
 	public ProcessObserverImpl(ProcessBuilder builder, File outputFile, ProcessCallback callback)
 	    throws ProcessBufferOutputException {
@@ -34,24 +34,6 @@ public class ProcessObserverImpl extends Thread implements ProcessObserver, Proc
 		this.callback = callback;
 	}
 
-	/**
-	 * Returns the start byte offset of the specified line. The lines are counted starting with 0.
-	 *
-	 * @param line The line number starting with 0.
-	 */
-	@Override
-	public int getLineByteOffset(int line) {
-		if (line <= 0) {
-			return 0;
-		} else if (lineXrefs.size() > line) {
-			return lineXrefs.get(line);
-		} else {
-			System.out.println("Size: " + lineXrefs.size() + " line: " + line);
-			throw new IllegalArgumentException(
-			    String.format("Index out of bounds. Got %d lines but requesting line %d.", lineXrefs.size(), line));
-		}
-	}
-
 	@Override
 	public void run() {
 		// TODO: Use charset of launcher config here.
@@ -59,43 +41,28 @@ public class ProcessObserverImpl extends Thread implements ProcessObserver, Proc
 		try {
 			this.process = processBuilder.start();
 			running = true;
-			boolean addNew = true;
 			InputStream inputStr = process.getInputStream();
 			try (BufferedInputStream input = new BufferedInputStream(inputStr);
 			    FileOutputStream output = new FileOutputStream(outputFile);) {
 				callback.started(this, outputFile, defaultCharset);
-				while (process.isAlive()) {
-					boolean wasAscii = false;
-					int b = input.read();
-					// Only fire lastLineChanged event if input was an ASCII control
-					if (b == 0x8) {
-						wasAscii = true;
+				this.captor = new InputCaptor(new InputCaptorCallback() {
+
+					@Override
+					public boolean shouldRun() {
+						return process.isAlive();
 					}
-					output.write(b);
-					output.flush();
-					if (addNew) {
-						lines++;
-						if (lineXrefs.isEmpty()) {
-							lineXrefs.put(lines, 1);
-						} else {
-							int lastLine = lines - 1;
-							Integer byteOffset = lineXrefs.get(lastLine);
-							lineXrefs.put(lines, byteOffset + 1);
-						}
+
+					@Override
+					public void newLine(int lines) {
 						callback.output(lines);
-					} else {
-						Integer byteOffset = lineXrefs.get(lines);
-						lineXrefs.put(lines, byteOffset + 1);
-						if (wasAscii) {
-							callback.lastLineChanged(lines);
-						}
 					}
-					if (b == '\n') {
-						addNew = true;
-					} else {
-						addNew = false;
+
+					@Override
+					public void asciiCode(int lines, int ascii) {
+						callback.asciiCode(lines, ascii);
 					}
-				}
+				}, input, output);
+				captor.run();
 				callback.exited();
 			} catch (Exception e) {
 				stopProcess();
@@ -128,7 +95,12 @@ public class ProcessObserverImpl extends Thread implements ProcessObserver, Proc
 	 */
 	@Override
 	public long getLines() {
-		return lines;
+		return captor.getLines();
+	}
+
+	@Override
+	public int getLineByteOffset(int line) {
+		return captor.getLineByteOffset(line);
 	}
 
 	/*

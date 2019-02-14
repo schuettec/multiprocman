@@ -12,6 +12,7 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.RandomAccessFile;
+import java.lang.reflect.InvocationTargetException;
 import java.nio.charset.Charset;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.locks.ReentrantLock;
@@ -179,12 +180,23 @@ public class ReaderController implements ProcessCallback {
 	@Override
 	public void output(int lines) {
 		this.lines = lines;
-		SwingUtilities.invokeLater(new Runnable() {
-			@Override
-			public void run() {
-				updateScrollBar();
-			}
-		});
+		try {
+			SwingUtilities.invokeAndWait(new Runnable() {
+				@Override
+				public void run() {
+					if (lines < viewLines) {
+						updateText();
+					}
+					updateScrollBar();
+				}
+			});
+		} catch (InvocationTargetException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (InterruptedException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
 	}
 
 	@Override
@@ -243,15 +255,26 @@ public class ReaderController implements ProcessCallback {
 	}
 
 	@Override
-	public void lastLineChanged(int line) {
-		if (currentLine <= line && currentLine + viewLines >= line) {
+	public void asciiCode(int line, int ascii) {
+		if ((ascii == 0x8) && isCaptured(line)) {
 			SwingUtilities.invokeLater(new Runnable() {
 				@Override
 				public void run() {
-					updateText();
+					// Remove last character
+					try {
+						textView.getDocument()
+						    .remove(textView.getDocument()
+						        .getLength() - 1, 1);
+					} catch (BadLocationException e) {
+						e.printStackTrace();
+					}
 				}
 			});
 		}
+	}
+
+	private boolean isCaptured(int line) {
+		return currentLine <= line && currentLine + viewLines >= line;
 	}
 
 }

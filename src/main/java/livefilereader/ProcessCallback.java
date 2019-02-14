@@ -45,6 +45,15 @@ public interface ProcessCallback {
 	void started(ProcessOutputInfo processOutputInfo, File outputFile, Charset charset);
 
 	/**
+	 * Called by the {@link ProcessObserver} to signal that an ASCII control character ocurred at the end of the specified
+	 * line.
+	 *
+	 * @param line Line number of the affected line.
+	 * @param ascii The ASCII controll character.
+	 */
+	void asciiCode(int line, int ascii);
+
+	/**
 	 * Called by the {@link ProcessObserver} to signal that new output was written by the process.
 	 * <p>
 	 * <b>Implementors should make sure that any UI access as a reaction to this call is performed in the correct
@@ -64,16 +73,5 @@ public interface ProcessCallback {
 	 * </p>
 	 */
 	void exited();
-
-	/**
-	 * Called by the {@link ProcessObserver} to signal that the last line in the application output has been changed.
-	 * <p>
-	 * <b>Implementors should make sure that any UI access as a reaction to this call is performed in the correct
-	 * thread.</b>
-	 * </p>
-	 *
-	 * @param line The last line at the time it was changed.
-	 */
-	void lastLineChanged(int line);
 
 }
