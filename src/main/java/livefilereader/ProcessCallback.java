@@ -47,14 +47,6 @@ public interface ProcessCallback {
 	void started(ProcessOutputInfo processOutputInfo, File outputFile, Charset charset);
 
 	/**
-	 * Called by the {@link ProcessObserver} to signal that the specified amount of ASCII backspaces was detected.
-	 *
-	 * @param line Line number of the affected line.
-	 * @param count The number of backspace characters.
-	 */
-	void backspace(int line, int count);
-
-	/**
 	 * Called by the {@link ProcessObserver} to signal that new output was written by the process.
 	 * <p>
 	 * <b>Implementors should make sure that any UI access as a reaction to this call is performed in the correct
@@ -77,7 +69,8 @@ public interface ProcessCallback {
 
 	/**
 	 * Called by the {@link InputCaptor} to signal, that the content should be appended to the last line. The implementor
-	 * should check if the last line is currently captured and the change is of interest.
+	 * should check if the last line is currently captured and the change is of interest. The string may include ASCII
+	 * control chars that have to be interpreted.
 	 *
 	 * @param string The string to append at last line.
 	 */

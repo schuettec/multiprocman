@@ -104,11 +104,11 @@ public class ReaderController implements ProcessCallback {
 		if (lines < viewLines) {
 			content = readLinesFromFile(0, lines);
 		} else {
+			System.out.println("Cur line: " + currentLine + " View lines: " + viewLines);
 			content = readLinesFromFile(currentLine, viewLines);
 		}
 		String parsed = parseBackspace(content);
 		textView.clear();
-		System.out.println("Updating text: " + parsed.length());
 		textView.appendANSI(parsed, true);
 
 	}
@@ -136,28 +136,6 @@ public class ReaderController implements ProcessCallback {
 	}
 
 	@Override
-	public void backspace(int line, int count) {
-		if (isCaptured(line)) {
-			try {
-				System.out.println("backspace ascii code: " + count);
-				SwingUtilities.invokeAndWait(new Runnable() {
-					@Override
-					public void run() {
-						// Remove last character
-						textView.backspace(count);
-					}
-				});
-			} catch (InvocationTargetException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
-			} catch (InterruptedException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
-			}
-		}
-	}
-
-	@Override
 	public void append(String string) {
 		// If last line is currently captured
 		if (isCaptured(lines - 1)) {
@@ -167,7 +145,14 @@ public class ReaderController implements ProcessCallback {
 				SwingUtilities.invokeAndWait(new Runnable() {
 					@Override
 					public void run() {
-						textView.appendANSI(string, false);
+						string.chars()
+						    .forEach(c -> {
+							    if (c == 0x8) {
+								    textView.backspace(1);
+							    } else {
+								    textView.appendANSI(String.valueOf((char) c), true);
+							    }
+						    });
 					}
 				});
 			} catch (InvocationTargetException e) {
@@ -224,7 +209,7 @@ public class ReaderController implements ProcessCallback {
 				endOffsets = fileInfo.getLineByteOffset(0);
 			} else {
 				startOffsets = fileInfo.getLineByteOffset(fromLine);
-				endOffsets = fileInfo.getLineByteOffset(fromLine + linesToRead);
+				endOffsets = fileInfo.getLineByteOffset(fromLine + linesToRead - 1);
 			}
 			input.seek(startOffsets);
 			if (endOffsets - startOffsets < 0) {

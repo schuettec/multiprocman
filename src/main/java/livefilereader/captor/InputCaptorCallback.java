@@ -18,17 +18,9 @@ public interface InputCaptorCallback {
 	void newLine(int lines);
 
 	/**
-	 * Called by the {@link InputCaptor} to signal, that the specified amount of backspace control character is added. The
-	 * implementor should check if the last line is currently captured and the change is of interest.
-	 *
-	 * @param line The line number where the ASCII code occurred.
-	 * @param count The number of backspaces counted.
-	 */
-	void backspace(int line, int count);
-
-	/**
 	 * Called by the {@link InputCaptor} to signal, that the content should be appended to the last line. The implementor
-	 * should check if the last line is currently captured and the change is of interest.
+	 * should check if the last line is currently captured and the change is of interest. The string may include ASCII
+	 * control chars that have to be interpreted.
 	 *
 	 * @param string The string to append at last line.
 	 */

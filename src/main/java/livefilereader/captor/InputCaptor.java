@@ -62,8 +62,10 @@ public class InputCaptor {
 	 */
 	public void run() throws IOException {
 		try {
+			int bytesRead = 0;
 			while (callback.shouldRun()) {
 				Buffer buffer = bufferInputUntilNewLineOrAsciiCode(input);
+				bytesRead += buffer.size();
 				// If xrefs is empty create the first line
 				if (lineXrefs.isEmpty()) {
 					lineXrefs.put(lines, 0);
@@ -71,18 +73,17 @@ public class InputCaptor {
 				if (buffer.isAsciiControl()) {
 					output.write(buffer.getData());
 					output.flush();
-					appendAtLastLine(buffer.size());
-					// TODO: Process ascii controll if it ocurred within the observed frame
-					callback.backspace(lines - 1, buffer.size());
+					lineXrefs.put(lines - 1, bytesRead);
+					callback.append(new String(buffer.getData()));
 				} else {
 					output.write(buffer.getData());
 					output.flush();
 					if (buffer.isLineBreak()) {
-						lineXrefs.put(lines, buffer.size());
+						lineXrefs.put(lines, bytesRead);
 						lines++;
 						callback.newLine(lines);
 					} else {
-						appendAtLastLine(buffer.size());
+						lineXrefs.put(lines - 1, bytesRead);
 						callback.append(new String(buffer.getData()));
 					}
 				}
@@ -95,11 +96,6 @@ public class InputCaptor {
 				e.printStackTrace();
 			}
 		}
-	}
-
-	private void appendAtLastLine(int numberOfBytes) {
-		Integer byteOffset = lineXrefs.get(lines - 1);
-		lineXrefs.put(lines - 1, byteOffset + numberOfBytes);
 	}
 
 	private Buffer bufferInputUntilNewLineOrAsciiCode(BufferedInputStream input) throws IOException {
@@ -117,19 +113,28 @@ public class InputCaptor {
 					byte[] data = buffer.toByteArray();
 					return new Buffer(false, data, false);
 				} else {
-					// or there was no buffered data, then buffer all upcoming ascii codes
+					// or there was no buffered data, then buffer all upcoming ascii codes until the following sequence was
+					// detected:
+					// ascii-chars-asci < Stop at reading the first char of the second ascii sequence and reset.
 					ByteArrayOutputStream asciiBuffer = new ByteArrayOutputStream();
 					asciiBuffer.write(b);
-					boolean bufferAscii = true;
+					// The sequence counter is 2 if the second ascii sequence was detected.
+					int sequenceCounter = 0;
 					int next;
-					while (bufferAscii) {
+					while (sequenceCounter < 2) {
 						input.mark(1);
 						next = input.read();
-						if (isSupportedAsciiCode(next)) {
+						if (isSupportedAsciiCode(next) && sequenceCounter == 0) {
 							asciiBuffer.write(next);
-						} else {
+						} else if (!isSupportedAsciiCode(next) && sequenceCounter < 2) {
+							asciiBuffer.write(next);
+							sequenceCounter = 1;
+						} else if (isSupportedAsciiCode(next) && sequenceCounter == 1) {
 							input.reset();
-							bufferAscii = false;
+							sequenceCounter = 2;
+						} else if (isLineDelimiter(next)) {
+							asciiBuffer.write(next);
+							sequenceCounter = 2;
 						}
 					}
 					return new Buffer(true, asciiBuffer.toByteArray(), false);

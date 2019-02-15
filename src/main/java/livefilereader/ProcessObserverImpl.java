@@ -58,11 +58,6 @@ public class ProcessObserverImpl extends Thread implements ProcessObserver, Proc
 					}
 
 					@Override
-					public void backspace(int line, int count) {
-						callback.backspace(line, count);
-					}
-
-					@Override
 					public void append(String string) {
 						callback.append(string);
 					}
