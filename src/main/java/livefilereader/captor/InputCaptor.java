@@ -22,10 +22,12 @@ public class InputCaptor {
 		boolean isAsciiControll;
 		byte data[];
 		int ascii;
+		private boolean lineBreak;
 
-		public Buffer(byte[] data) {
+		public Buffer(byte[] data, boolean lineBreak) {
 			super();
 			this.data = data;
+			this.lineBreak = lineBreak;
 			this.isAsciiControll = false;
 		}
 
@@ -50,6 +52,11 @@ public class InputCaptor {
 		public int size() {
 			return data.length;
 		}
+
+		public boolean isLineBreak() {
+			return lineBreak;
+		}
+
 	}
 
 	public InputCaptor(InputCaptorCallback callback, InputStream input, OutputStream output) {
@@ -68,23 +75,28 @@ public class InputCaptor {
 		try {
 			while (callback.shouldRun()) {
 				Buffer buffer = bufferInputUntilNewLineOrAsciiCode(input);
+				// If xrefs is empty create the first line
+				if (lineXrefs.isEmpty()) {
+					lineXrefs.put(lines, 0);
+				}
 				if (buffer.isAsciiControl()) {
 					output.write(buffer.getAscii());
 					output.flush();
-					// If xrefs is empty create the first line
-					if (lineXrefs.isEmpty()) {
-						lineXrefs.put(lines, 0);
-					}
-					Integer byteOffset = lineXrefs.get(lines - 1);
-					lineXrefs.put(lines - 1, byteOffset + 1);
+					appendAtLastLine(1);
 					// TODO: Process ascii controll if it ocurred within the observed frame
 					callback.asciiCode(lines - 1, buffer.getAscii());
 				} else {
 					output.write(buffer.getData());
 					output.flush();
-					lineXrefs.put(lines, buffer.size());
-					lines++;
-					callback.newLine(lines);
+					System.out.println("|" + new String(buffer.getData()) + "|");
+					if (buffer.isLineBreak()) {
+						lineXrefs.put(lines, buffer.size());
+						lines++;
+						callback.newLine(lines);
+					} else {
+						appendAtLastLine(buffer.size());
+						callback.append(new String(buffer.getData()));
+					}
 				}
 			}
 		} catch (IOException e) {
@@ -95,6 +107,11 @@ public class InputCaptor {
 				e.printStackTrace();
 			}
 		}
+	}
+
+	private void appendAtLastLine(int numberOfBytes) {
+		Integer byteOffset = lineXrefs.get(lines - 1);
+		lineXrefs.put(lines - 1, byteOffset + numberOfBytes);
 	}
 
 	private Buffer bufferInputUntilNewLineOrAsciiCode(BufferedInputStream input) throws IOException {
@@ -110,9 +127,11 @@ public class InputCaptor {
 					// then return the buffered data and reset the stream to read the ascii code on next loop.
 					input.reset();
 					byte[] data = buffer.toByteArray();
-					return new Buffer(data);
+					System.out.println("Nächste ist ascii aber hab schon was gelesen.");
+					return new Buffer(data, false);
 				} else {
 					// or there was no buffered data, then return the ascii code to process it immidiately.
+					System.out.println("Einzelnes Ascii");
 					return new Buffer(b);
 				}
 			}
@@ -123,10 +142,12 @@ public class InputCaptor {
 				if (isLineDelimiter(b)) {
 					// Line finished, return the buffer
 					byte[] data = buffer.toByteArray();
-					return new Buffer(data);
+					System.out.println("Ganze Zeile");
+					return new Buffer(data, true);
 				} else {
 					// go to the next loop but remember already written data.
 					dataRead = true;
+					System.out.println("Ich buffer weiter");
 				}
 			}
 		}

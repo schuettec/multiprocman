@@ -21,8 +21,11 @@ import javax.swing.BoundedRangeModel;
 import javax.swing.JScrollBar;
 import javax.swing.JTextPane;
 import javax.swing.SwingUtilities;
+import javax.swing.text.AttributeSet;
 import javax.swing.text.BadLocationException;
 import javax.swing.text.Document;
+import javax.swing.text.SimpleAttributeSet;
+import javax.swing.text.StyleContext;
 
 import org.apache.commons.lang3.exception.ExceptionUtils;
 
@@ -257,19 +260,63 @@ public class ReaderController implements ProcessCallback {
 	@Override
 	public void asciiCode(int line, int ascii) {
 		if ((ascii == 0x8) && isCaptured(line)) {
-			SwingUtilities.invokeLater(new Runnable() {
-				@Override
-				public void run() {
-					// Remove last character
-					try {
-						textView.getDocument()
-						    .remove(textView.getDocument()
-						        .getLength() - 1, 1);
-					} catch (BadLocationException e) {
-						e.printStackTrace();
+			try {
+				SwingUtilities.invokeAndWait(new Runnable() {
+					@Override
+					public void run() {
+						// Remove last character
+						try {
+
+							System.out.println("Remove @ Length: " + textView.getDocument()
+							    .getLength());
+
+							textView.getDocument()
+							    .remove(textView.getDocument()
+							        .getLength() - 1, 1);
+						} catch (BadLocationException e) {
+							e.printStackTrace();
+						}
 					}
-				}
-			});
+				});
+			} catch (InvocationTargetException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			} catch (InterruptedException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+		}
+	}
+
+	@Override
+	public void append(String string) {
+		// If last line is currently captured
+		if (isCaptured(lines - 1)) {
+			// append the content
+			try {
+				SwingUtilities.invokeAndWait(new Runnable() {
+					@Override
+					public void run() {
+						// Remove last character
+						try {
+							AttributeSet aset = StyleContext.getDefaultStyleContext()
+							    .addAttributes(SimpleAttributeSet.EMPTY, new SimpleAttributeSet());
+							int len = textView.getDocument()
+							    .getLength();
+							textView.getDocument()
+							    .insertString(len, string, aset);
+						} catch (BadLocationException e) {
+							e.printStackTrace();
+						}
+					}
+				});
+			} catch (InvocationTargetException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			} catch (InterruptedException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
 		}
 	}
 

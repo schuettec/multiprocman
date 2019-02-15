@@ -61,6 +61,11 @@ public class ProcessObserverImpl extends Thread implements ProcessObserver, Proc
 					public void asciiCode(int lines, int ascii) {
 						callback.asciiCode(lines, ascii);
 					}
+
+					@Override
+					public void append(String string) {
+						callback.append(string);
+					}
 				}, input, output);
 				captor.run();
 				callback.exited();

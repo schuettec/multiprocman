@@ -19,11 +19,20 @@ public interface InputCaptorCallback {
 
 	/**
 	 * Called by the {@link InputCaptor} to signal, that an ASCII control character was detected at the end of the
-	 * specified line.
+	 * specified line. The implementor
+	 * should check if the last line is currently captured and the change is of interest.
 	 *
 	 * @param lines The line number where the ASCII code ocurred.
 	 * @param ascii The ASCII control character.
 	 */
 	void asciiCode(int lines, int ascii);
+
+	/**
+	 * Called by the {@link InputCaptor} to signal, that the content should be appended to the last line. The implementor
+	 * should check if the last line is currently captured and the change is of interest.
+	 *
+	 * @param string The string to append at last line.
+	 */
+	void append(String string);
 
 }

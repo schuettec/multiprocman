@@ -3,6 +3,8 @@ package livefilereader;
 import java.io.File;
 import java.nio.charset.Charset;
 
+import livefilereader.captor.InputCaptor;
+
 public interface ProcessCallback {
 
 	/**
@@ -73,5 +75,13 @@ public interface ProcessCallback {
 	 * </p>
 	 */
 	void exited();
+
+	/**
+	 * Called by the {@link InputCaptor} to signal, that the content should be appended to the last line. The implementor
+	 * should check if the last line is currently captured and the change is of interest.
+	 *
+	 * @param string The string to append at last line.
+	 */
+	void append(String string);
 
 }
