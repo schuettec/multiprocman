@@ -58,8 +58,8 @@ public class ProcessObserverImpl extends Thread implements ProcessObserver, Proc
 					}
 
 					@Override
-					public void asciiCode(int lines, int ascii) {
-						callback.asciiCode(lines, ascii);
+					public void backspace(int line, int count) {
+						callback.backspace(line, count);
 					}
 
 					@Override

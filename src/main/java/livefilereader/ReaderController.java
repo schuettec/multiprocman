@@ -88,7 +88,6 @@ public class ReaderController implements ProcessCallback {
 
 		this.textView.addComponentListener(resizeListener);
 		this.textView.setEditable(false);
-		this.textView.setDoubleBuffered(true);
 	}
 
 	public void close() {
@@ -99,13 +98,19 @@ public class ReaderController implements ProcessCallback {
 	}
 
 	protected void updateText() {
-		System.out.println("Updating text");
-		int readableLines = lines - 1 - currentLine;
-		int numberOfLines = Math.min(viewLines, readableLines);
-		String content = readLinesFromFile(currentLine, numberOfLines);
+		String content;
+		if (lines == 0)
+			return;
+		if (lines < viewLines) {
+			content = readLinesFromFile(0, lines);
+		} else {
+			content = readLinesFromFile(currentLine, viewLines);
+		}
 		String parsed = parseBackspace(content);
 		textView.clear();
+		System.out.println("Updating text: " + parsed.length());
 		textView.appendANSI(parsed, true);
+
 	}
 
 	@Override
@@ -116,7 +121,6 @@ public class ReaderController implements ProcessCallback {
 				@Override
 				public void run() {
 					if (lines < viewLines) {
-						System.out.println("Update Text");
 						updateText();
 					}
 					updateScrollBar();
@@ -132,15 +136,15 @@ public class ReaderController implements ProcessCallback {
 	}
 
 	@Override
-	public void asciiCode(int line, int ascii) {
-		if ((ascii == 0x8) && isCaptured(line)) {
+	public void backspace(int line, int count) {
+		if (isCaptured(line)) {
 			try {
-				System.out.println("ascii code");
+				System.out.println("backspace ascii code: " + count);
 				SwingUtilities.invokeAndWait(new Runnable() {
 					@Override
 					public void run() {
 						// Remove last character
-						textView.backspace();
+						textView.backspace(count);
 					}
 				});
 			} catch (InvocationTargetException e) {
@@ -159,7 +163,7 @@ public class ReaderController implements ProcessCallback {
 		if (isCaptured(lines - 1)) {
 			// append the content
 			try {
-				System.out.println("append");
+				System.out.println("append: " + string);
 				SwingUtilities.invokeAndWait(new Runnable() {
 					@Override
 					public void run() {
@@ -213,8 +217,15 @@ public class ReaderController implements ProcessCallback {
 
 	private String synchronizedReadLinesFromFile(int fromLine, int linesToRead) {
 		try {
-			int startOffsets = fileInfo.getLineByteOffset(fromLine);
-			int endOffsets = fileInfo.getLineByteOffset(fromLine + linesToRead);
+			int startOffsets;
+			int endOffsets;
+			if (fromLine == 0 && linesToRead == 1) {
+				startOffsets = 0;
+				endOffsets = fileInfo.getLineByteOffset(0);
+			} else {
+				startOffsets = fileInfo.getLineByteOffset(fromLine);
+				endOffsets = fileInfo.getLineByteOffset(fromLine + linesToRead);
+			}
 			input.seek(startOffsets);
 			if (endOffsets - startOffsets < 0) {
 				System.out.println("HÄÄÄÄ");

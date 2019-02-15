@@ -19,34 +19,23 @@ public class InputCaptor {
 	private InputCaptorCallback callback;
 
 	private class Buffer {
-		boolean isAsciiControll;
+		boolean isAsciiControl;
 		byte data[];
-		int ascii;
 		private boolean lineBreak;
 
-		public Buffer(byte[] data, boolean lineBreak) {
+		public Buffer(boolean isAscii, byte[] data, boolean lineBreak) {
 			super();
 			this.data = data;
 			this.lineBreak = lineBreak;
-			this.isAsciiControll = false;
-		}
-
-		public Buffer(int ascii) {
-			super();
-			this.ascii = ascii;
-			this.isAsciiControll = true;
+			this.isAsciiControl = isAscii;
 		}
 
 		public boolean isAsciiControl() {
-			return isAsciiControll;
+			return isAsciiControl;
 		}
 
 		public byte[] getData() {
 			return data;
-		}
-
-		public int getAscii() {
-			return ascii;
 		}
 
 		public int size() {
@@ -80,11 +69,11 @@ public class InputCaptor {
 					lineXrefs.put(lines, 0);
 				}
 				if (buffer.isAsciiControl()) {
-					output.write(buffer.getAscii());
+					output.write(buffer.getData());
 					output.flush();
-					appendAtLastLine(1);
+					appendAtLastLine(buffer.size());
 					// TODO: Process ascii controll if it ocurred within the observed frame
-					callback.asciiCode(lines - 1, buffer.getAscii());
+					callback.backspace(lines - 1, buffer.size());
 				} else {
 					output.write(buffer.getData());
 					output.flush();
@@ -126,10 +115,24 @@ public class InputCaptor {
 					// then return the buffered data and reset the stream to read the ascii code on next loop.
 					input.reset();
 					byte[] data = buffer.toByteArray();
-					return new Buffer(data, false);
+					return new Buffer(false, data, false);
 				} else {
-					// or there was no buffered data, then return the ascii code to process it immidiately.
-					return new Buffer(b);
+					// or there was no buffered data, then buffer all upcoming ascii codes
+					ByteArrayOutputStream asciiBuffer = new ByteArrayOutputStream();
+					asciiBuffer.write(b);
+					boolean bufferAscii = true;
+					int next;
+					while (bufferAscii) {
+						input.mark(1);
+						next = input.read();
+						if (isSupportedAsciiCode(next)) {
+							asciiBuffer.write(next);
+						} else {
+							input.reset();
+							bufferAscii = false;
+						}
+					}
+					return new Buffer(true, asciiBuffer.toByteArray(), false);
 				}
 			}
 			// if the char is not an ascii code
@@ -139,7 +142,7 @@ public class InputCaptor {
 				if (isLineDelimiter(b)) {
 					// Line finished, return the buffer
 					byte[] data = buffer.toByteArray();
-					return new Buffer(data, true);
+					return new Buffer(false, data, true);
 				} else {
 					// go to the next loop but remember already written data.
 					dataRead = true;
@@ -162,7 +165,7 @@ public class InputCaptor {
 	 * @param line The line number starting with 0.
 	 */
 	public int getLineByteOffset(int line) {
-		if (line <= 0) {
+		if (line < 0) {
 			return 0;
 		} else if (lineXrefs.size() > line) {
 			return lineXrefs.get(line);

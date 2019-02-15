@@ -47,13 +47,12 @@ public interface ProcessCallback {
 	void started(ProcessOutputInfo processOutputInfo, File outputFile, Charset charset);
 
 	/**
-	 * Called by the {@link ProcessObserver} to signal that an ASCII control character ocurred at the end of the specified
-	 * line.
+	 * Called by the {@link ProcessObserver} to signal that the specified amount of ASCII backspaces was detected.
 	 *
 	 * @param line Line number of the affected line.
-	 * @param ascii The ASCII controll character.
+	 * @param count The number of backspace characters.
 	 */
-	void asciiCode(int line, int ascii);
+	void backspace(int line, int count);
 
 	/**
 	 * Called by the {@link ProcessObserver} to signal that new output was written by the process.

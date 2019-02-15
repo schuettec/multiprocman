@@ -253,10 +253,12 @@ public class AnsiColorTextPane extends JTextPane implements Appendable {
 
 	/**
 	 * Removes the last character in the document.
+	 *
+	 * @param count
 	 */
-	public void backspace() {
+	public void backspace(int count) {
 		try {
-			getDocument().remove(getDocument().getLength() - 1, 1);
+			getDocument().remove(getDocument().getLength() - count, count);
 		} catch (BadLocationException e) {
 			e.printStackTrace();
 		}
