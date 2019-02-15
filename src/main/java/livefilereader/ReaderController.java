@@ -8,6 +8,9 @@ import java.awt.event.AdjustmentEvent;
 import java.awt.event.AdjustmentListener;
 import java.awt.event.ComponentEvent;
 import java.awt.event.ComponentListener;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
+import java.awt.event.MouseListener;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
@@ -42,14 +45,14 @@ public class ReaderController implements ProcessCallback {
 	private ReentrantLock lock = new ReentrantLock();
 	private RandomAccessFile input;
 	private Charset charset;
+	private ProcessOutputInfo fileInfo;
+
+	private boolean updateScroller = true;
 
 	private ComponentListener resizeListener = new ComponentListener() {
 
 		@Override
 		public void componentShown(ComponentEvent e) {
-			determineMaxLines();
-			updateScrollBar();
-			updateText();
 		}
 
 		@Override
@@ -78,11 +81,24 @@ public class ReaderController implements ProcessCallback {
 			}
 		}
 	};
-	private ProcessOutputInfo fileInfo;
+
+	private MouseListener mouseListener = new MouseAdapter() {
+		@Override
+		public void mousePressed(MouseEvent e) {
+			updateScroller = false;
+		}
+
+		@Override
+		public void mouseReleased(MouseEvent e) {
+			updateScroller = true;
+		}
+
+	};
 
 	public ReaderController() {
 		this.lineScroller = new JScrollBar(JScrollBar.VERTICAL);
 		this.lineScroller.addAdjustmentListener(scrollerListener);
+		this.lineScroller.addMouseListener(mouseListener);
 		this.textView = new AnsiColorTextPane();
 		ThemeUtil.theme(textView, AnsiColorTextPaneTheme.class);
 
@@ -104,34 +120,30 @@ public class ReaderController implements ProcessCallback {
 		if (lines < viewLines) {
 			content = readLinesFromFile(0, lines);
 		} else {
-			System.out.println("Cur line: " + currentLine + " View lines: " + viewLines);
 			content = readLinesFromFile(currentLine, viewLines);
 		}
 		String parsed = parseBackspace(content);
 		textView.clear();
 		textView.appendANSI(parsed, true);
-
 	}
 
 	@Override
 	public void output(int lines) {
 		this.lines = lines;
-		try {
-			SwingUtilities.invokeAndWait(new Runnable() {
-				@Override
-				public void run() {
-					if (lines < viewLines) {
-						updateText();
+		if (updateScroller) {
+			System.out.println("Update scroller and optional view was called.");
+
+			if (lines < viewLines || updateScroller) {
+				SwingUtilities.invokeLater(new Runnable() {
+					@Override
+					public void run() {
+						if (lines < viewLines) {
+							updateText();
+						}
+						updateScrollBar();
 					}
-					updateScrollBar();
-				}
-			});
-		} catch (InvocationTargetException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		} catch (InterruptedException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
+				});
+			}
 		}
 	}
 
@@ -206,7 +218,7 @@ public class ReaderController implements ProcessCallback {
 			int endOffsets;
 			if (fromLine == 0 && linesToRead == 1) {
 				startOffsets = 0;
-				endOffsets = fileInfo.getLineByteOffset(0);
+				endOffsets = fileInfo.getLineEnd(0);
 			} else {
 				startOffsets = fileInfo.getLineByteOffset(fromLine);
 				endOffsets = fileInfo.getLineByteOffset(fromLine + linesToRead - 1);
@@ -231,10 +243,12 @@ public class ReaderController implements ProcessCallback {
 	}
 
 	private void updateScrollBar() {
-		BoundedRangeModel model = this.lineScroller.getModel();
-		model.setMinimum(0);
-		model.setExtent(max(1, (int) round(viewLines / 2.0)));
-		model.setMaximum(Math.max(0, lines - viewLines));
+		if (updateScroller) {
+			BoundedRangeModel model = this.lineScroller.getModel();
+			model.setMinimum(0);
+			model.setExtent(max(1, (int) round(viewLines / 2.0)));
+			model.setMaximum(Math.max(0, lines - viewLines));
+		}
 	}
 
 	@Override

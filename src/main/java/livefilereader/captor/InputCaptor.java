@@ -170,7 +170,7 @@ public class InputCaptor {
 	 * @param line The line number starting with 0.
 	 */
 	public int getLineByteOffset(int line) {
-		if (line < 0) {
+		if (line <= 0) {
 			return 0;
 		} else if (lineXrefs.size() > line) {
 			return lineXrefs.get(line);
@@ -182,6 +182,21 @@ public class InputCaptor {
 
 	public int getLines() {
 		return lines;
+	}
+
+	/**
+	 * Returns the end offset of the specified line.
+	 * 
+	 * @param line The line to retrieve the end offset for.
+	 * @return Returns the end offset of the specified line
+	 */
+	public int getLineEnd(int line) {
+		if (lineXrefs.size() > line) {
+			return lineXrefs.get(line);
+		} else {
+			throw new IllegalArgumentException(
+			    String.format("Index out of bounds. Got %d lines but requesting line %d.", lineXrefs.size(), line));
+		}
 	}
 
 }

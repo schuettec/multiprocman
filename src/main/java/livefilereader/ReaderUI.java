@@ -38,7 +38,7 @@ public class ReaderUI extends JFrame {
 					    "C:\\Users\\schuettec\\git\\multiprocman\\outputtest.jar"
 					};
 
-					String[] command = commandProgress;
+					String[] command = commandRandom;
 
 					ProcessBuilder builder = new ProcessBuilder(command);
 					builder.redirectErrorStream(true);

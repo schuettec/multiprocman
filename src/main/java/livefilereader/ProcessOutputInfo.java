@@ -8,4 +8,6 @@ public interface ProcessOutputInfo {
 
 	public int getLineByteOffset(int line);
 
+	public int getLineEnd(int line);
+
 }
