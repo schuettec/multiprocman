@@ -16,6 +16,7 @@ import javax.swing.JTextPane;
 import javax.swing.text.AttributeSet;
 import javax.swing.text.BadLocationException;
 import javax.swing.text.DefaultEditorKit;
+import javax.swing.text.Document;
 import javax.swing.text.EditorKit;
 import javax.swing.text.SimpleAttributeSet;
 import javax.swing.text.StyleConstants;
@@ -238,6 +239,26 @@ public class AnsiColorTextPane extends JTextPane implements Appendable {
 			    JOptionPane.ERROR_MESSAGE);
 		} catch (BadLocationException e) {
 			ExceptionDialog.showException(this, e, "Bad location while saving the document.");
+		}
+	}
+
+	public void clear() {
+		Document document = getDocument();
+		try {
+			document.remove(0, document.getLength());
+		} catch (BadLocationException e) {
+			e.printStackTrace();
+		}
+	}
+
+	/**
+	 * Removes the last character in the document.
+	 */
+	public void backspace() {
+		try {
+			getDocument().remove(getDocument().getLength() - 1, 1);
+		} catch (BadLocationException e) {
+			e.printStackTrace();
 		}
 	}
 

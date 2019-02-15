@@ -88,7 +88,6 @@ public class InputCaptor {
 				} else {
 					output.write(buffer.getData());
 					output.flush();
-					System.out.println("|" + new String(buffer.getData()) + "|");
 					if (buffer.isLineBreak()) {
 						lineXrefs.put(lines, buffer.size());
 						lines++;
@@ -127,11 +126,9 @@ public class InputCaptor {
 					// then return the buffered data and reset the stream to read the ascii code on next loop.
 					input.reset();
 					byte[] data = buffer.toByteArray();
-					System.out.println("Nächste ist ascii aber hab schon was gelesen.");
 					return new Buffer(data, false);
 				} else {
 					// or there was no buffered data, then return the ascii code to process it immidiately.
-					System.out.println("Einzelnes Ascii");
 					return new Buffer(b);
 				}
 			}
@@ -142,12 +139,10 @@ public class InputCaptor {
 				if (isLineDelimiter(b)) {
 					// Line finished, return the buffer
 					byte[] data = buffer.toByteArray();
-					System.out.println("Ganze Zeile");
 					return new Buffer(data, true);
 				} else {
 					// go to the next loop but remember already written data.
 					dataRead = true;
-					System.out.println("Ich buffer weiter");
 				}
 			}
 		}

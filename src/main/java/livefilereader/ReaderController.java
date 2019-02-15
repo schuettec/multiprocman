@@ -21,11 +21,6 @@ import javax.swing.BoundedRangeModel;
 import javax.swing.JScrollBar;
 import javax.swing.JTextPane;
 import javax.swing.SwingUtilities;
-import javax.swing.text.AttributeSet;
-import javax.swing.text.BadLocationException;
-import javax.swing.text.Document;
-import javax.swing.text.SimpleAttributeSet;
-import javax.swing.text.StyleContext;
 
 import org.apache.commons.lang3.exception.ExceptionUtils;
 
@@ -93,7 +88,7 @@ public class ReaderController implements ProcessCallback {
 
 		this.textView.addComponentListener(resizeListener);
 		this.textView.setEditable(false);
-
+		this.textView.setDoubleBuffered(true);
 	}
 
 	public void close() {
@@ -104,19 +99,85 @@ public class ReaderController implements ProcessCallback {
 	}
 
 	protected void updateText() {
+		System.out.println("Updating text");
 		int readableLines = lines - 1 - currentLine;
 		int numberOfLines = Math.min(viewLines, readableLines);
-		System.out
-		    .println("Requesting curLine: " + currentLine + " lines to read " + numberOfLines + " max lines: " + lines);
 		String content = readLinesFromFile(currentLine, numberOfLines);
 		String parsed = parseBackspace(content);
-		Document document = textView.getDocument();
+		textView.clear();
+		textView.appendANSI(parsed, true);
+	}
+
+	@Override
+	public void output(int lines) {
+		this.lines = lines;
 		try {
-			document.remove(0, document.getLength());
-		} catch (BadLocationException e) {
+			SwingUtilities.invokeAndWait(new Runnable() {
+				@Override
+				public void run() {
+					if (lines < viewLines) {
+						System.out.println("Update Text");
+						updateText();
+					}
+					updateScrollBar();
+				}
+			});
+		} catch (InvocationTargetException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (InterruptedException e) {
+			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
-		textView.appendANSI(parsed, true);
+	}
+
+	@Override
+	public void asciiCode(int line, int ascii) {
+		if ((ascii == 0x8) && isCaptured(line)) {
+			try {
+				System.out.println("ascii code");
+				SwingUtilities.invokeAndWait(new Runnable() {
+					@Override
+					public void run() {
+						// Remove last character
+						textView.backspace();
+					}
+				});
+			} catch (InvocationTargetException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			} catch (InterruptedException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+		}
+	}
+
+	@Override
+	public void append(String string) {
+		// If last line is currently captured
+		if (isCaptured(lines - 1)) {
+			// append the content
+			try {
+				System.out.println("append");
+				SwingUtilities.invokeAndWait(new Runnable() {
+					@Override
+					public void run() {
+						textView.appendANSI(string, false);
+					}
+				});
+			} catch (InvocationTargetException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			} catch (InterruptedException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+		}
+	}
+
+	private boolean isCaptured(int line) {
+		return currentLine <= line && currentLine + viewLines >= line;
 	}
 
 	private String parseBackspace(String content) {
@@ -181,28 +242,6 @@ public class ReaderController implements ProcessCallback {
 	}
 
 	@Override
-	public void output(int lines) {
-		this.lines = lines;
-		try {
-			SwingUtilities.invokeAndWait(new Runnable() {
-				@Override
-				public void run() {
-					if (lines < viewLines) {
-						updateText();
-					}
-					updateScrollBar();
-				}
-			});
-		} catch (InvocationTargetException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		} catch (InterruptedException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
-	}
-
-	@Override
 	public void started(ProcessOutputInfo fileInfo, File outputFile, Charset charset) {
 		this.outputFile = outputFile;
 		this.fileInfo = fileInfo;
@@ -255,73 +294,6 @@ public class ReaderController implements ProcessCallback {
 
 	public JTextPane getTextView() {
 		return textView;
-	}
-
-	@Override
-	public void asciiCode(int line, int ascii) {
-		if ((ascii == 0x8) && isCaptured(line)) {
-			try {
-				SwingUtilities.invokeAndWait(new Runnable() {
-					@Override
-					public void run() {
-						// Remove last character
-						try {
-
-							System.out.println("Remove @ Length: " + textView.getDocument()
-							    .getLength());
-
-							textView.getDocument()
-							    .remove(textView.getDocument()
-							        .getLength() - 1, 1);
-						} catch (BadLocationException e) {
-							e.printStackTrace();
-						}
-					}
-				});
-			} catch (InvocationTargetException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
-			} catch (InterruptedException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
-			}
-		}
-	}
-
-	@Override
-	public void append(String string) {
-		// If last line is currently captured
-		if (isCaptured(lines - 1)) {
-			// append the content
-			try {
-				SwingUtilities.invokeAndWait(new Runnable() {
-					@Override
-					public void run() {
-						// Remove last character
-						try {
-							AttributeSet aset = StyleContext.getDefaultStyleContext()
-							    .addAttributes(SimpleAttributeSet.EMPTY, new SimpleAttributeSet());
-							int len = textView.getDocument()
-							    .getLength();
-							textView.getDocument()
-							    .insertString(len, string, aset);
-						} catch (BadLocationException e) {
-							e.printStackTrace();
-						}
-					}
-				});
-			} catch (InvocationTargetException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
-			} catch (InterruptedException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
-			}
-		}
-	}
-
-	private boolean isCaptured(int line) {
-		return currentLine <= line && currentLine + viewLines >= line;
 	}
 
 }
