@@ -103,7 +103,7 @@ public class InputCaptor {
 	private Buffer bufferInputUntilNewLineOrAsciiCode(BufferedInputStream input) throws IOException {
 		ByteArrayOutputStream buffer = new ByteArrayOutputStream();
 		boolean dataRead = false;
-		while (input.available() > 0) {
+		while (true) {
 			input.mark(1);
 			int b = input.read();
 			// If the read char is an ascii code
@@ -126,7 +126,7 @@ public class InputCaptor {
 					// The sequence counter is 2 if the second ascii sequence was detected.
 					int sequenceCounter = 0;
 					int next;
-					while ((input.available() > 0) && sequenceCounter < 2) {
+					while (sequenceCounter < 2) {
 						input.mark(1);
 						next = input.read();
 						if (isSupportedAsciiCode(next) && sequenceCounter == 0) {
@@ -159,7 +159,6 @@ public class InputCaptor {
 				}
 			}
 		}
-		return new Buffer(false, new byte[] {}, false);
 	}
 
 	private boolean isLineDelimiter(int b) {

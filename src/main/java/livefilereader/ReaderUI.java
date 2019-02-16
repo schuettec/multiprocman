@@ -2,7 +2,6 @@ package livefilereader;
 
 import java.awt.BorderLayout;
 import java.awt.EventQueue;
-import java.awt.font.TextLayout;
 import java.io.File;
 
 import javax.swing.JFrame;
@@ -28,17 +27,13 @@ public class ReaderUI extends JFrame {
 			public void run() {
 				try {
 
-					String[] commandRandom = new String[] {
-					    "C:\\Program Files\\Java\\jdk1.8.0_191\\bin\\java.exe", "-jar",
-					    "C:\\Users\\schuettec\\git\\multiprocman\\randomOutput.jar"
-					};
+					String[] commandRandom = new String[] { "C:\\Program Files\\Java\\jre1.8.0_131\\bin\\java.exe",
+							"-jar", "C:\\Users\\cschu\\git\\multiprocman\\randomOutput.jar" };
 
-					String[] commandProgress = new String[] {
-					    "C:\\Program Files\\Java\\jdk1.8.0_191\\bin\\java.exe", "-jar",
-					    "C:\\Users\\schuettec\\git\\multiprocman\\outputtest.jar"
-					};
+					String[] commandProgress = new String[] { "C:\\Program Files\\Java\\jre1.8.0_131\\bin\\java.exe",
+							"-jar", "C:\\Users\\cschu\\git\\multiprocman\\ConsoleTest.jar" };
 
-					String[] command = commandRandom;
+					String[] command = commandProgress;
 
 					ProcessBuilder builder = new ProcessBuilder(command);
 					builder.redirectErrorStream(true);
@@ -50,13 +45,12 @@ public class ReaderUI extends JFrame {
 					ReaderUI frame = new ReaderUI(controller);
 					frame.setVisible(true);
 
-					Runtime.getRuntime()
-					    .addShutdownHook(new Thread(new Runnable() {
-						    @Override
-						    public void run() {
-							    observer.stopProcess();
-						    }
-					    }));
+					Runtime.getRuntime().addShutdownHook(new Thread(new Runnable() {
+						@Override
+						public void run() {
+							observer.stopProcess();
+						}
+					}));
 
 				} catch (Exception e) {
 					e.printStackTrace();
