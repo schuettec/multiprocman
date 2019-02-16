@@ -1,12 +1,14 @@
 package livefilereader.captor;
 
-import static org.junit.Assert.assertArrayEquals;mport java.io.ByteArrayOutputStream;
+import static org.junit.Assert.assertArrayEquals;
+import static org.mockito.Mockito.when;
+
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 
 import org.junit.Before;
-import org.ju
-
-import org.junit.Before;t.Test;
+import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.mockito.runners.MockitoJUnitRunner;
@@ -23,7 +25,7 @@ public class InputCaptorTest {
 
 	@Before
 	public void setup() {
-		when(callback.shouldRun()).thenReturn(true);
+		when(callback.shouldRun()).thenReturn(true, true, true, true, true, false);
 	}
 
 	@Test

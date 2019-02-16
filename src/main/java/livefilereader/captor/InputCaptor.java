@@ -55,8 +55,9 @@ public class InputCaptor {
 	}
 
 	/**
-	 * Processes I/O until the next possible evaluation of {@link InputCaptorCallback#shouldRun()} returns
-	 * <code>false</code>. To avoid blocking of the I/O operations, the streams should be closed.
+	 * Processes I/O until the next possible evaluation of
+	 * {@link InputCaptorCallback#shouldRun()} returns <code>false</code>. To avoid
+	 * blocking of the I/O operations, the streams should be closed.
 	 *
 	 * @throws IOException
 	 */
@@ -65,6 +66,7 @@ public class InputCaptor {
 			int bytesRead = 0;
 			while (callback.shouldRun()) {
 				Buffer buffer = bufferInputUntilNewLineOrAsciiCode(input);
+				System.out.print(new String(buffer.getData()));
 				bytesRead += buffer.size();
 				// If xrefs is empty create the first line
 				if (lineXrefs.isEmpty()) {
@@ -101,39 +103,42 @@ public class InputCaptor {
 	private Buffer bufferInputUntilNewLineOrAsciiCode(BufferedInputStream input) throws IOException {
 		ByteArrayOutputStream buffer = new ByteArrayOutputStream();
 		boolean dataRead = false;
-		while (true) {
+		while (input.available() > 0) {
 			input.mark(1);
 			int b = input.read();
 			// If the read char is an ascii code
 			if (isSupportedAsciiCode(b)) {
 				// ...and data was buffered before,
 				if (dataRead) {
-					// then return the buffered data and reset the stream to read the ascii code on next loop.
+					// then return the buffered data and reset the stream to read the ascii code on
+					// next loop.
 					input.reset();
 					byte[] data = buffer.toByteArray();
 					return new Buffer(false, data, false);
 				} else {
-					// or there was no buffered data, then buffer all upcoming ascii codes until the following sequence was
+					// or there was no buffered data, then buffer all upcoming ascii codes until the
+					// following sequence was
 					// detected:
-					// ascii-chars-asci < Stop at reading the first char of the second ascii sequence and reset.
+					// ascii-chars-asci < Stop at reading the first char of the second ascii
+					// sequence and reset.
 					ByteArrayOutputStream asciiBuffer = new ByteArrayOutputStream();
 					asciiBuffer.write(b);
 					// The sequence counter is 2 if the second ascii sequence was detected.
 					int sequenceCounter = 0;
 					int next;
-					while (sequenceCounter < 2) {
+					while ((input.available() > 0) && sequenceCounter < 2) {
 						input.mark(1);
 						next = input.read();
 						if (isSupportedAsciiCode(next) && sequenceCounter == 0) {
 							asciiBuffer.write(next);
+						} else if (isLineDelimiter(next)) {
+							asciiBuffer.write(next);
+							sequenceCounter = 2;
 						} else if (!isSupportedAsciiCode(next) && sequenceCounter < 2) {
 							asciiBuffer.write(next);
 							sequenceCounter = 1;
 						} else if (isSupportedAsciiCode(next) && sequenceCounter == 1) {
 							input.reset();
-							sequenceCounter = 2;
-						} else if (isLineDelimiter(next)) {
-							asciiBuffer.write(next);
 							sequenceCounter = 2;
 						}
 					}
@@ -154,6 +159,7 @@ public class InputCaptor {
 				}
 			}
 		}
+		return new Buffer(false, new byte[] {}, false);
 	}
 
 	private boolean isLineDelimiter(int b) {
@@ -165,9 +171,11 @@ public class InputCaptor {
 	}
 
 	/**
-	 * Returns the start byte offset of the specified line. The lines are counted starting with 0.
+	 * Returns the start byte offset of the specified line. The lines are counted
+	 * starting with 0.
 	 *
-	 * @param line The line number starting with 0.
+	 * @param line
+	 *            The line number starting with 0.
 	 */
 	public int getLineByteOffset(int line) {
 		if (line <= 0) {
@@ -176,7 +184,7 @@ public class InputCaptor {
 			return lineXrefs.get(line);
 		} else {
 			throw new IllegalArgumentException(
-			    String.format("Index out of bounds. Got %d lines but requesting line %d.", lineXrefs.size(), line));
+					String.format("Index out of bounds. Got %d lines but requesting line %d.", lineXrefs.size(), line));
 		}
 	}
 
@@ -187,7 +195,8 @@ public class InputCaptor {
 	/**
 	 * Returns the end offset of the specified line.
 	 * 
-	 * @param line The line to retrieve the end offset for.
+	 * @param line
+	 *            The line to retrieve the end offset for.
 	 * @return Returns the end offset of the specified line
 	 */
 	public int getLineEnd(int line) {
@@ -195,7 +204,7 @@ public class InputCaptor {
 			return lineXrefs.get(line);
 		} else {
 			throw new IllegalArgumentException(
-			    String.format("Index out of bounds. Got %d lines but requesting line %d.", lineXrefs.size(), line));
+					String.format("Index out of bounds. Got %d lines but requesting line %d.", lineXrefs.size(), line));
 		}
 	}
 
