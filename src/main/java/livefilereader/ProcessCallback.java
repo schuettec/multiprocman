@@ -54,8 +54,9 @@ public interface ProcessCallback {
 	 * </p>
 	 *
 	 * @param lines Number of lines written.
+	 * @param line The line to append.
 	 */
-	void output(int lines);
+	void output(int lines, String line);
 
 	/**
 	 * Called by the {@link ProcessObserver} to signal that the process terminated.

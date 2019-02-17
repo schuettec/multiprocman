@@ -7,6 +7,7 @@ import java.io.File;
 import javax.swing.JFrame;
 import javax.swing.JPanel;
 import javax.swing.JScrollBar;
+import javax.swing.JScrollPane;
 import javax.swing.JTextPane;
 import javax.swing.border.EmptyBorder;
 
@@ -81,7 +82,9 @@ public class ReaderUI extends JFrame {
 
 		JScrollBar lineScroller = controller.getLineScroller();
 		JTextPane textView = controller.getTextView();
-		contentPane.add(textView, BorderLayout.CENTER);
+		JScrollPane horizontalScroller = new JScrollPane(textView, JScrollPane.VERTICAL_SCROLLBAR_NEVER,
+		    JScrollPane.HORIZONTAL_SCROLLBAR_AS_NEEDED);
+		contentPane.add(horizontalScroller, BorderLayout.CENTER);
 		contentPane.add(lineScroller, BorderLayout.EAST);
 	}
 

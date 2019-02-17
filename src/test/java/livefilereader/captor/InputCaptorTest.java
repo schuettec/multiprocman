@@ -32,10 +32,8 @@ public class InputCaptorTest {
 		InputCaptor captor = new InputCaptor(callback, in, out);
 		captor.run();
 		assertArrayEquals(bytes, out.toByteArray());
-		verify(callback).newLine(1);
-		verify(callback).append("Line0\r\n");
-		verify(callback).newLine(2);
-		verify(callback).append("Line1\n");
+		verify(callback).newLine(1, "Line0\r\n");
+		verify(callback).newLine(2, "Line1\n");
 		verify(callback).append("\b1234");
 		verify(callback).append("\b\b\b\bLine3\n");
 	}

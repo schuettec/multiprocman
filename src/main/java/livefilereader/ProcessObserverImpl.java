@@ -53,8 +53,8 @@ public class ProcessObserverImpl extends Thread implements ProcessObserver, Proc
 					}
 
 					@Override
-					public void newLine(int lines) {
-						callback.output(lines);
+					public void newLine(int lines, String line) {
+						callback.output(lines, line);
 					}
 
 					@Override

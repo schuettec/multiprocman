@@ -80,7 +80,7 @@ public class InputCaptor {
 					continue;
 				}
 				String string = new String(buffer.getData());
-				System.out.print(string);
+				// System.out.print(string);
 				bytesRead += buffer.size();
 				// If xrefs is empty create the first line
 				if (lineXrefs.isEmpty()) {
@@ -97,8 +97,7 @@ public class InputCaptor {
 					if (buffer.isLineBreak()) {
 						lineXrefs.put(lines, bytesRead);
 						lines++;
-						callback.newLine(lines);
-						callback.append(string);
+						callback.newLine(lines, string);
 					} else {
 						lineXrefs.put(lines - 1, bytesRead);
 						callback.append(string);

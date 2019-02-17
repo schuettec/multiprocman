@@ -24,6 +24,8 @@ import javax.swing.BoundedRangeModel;
 import javax.swing.JScrollBar;
 import javax.swing.JTextPane;
 import javax.swing.SwingUtilities;
+import javax.swing.text.BadLocationException;
+import javax.swing.text.Element;
 
 import org.apache.commons.lang3.exception.ExceptionUtils;
 
@@ -47,7 +49,10 @@ public class ReaderController implements ProcessCallback {
 	private Charset charset;
 	private ProcessOutputInfo fileInfo;
 
-	private boolean updateScroller = true;
+	private boolean currentlyScrolling = false;
+
+	private boolean jumpToLastLine = true;
+	private boolean ignoreAdjustmentListener = false;
 
 	private ComponentListener resizeListener = new ComponentListener() {
 
@@ -57,9 +62,14 @@ public class ReaderController implements ProcessCallback {
 
 		@Override
 		public void componentResized(ComponentEvent e) {
+			// The componentResized event is also thrown if the component width changes (long lines that are not wrapped).
+			// Only update text if the number of view lines changes.
+			int viewLinesOld = viewLines;
 			determineMaxLines();
-			updateScrollBar();
-			updateText();
+			if (viewLinesOld != viewLines) {
+				updateScrollBar();
+				updateText();
+			}
 		}
 
 		@Override
@@ -75,7 +85,11 @@ public class ReaderController implements ProcessCallback {
 
 		@Override
 		public void adjustmentValueChanged(AdjustmentEvent e) {
-			if (currentLine != e.getValue() || lines <= viewLines) {
+			if (ignoreAdjustmentListener) {
+				return;
+			}
+			// Only update if the currentLine changed or if
+			if (currentLine != e.getValue()) {
 				currentLine = e.getValue();
 				updateText();
 			}
@@ -85,12 +99,13 @@ public class ReaderController implements ProcessCallback {
 	private MouseListener mouseListener = new MouseAdapter() {
 		@Override
 		public void mousePressed(MouseEvent e) {
-			updateScroller = false;
+			currentlyScrolling = true;
+			jumpToLastLine = false;
 		}
 
 		@Override
 		public void mouseReleased(MouseEvent e) {
-			updateScroller = true;
+			currentlyScrolling = false;
 		}
 
 	};
@@ -100,6 +115,7 @@ public class ReaderController implements ProcessCallback {
 		this.lineScroller.addAdjustmentListener(scrollerListener);
 		this.lineScroller.addMouseListener(mouseListener);
 		this.textView = new AnsiColorTextPane();
+		this.textView.setWrapLines(false);
 		ThemeUtil.theme(textView, AnsiColorTextPaneTheme.class);
 
 		this.textView.addComponentListener(resizeListener);
@@ -116,6 +132,9 @@ public class ReaderController implements ProcessCallback {
 	protected void updateText() {
 		// Only update text if the last line is not captured.
 		if (!isCaptured(lines - 1)) {
+
+			System.out.println("UPDATING TEXT");
+
 			String content = readLinesFromFile(currentLine, viewLines);
 			String parsed = parseBackspace(content);
 			textView.clear();
@@ -124,22 +143,57 @@ public class ReaderController implements ProcessCallback {
 	}
 
 	@Override
-	public void output(int lines) {
+	public void output(int lines, String line) {
 		this.lines = lines;
-		if (updateScroller) {
-			System.out.println("Update scroller and optional view was called.");
-
-			if (lines < viewLines || updateScroller) {
-				SwingUtilities.invokeLater(new Runnable() {
+		if (!currentlyScrolling || isCaptured(lines - 1)) {
+			try {
+				SwingUtilities.invokeAndWait(new Runnable() {
 					@Override
 					public void run() {
-						if (lines < viewLines) {
-							updateText();
-						}
 						updateScrollBar();
+
+						// Delete as many rows as needed to add the new line while not overstepping the viewLines.
+
+						int linesInView = textView.getText()
+						    .split("\n").length - 1;
+
+						int toRemove = Math.max(0, linesInView - viewLines);
+
+						for (int r = 0; r < toRemove; r++) {
+							Element root = textView.getDocument()
+							    .getDefaultRootElement();
+							Element first = root.getElement(0);
+							try {
+								textView.getDocument()
+								    .remove(first.getStartOffset(), first.getEndOffset());
+							} catch (BadLocationException e) {
+								e.printStackTrace();
+							}
+						}
+
+						textView.appendANSI(line, true);
 					}
 				});
+			} catch (InvocationTargetException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			} catch (InterruptedException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
 			}
+		}
+		jumpToLastLine();
+	}
+
+	private void jumpToLastLine() {
+		if (jumpToLastLine) {
+			ignoreAdjustmentListener = true;
+			BoundedRangeModel model = this.lineScroller.getModel();
+			model.setMinimum(0);
+			model.setExtent(max(1, (int) round(viewLines / 2.0)));
+			model.setMaximum(Math.max(0, lines - viewLines));
+			model.setValue(lines - viewLines);
+			ignoreAdjustmentListener = false;
 		}
 	}
 
@@ -220,7 +274,7 @@ public class ReaderController implements ProcessCallback {
 				endOffsets = fileInfo.getLineEnd(0);
 			} else {
 				startOffsets = fileInfo.getLineByteOffset(fromLine);
-				endOffsets = fileInfo.getLineByteOffset(fromLine + linesToRead - 1);
+				endOffsets = fileInfo.getLineByteOffset(fromLine + linesToRead);
 			}
 			input.seek(startOffsets);
 			if (endOffsets - startOffsets < 0) {
@@ -238,15 +292,18 @@ public class ReaderController implements ProcessCallback {
 
 	private void determineMaxLines() {
 		FontMetrics fontMetrics = textView.getFontMetrics(textView.getFont());
-		viewLines = textView.getHeight() / fontMetrics.getHeight();
+		viewLines = (textView.getHeight() - textView.getInsets().top - textView.getInsets().bottom)
+		    / fontMetrics.getHeight();
 	}
 
 	private void updateScrollBar() {
-		if (updateScroller) {
+		if (!currentlyScrolling) {
+			ignoreAdjustmentListener = true;
 			BoundedRangeModel model = this.lineScroller.getModel();
 			model.setMinimum(0);
 			model.setExtent(max(1, (int) round(viewLines / 2.0)));
 			model.setMaximum(Math.max(0, lines - viewLines));
+			ignoreAdjustmentListener = false;
 		}
 	}
 

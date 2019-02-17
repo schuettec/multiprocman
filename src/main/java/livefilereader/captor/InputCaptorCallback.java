@@ -14,8 +14,9 @@ public interface InputCaptorCallback {
 	 * Called by the {@link InputCaptor} to signal, that a new line was read from the input.
 	 *
 	 * @param lines The current number of lines available.
+	 * @param string The line to append.
 	 */
-	void newLine(int lines);
+	void newLine(int lines, String string);
 
 	/**
 	 * Called by the {@link InputCaptor} to signal, that the content should be appended to the last line. The implementor

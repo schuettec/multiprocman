@@ -5,6 +5,7 @@ import static java.util.Objects.isNull;
 import static java.util.Objects.nonNull;
 
 import java.awt.Color;
+import java.awt.Dimension;
 import java.awt.Font;
 import java.io.File;
 import java.io.FileNotFoundException;
@@ -53,6 +54,8 @@ public class AnsiColorTextPane extends JTextPane implements Appendable {
 
 	private StyleContext lastStyleContext;
 
+	private boolean wrapLines = true;
+
 	public AnsiColorTextPane() {
 		super();
 		initialize();
@@ -61,6 +64,40 @@ public class AnsiColorTextPane extends JTextPane implements Appendable {
 	public AnsiColorTextPane(StyledDocument doc) {
 		super(doc);
 		initialize();
+	}
+
+	@Override
+	public boolean getScrollableTracksViewportWidth() {
+		if (wrapLines) {
+			return super.getScrollableTracksViewportWidth();
+		} else {
+			// Only track viewport width when the viewport is wider than the preferred width
+			return getUI().getPreferredSize(this).width <= getParent().getSize().width;
+		}
+	}
+
+	@Override
+	public boolean getScrollableTracksViewportHeight() {
+		// If true, the text pane will always has the height of the viewport.
+		return true;
+	}
+
+	@Override
+	public Dimension getPreferredSize() {
+		// Avoid substituting the minimum width for the preferred width when the viewport is too narrow
+		if (wrapLines) {
+			return super.getPreferredSize();
+		} else {
+			return getUI().getPreferredSize(this);
+		}
+	}
+
+	public boolean isWrapLines() {
+		return wrapLines;
+	}
+
+	public void setWrapLines(boolean wrapLines) {
+		this.wrapLines = wrapLines;
 	}
 
 	private void initialize() {
