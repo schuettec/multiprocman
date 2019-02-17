@@ -46,6 +46,10 @@ public class InputCaptor {
 			return lineBreak;
 		}
 
+		public boolean isEmpty() {
+			return data.length == 0;
+		}
+
 	}
 
 	public InputCaptor(InputCaptorCallback callback, InputStream input, OutputStream output) {
@@ -66,6 +70,15 @@ public class InputCaptor {
 			int bytesRead = 0;
 			while (callback.shouldRun()) {
 				Buffer buffer = bufferInputUntilNewLineOrAsciiCode(input);
+				if (buffer.isEmpty()) {
+					try {
+						Thread.sleep(100);
+					} catch (InterruptedException e) {
+						Thread.currentThread()
+						    .interrupt();
+					}
+					continue;
+				}
 				String string = new String(buffer.getData());
 				System.out.print(string);
 				bytesRead += buffer.size();
@@ -105,9 +118,10 @@ public class InputCaptor {
 	private Buffer bufferInputUntilNewLineOrAsciiCode(BufferedInputStream input) throws IOException {
 		ByteArrayOutputStream buffer = new ByteArrayOutputStream();
 		boolean dataRead = false;
-		while (true) {
+		while (input.available() > 0) {
 			input.mark(1);
 			int b = input.read();
+
 			// If the read char is an ascii code
 			if (isSupportedAsciiCode(b)) {
 				// ...and data was buffered before,
@@ -126,9 +140,10 @@ public class InputCaptor {
 					ByteArrayOutputStream asciiBuffer = new ByteArrayOutputStream();
 					asciiBuffer.write(b);
 					// The sequence counter is 2 if the second ascii sequence was detected.
+					boolean wasLineDelimiter = false;
 					int sequenceCounter = 0;
 					int next;
-					while (sequenceCounter < 2) {
+					while (input.available() > 0 && sequenceCounter < 2) {
 						input.mark(1);
 						next = input.read();
 						if (isSupportedAsciiCode(next) && sequenceCounter == 0) {
@@ -136,6 +151,7 @@ public class InputCaptor {
 						} else if (isLineDelimiter(next)) {
 							asciiBuffer.write(next);
 							sequenceCounter = 2;
+							wasLineDelimiter = true;
 						} else if (!isSupportedAsciiCode(next) && sequenceCounter < 2) {
 							asciiBuffer.write(next);
 							sequenceCounter = 1;
@@ -144,7 +160,7 @@ public class InputCaptor {
 							sequenceCounter = 2;
 						}
 					}
-					return new Buffer(true, asciiBuffer.toByteArray(), false);
+					return new Buffer(true, asciiBuffer.toByteArray(), wasLineDelimiter);
 				}
 			}
 			// if the char is not an ascii code
@@ -161,6 +177,9 @@ public class InputCaptor {
 				}
 			}
 		}
+		// If the stream is empty, the return the buffer.
+		// Note: It cannot be that the buffer contains ANSI control chars or a line delimiter.
+		return new Buffer(false, buffer.toByteArray(), false);
 	}
 
 	private boolean isLineDelimiter(int b) {
