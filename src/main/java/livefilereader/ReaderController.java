@@ -114,17 +114,13 @@ public class ReaderController implements ProcessCallback {
 	}
 
 	protected void updateText() {
-		String content;
-		if (lines == 0)
-			return;
-		if (lines < viewLines) {
-			content = readLinesFromFile(0, lines);
-		} else {
-			content = readLinesFromFile(currentLine, viewLines);
+		// Only update text if the last line is not captured.
+		if (!isCaptured(lines - 1)) {
+			String content = readLinesFromFile(currentLine, viewLines);
+			String parsed = parseBackspace(content);
+			textView.clear();
+			textView.appendANSI(parsed, true);
 		}
-		String parsed = parseBackspace(content);
-		textView.clear();
-		textView.appendANSI(parsed, true);
 	}
 
 	@Override
@@ -178,6 +174,9 @@ public class ReaderController implements ProcessCallback {
 	}
 
 	private boolean isCaptured(int line) {
+		if (line < 0) {
+			return true;
+		}
 		return currentLine <= line && currentLine + viewLines >= line;
 	}
 

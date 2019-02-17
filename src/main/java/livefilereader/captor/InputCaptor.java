@@ -66,7 +66,8 @@ public class InputCaptor {
 			int bytesRead = 0;
 			while (callback.shouldRun()) {
 				Buffer buffer = bufferInputUntilNewLineOrAsciiCode(input);
-				System.out.print(new String(buffer.getData()));
+				String string = new String(buffer.getData());
+				System.out.print(string);
 				bytesRead += buffer.size();
 				// If xrefs is empty create the first line
 				if (lineXrefs.isEmpty()) {
@@ -76,7 +77,7 @@ public class InputCaptor {
 					output.write(buffer.getData());
 					output.flush();
 					lineXrefs.put(lines - 1, bytesRead);
-					callback.append(new String(buffer.getData()));
+					callback.append(string);
 				} else {
 					output.write(buffer.getData());
 					output.flush();
@@ -84,9 +85,10 @@ public class InputCaptor {
 						lineXrefs.put(lines, bytesRead);
 						lines++;
 						callback.newLine(lines);
+						callback.append(string);
 					} else {
 						lineXrefs.put(lines - 1, bytesRead);
-						callback.append(new String(buffer.getData()));
+						callback.append(string);
 					}
 				}
 			}
@@ -174,7 +176,7 @@ public class InputCaptor {
 	 * starting with 0.
 	 *
 	 * @param line
-	 *            The line number starting with 0.
+	 *        The line number starting with 0.
 	 */
 	public int getLineByteOffset(int line) {
 		if (line <= 0) {
@@ -183,7 +185,7 @@ public class InputCaptor {
 			return lineXrefs.get(line);
 		} else {
 			throw new IllegalArgumentException(
-					String.format("Index out of bounds. Got %d lines but requesting line %d.", lineXrefs.size(), line));
+			    String.format("Index out of bounds. Got %d lines but requesting line %d.", lineXrefs.size(), line));
 		}
 	}
 
@@ -195,7 +197,7 @@ public class InputCaptor {
 	 * Returns the end offset of the specified line.
 	 * 
 	 * @param line
-	 *            The line to retrieve the end offset for.
+	 *        The line to retrieve the end offset for.
 	 * @return Returns the end offset of the specified line
 	 */
 	public int getLineEnd(int line) {
@@ -203,7 +205,7 @@ public class InputCaptor {
 			return lineXrefs.get(line);
 		} else {
 			throw new IllegalArgumentException(
-					String.format("Index out of bounds. Got %d lines but requesting line %d.", lineXrefs.size(), line));
+			    String.format("Index out of bounds. Got %d lines but requesting line %d.", lineXrefs.size(), line));
 		}
 	}
 
