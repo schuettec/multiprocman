@@ -68,7 +68,7 @@ public class InputCaptor {
 	public void run() throws IOException {
 		try {
 			int bytesRead = 0;
-			while (callback.shouldRun()) {
+			do {
 				Buffer buffer = bufferInputUntilNewLineOrAsciiCode(input);
 				if (buffer.isEmpty()) {
 					try {
@@ -104,7 +104,7 @@ public class InputCaptor {
 						callback.append(string);
 					}
 				}
-			}
+			} while (callback.shouldRun());
 		} catch (IOException e) {
 			if (callback.shouldRun()) {
 				throw e;
