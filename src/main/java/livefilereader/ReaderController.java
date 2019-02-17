@@ -88,8 +88,12 @@ public class ReaderController implements ProcessCallback {
 			if (ignoreAdjustmentListener) {
 				return;
 			}
-			// Only update if the currentLine changed or if
-			if (currentLine != e.getValue()) {
+
+			if (e.getValue() == (lineScroller.getMaximum() - lineScroller.getModel()
+			    .getExtent())) {
+				jumpToLastLine = true;
+			} else if (currentLine != e.getValue()) {
+				// Only update if the currentLine changed or if
 				currentLine = e.getValue();
 				updateText();
 			}
@@ -153,25 +157,25 @@ public class ReaderController implements ProcessCallback {
 						updateScrollBar();
 
 						// Delete as many rows as needed to add the new line while not overstepping the viewLines.
+						if (isCaptured(lines - 1)) {
+							int linesInView = textView.getText()
+							    .split("\n").length - 1;
 
-						int linesInView = textView.getText()
-						    .split("\n").length - 1;
+							int toRemove = Math.max(0, linesInView - viewLines);
 
-						int toRemove = Math.max(0, linesInView - viewLines);
-
-						for (int r = 0; r < toRemove; r++) {
-							Element root = textView.getDocument()
-							    .getDefaultRootElement();
-							Element first = root.getElement(0);
-							try {
-								textView.getDocument()
-								    .remove(first.getStartOffset(), first.getEndOffset());
-							} catch (BadLocationException e) {
-								e.printStackTrace();
+							for (int r = 0; r < toRemove; r++) {
+								Element root = textView.getDocument()
+								    .getDefaultRootElement();
+								Element first = root.getElement(0);
+								try {
+									textView.getDocument()
+									    .remove(first.getStartOffset(), first.getEndOffset());
+								} catch (BadLocationException e) {
+									e.printStackTrace();
+								}
 							}
+							textView.appendANSI(line, true);
 						}
-
-						textView.appendANSI(line, true);
 					}
 				});
 			} catch (InvocationTargetException e) {
@@ -229,6 +233,9 @@ public class ReaderController implements ProcessCallback {
 
 	private boolean isCaptured(int line) {
 		if (line < 0) {
+			return true;
+		}
+		if (jumpToLastLine) {
 			return true;
 		}
 		return currentLine <= line && currentLine + viewLines >= line;
@@ -301,8 +308,10 @@ public class ReaderController implements ProcessCallback {
 			ignoreAdjustmentListener = true;
 			BoundedRangeModel model = this.lineScroller.getModel();
 			model.setMinimum(0);
-			model.setExtent(max(1, (int) round(viewLines / 2.0)));
+			// model.setExtent(max(1, (int) round(Math.max(0, lines - viewLines) / 2.0)));
+			model.setExtent(1);
 			model.setMaximum(Math.max(0, lines - viewLines));
+			lineScroller.repaint();
 			ignoreAdjustmentListener = false;
 		}
 	}
