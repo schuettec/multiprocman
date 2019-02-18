@@ -19,6 +19,7 @@ import javax.swing.text.BadLocationException;
 import javax.swing.text.DefaultEditorKit;
 import javax.swing.text.Document;
 import javax.swing.text.EditorKit;
+import javax.swing.text.Element;
 import javax.swing.text.SimpleAttributeSet;
 import javax.swing.text.StyleConstants;
 import javax.swing.text.StyleContext;
@@ -296,6 +297,16 @@ public class AnsiColorTextPane extends JTextPane implements Appendable {
 	public void backspace(int count) {
 		try {
 			getDocument().remove(getDocument().getLength() - count, count);
+		} catch (BadLocationException e) {
+			e.printStackTrace();
+		}
+	}
+
+	public void removeFirstLine() {
+		Element root = getDocument().getDefaultRootElement();
+		Element first = root.getElement(0);
+		try {
+			getDocument().remove(first.getStartOffset(), first.getEndOffset());
 		} catch (BadLocationException e) {
 			e.printStackTrace();
 		}

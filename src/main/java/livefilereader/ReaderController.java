@@ -13,26 +13,20 @@ import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
 import java.io.File;
 import java.io.FileNotFoundException;
-import java.io.IOException;
-import java.io.RandomAccessFile;
 import java.lang.reflect.InvocationTargetException;
 import java.nio.charset.Charset;
-import java.util.concurrent.TimeUnit;
-import java.util.concurrent.locks.ReentrantLock;
 
 import javax.swing.BoundedRangeModel;
 import javax.swing.JScrollBar;
 import javax.swing.JTextPane;
 import javax.swing.SwingUtilities;
-import javax.swing.text.BadLocationException;
-import javax.swing.text.Element;
-
-import org.apache.commons.lang3.exception.ExceptionUtils;
 
 import com.github.schuettec.multiprocman.ExceptionDialog;
 import com.github.schuettec.multiprocman.console.AnsiColorTextPane;
 import com.github.schuettec.multiprocman.themes.ThemeUtil;
 import com.github.schuettec.multiprocman.themes.console.AnsiColorTextPaneTheme;
+
+import livefilereader.captor.FileReader;
 
 public class ReaderController implements ProcessCallback {
 
@@ -43,11 +37,6 @@ public class ReaderController implements ProcessCallback {
 	private int viewLines = 0;
 	private int lines = 0;
 	private File outputFile;
-
-	private ReentrantLock lock = new ReentrantLock();
-	private RandomAccessFile input;
-	private Charset charset;
-	private ProcessOutputInfo fileInfo;
 
 	private boolean currentlyScrolling = false;
 
@@ -68,7 +57,16 @@ public class ReaderController implements ProcessCallback {
 			determineMaxLines();
 			if (viewLinesOld != viewLines) {
 				updateScrollBar();
-				updateText();
+
+				if (lines < viewLines) {
+					currentLine = 0;
+					updateTextImmidiately();
+				} else if (currentLine > lines - viewLines) {
+					currentLine = Math.max(0, lines - viewLines);
+					updateTextImmidiately();
+				} else {
+					updateText();
+				}
 			}
 		}
 
@@ -113,6 +111,7 @@ public class ReaderController implements ProcessCallback {
 		}
 
 	};
+	private FileReader fileReader;
 
 	public ReaderController() {
 		this.lineScroller = new JScrollBar(JScrollBar.VERTICAL);
@@ -126,24 +125,19 @@ public class ReaderController implements ProcessCallback {
 		this.textView.setEditable(false);
 	}
 
-	public void close() {
-		try {
-			this.input.close();
-		} catch (IOException e) {
-		}
-	}
-
 	protected void updateText() {
 		// Only update text if the last line is not captured.
 		if (!isCaptured(lines - 1)) {
-
-			System.out.println("UPDATING TEXT");
-
-			String content = readLinesFromFile(currentLine, viewLines);
-			String parsed = parseBackspace(content);
-			textView.clear();
-			textView.appendANSI(parsed, true);
+			updateTextImmidiately();
 		}
+	}
+
+	private void updateTextImmidiately() {
+		System.out.println("UPDATING TEXT");
+		String content = fileReader.readLinesFromFile(currentLine, Math.min(viewLines, lines));
+		String parsed = parseBackspace(content);
+		textView.clear();
+		textView.appendANSI(parsed, true);
 	}
 
 	@Override
@@ -164,15 +158,8 @@ public class ReaderController implements ProcessCallback {
 							int toRemove = Math.max(0, linesInView - viewLines);
 
 							for (int r = 0; r < toRemove; r++) {
-								Element root = textView.getDocument()
-								    .getDefaultRootElement();
-								Element first = root.getElement(0);
-								try {
-									textView.getDocument()
-									    .remove(first.getStartOffset(), first.getEndOffset());
-								} catch (BadLocationException e) {
-									e.printStackTrace();
-								}
+								textView.removeFirstLine();
+								currentLine++;
 							}
 							textView.appendANSI(line, true);
 						}
@@ -259,44 +246,6 @@ public class ReaderController implements ProcessCallback {
 		}
 	}
 
-	protected String readLinesFromFile(int fromLine, int linesToRead) {
-		try {
-			lock.tryLock(1000, TimeUnit.SECONDS);
-			try {
-				return synchronizedReadLinesFromFile(fromLine, linesToRead);
-			} finally {
-				lock.unlock();
-			}
-		} catch (InterruptedException e) {
-			return "Could not read application error due to another process accessing the output.";
-		}
-	}
-
-	private String synchronizedReadLinesFromFile(int fromLine, int linesToRead) {
-		try {
-			int startOffsets;
-			int endOffsets;
-			if (fromLine == 0 && linesToRead == 1) {
-				startOffsets = 0;
-				endOffsets = fileInfo.getLineEnd(0);
-			} else {
-				startOffsets = fileInfo.getLineByteOffset(fromLine);
-				endOffsets = fileInfo.getLineByteOffset(fromLine + linesToRead);
-			}
-			input.seek(startOffsets);
-			if (endOffsets - startOffsets < 0) {
-				System.out.println("HÄÄÄÄ");
-			}
-			byte[] data = new byte[endOffsets - startOffsets];
-			input.read(data, 0, data.length);
-			return new String(data);
-		} catch (IOException e) {
-			return new StringBuilder().append("Could not read application output.")
-			    .append(ExceptionUtils.getStackTrace(e))
-			    .toString();
-		}
-	}
-
 	private void determineMaxLines() {
 		FontMetrics fontMetrics = textView.getFontMetrics(textView.getFont());
 		viewLines = (textView.getHeight() - textView.getInsets().top - textView.getInsets().bottom)
@@ -311,7 +260,6 @@ public class ReaderController implements ProcessCallback {
 			// model.setExtent(max(1, (int) round(Math.max(0, lines - viewLines) / 2.0)));
 			model.setExtent(1);
 			model.setMaximum(Math.max(0, lines - viewLines));
-			lineScroller.repaint();
 			ignoreAdjustmentListener = false;
 		}
 	}
@@ -319,9 +267,8 @@ public class ReaderController implements ProcessCallback {
 	@Override
 	public void started(ProcessOutputInfo fileInfo, File outputFile, Charset charset) {
 		this.outputFile = outputFile;
-		this.fileInfo = fileInfo;
 		try {
-			this.input = new RandomAccessFile(outputFile, "r");
+			this.fileReader = new FileReader(charset, fileInfo);
 		} catch (FileNotFoundException e) {
 			SwingUtilities.invokeLater(new Runnable() {
 				@Override
@@ -330,7 +277,6 @@ public class ReaderController implements ProcessCallback {
 				}
 			});
 		}
-		this.charset = charset;
 	}
 
 	@Override

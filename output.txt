@@ -1,0 +1,50 @@
+Verwendung: java [-options] class [args...]
+           (zur Ausführung einer Klasse)
+   oder  java [-options] -jar jarfile [args...]
+           (zur Ausführung einer JAR-Datei)
+wobei options Folgendes umfasst:
+    -d32	  Verwendet ein 32-Bit-Datenmodell, sofern verfügbar
+    -d64	  Verwendet ein 64-Bit-Datenmodell, sofern verfügbar
+    -server	  zur Auswahl der "server" VM
+                  Die Standard-VM ist server.
+
+    -cp <Klassensuchpfad von Verzeichnissen und ZIP-/JAR-Dateien>
+    -classpath <Klassensuchpfad von Verzeichnissen und ZIP-/JAR-Dateien>
+                  Eine durch ; getrennte Liste mit Verzeichnissen, JAR-Archiven
+                  und ZIP-Archiven zur Suche nach Klassendateien.
+    -D<name>=<value>
+                  Legt eine Systemeigenschaft fest
+    -verbose:[class|gc|jni]
+                  Aktiviert die Verbose-Ausgabe
+    -version      Druckt Produktversion und beendet das Programm
+    -version:<value>
+                  Warnung: Diese Funktion ist veraltet und wird in einer
+                  neueren Version entfernt.
+                  Erfordert die angegebene Version zur Ausführung
+    -showversion  Druckt Produktversion und fährt fort
+    -jre-restrict-search | -no-jre-restrict-search
+                  Warnung: Diese Funktion ist veraltet und wird in einer
+                  neueren Version entfernt.
+                  Bezieht private JREs des Benutzers in Versionssuche ein bzw. schließt sie aus
+    -? -help      Druckt diese Hilfemeldung
+    -X            Druckt Hilfe zu Nicht-Standardoptionen
+    -ea[:<packagename>...|:<classname>]
+    -enableassertions[:<packagename>...|:<classname>]
+                  Aktiviert Assertions mit angegebener Granularität
+    -da[:<packagename>...|:<classname>]
+    -disableassertions[:<packagename>...|:<classname>]
+                  Deaktiviert Assertions mit angegebener Granularität
+    -esa | -enablesystemassertions
+                  Aktiviert Systemassertionen
+    -dsa | -disablesystemassertions
+                  Deaktiviert Systemassertionen
+    -agentlib:<libname>[=<options>]
+                  Lädt native Agent Library <libname>, z.B. -agentlib:hprof
+                  siehe auch -agentlib:jdwp=help und -agentlib:hprof=help
+    -agentpath:<pathname>[=<options>]
+                  Lädt native Agent Library nach vollem Pfadnamen
+    -javaagent:<jarpath>[=<options>]
+                  Lädt Java-Programmiersprachen-Agent, siehe java.lang.instrument
+    -splash:<imagepath>
+                  Zeigt Startbildschirm mit angegebenem Bild
+Weitere Einzelheiten finden Sie unter http://www.oracle.com/technetwork/java/javase/documentation/index.html

@@ -127,4 +127,9 @@ public class ProcessObserverImpl extends Thread implements ProcessObserver, Proc
 		return captor.getLineEnd(0);
 	}
 
+	@Override
+	public File getFile() {
+		return this.outputFile;
+	}
+
 }
