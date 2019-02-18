@@ -46,7 +46,7 @@ public class ReaderUI extends JFrame {
 					    "-Dorg.gradle.appname=user-service -classpath .\\gradle\\wrapper\\gradle-wrapper.jar org.gradle.wrapper.GradleWrapperMain bootrun"
 					};
 
-					String[] command = commandService;
+					String[] command = commandRandom;
 
 					ProcessBuilder builder = new ProcessBuilder(command);
 					builder.directory(new File(System.getProperty("user.home") + "/git/user-service"));
@@ -92,7 +92,9 @@ public class ReaderUI extends JFrame {
 		JScrollBar lineScroller = controller.getLineScroller();
 		JTextPane textView = controller.getTextView();
 		JScrollPane horizontalScroller = new JScrollPane(textView, JScrollPane.VERTICAL_SCROLLBAR_NEVER,
-		    JScrollPane.HORIZONTAL_SCROLLBAR_AS_NEEDED);
+		    JScrollPane.HORIZONTAL_SCROLLBAR_ALWAYS);
+		horizontalScroller.setHorizontalScrollBarPolicy(JScrollPane.HORIZONTAL_SCROLLBAR_ALWAYS);
+
 		contentPane.add(horizontalScroller, BorderLayout.CENTER);
 		contentPane.add(lineScroller, BorderLayout.EAST);
 	}

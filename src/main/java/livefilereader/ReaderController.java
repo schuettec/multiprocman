@@ -1,5 +1,6 @@
 package livefilereader;
 
+import java.awt.Container;
 import java.awt.FontMetrics;
 import java.awt.event.AdjustmentEvent;
 import java.awt.event.AdjustmentListener;
@@ -15,6 +16,7 @@ import java.nio.charset.Charset;
 
 import javax.swing.BoundedRangeModel;
 import javax.swing.JScrollBar;
+import javax.swing.JScrollPane;
 import javax.swing.JTextPane;
 import javax.swing.SwingUtilities;
 
@@ -39,6 +41,7 @@ public class ReaderController implements ProcessCallback {
 
 	private boolean jumpToLastLine = true;
 	private volatile boolean ignoreAdjustmentListener = false;
+	private FileReader fileReader;
 
 	private ComponentListener resizeListener = new ComponentListener() {
 
@@ -48,22 +51,12 @@ public class ReaderController implements ProcessCallback {
 
 		@Override
 		public void componentResized(ComponentEvent e) {
-			// The componentResized event is also thrown if the component width changes (long lines that are not wrapped).
-			// Only update text if the number of view lines changes.
 			int viewLinesOld = viewLines;
 			determineMaxLines();
-			if (viewLinesOld != viewLines) {
-				updateScrollBar();
 
-				if (lines < viewLines) {
-					currentLine = 0;
-					updateTextImmidiately();
-				} else if (currentLine > lines - viewLines) {
-					currentLine = Math.max(0, lines);
-					updateTextImmidiately();
-				} else {
-					updateText();
-				}
+			if (viewLinesOld != viewLinesOld) {
+				System.out.println("Component resized: View Lines Before: " + viewLinesOld + " View Lines Now: " + viewLines);
+				updateViewFrame();
 			}
 		}
 
@@ -84,19 +77,9 @@ public class ReaderController implements ProcessCallback {
 				return;
 			}
 
-			if (e.getValue() == (lineScroller.getMaximum() - lineScroller.getModel()
-			    .getExtent())) {
-				if (lines >= viewLines) {
-					currentLine = e.getValue();
-					updateTextImmidiately();
-				}
-				jumpToLastLine = true;
-			} else if (currentLine != e.getValue()) {
-				// Only update if the currentLine changed or if
-				currentLine = e.getValue();
-				updateTextImmidiately();
-			}
-			System.out.println("Set current line to " + e.getValue());
+			currentLine = e.getValue();
+			System.out.println("Scroller set current line to " + currentLine);
+			updateViewFrame();
 		}
 	};
 
@@ -113,7 +96,6 @@ public class ReaderController implements ProcessCallback {
 		}
 
 	};
-	private FileReader fileReader;
 
 	public ReaderController() {
 		this.lineScroller = new JScrollBar(JScrollBar.VERTICAL);
@@ -127,19 +109,40 @@ public class ReaderController implements ProcessCallback {
 		this.textView.setEditable(false);
 	}
 
-	protected void updateText() {
-		// Only update text if the last line is not captured.
-		if (!isCaptured(lines - 1)) {
-			updateTextImmidiately();
+	private void updateViewFrame() {
+		if (viewLines == 0) {
+			return;
+		}
+
+		if (lines <= viewLines) {
+			// View frame underflow!
+			// If there are not enough lines in the output to fill the view frame:
+			if (currentLine > 0) {
+				throw new IllegalArgumentException(
+				    "Cannot scroll to a specific line, if current lines underflow the view frame.");
+			}
+			int lastViewableLine = (lines - 1);
+			System.out.println("Should update content to view line " + currentLine + "~" + lastViewableLine + " while having "
+			    + lines + " lines.");
+
+			toViewFrame(currentLine, lastViewableLine);
+
+		} else {
+			// No view frame underflow.
+			int lastViewableLine = currentLine + viewLines;
+			if (lastViewableLine >= lines) {
+				lastViewableLine = lines - 1;
+				currentLine = lastViewableLine - viewLines;
+			}
+
+			System.out.println("Should update content to view line " + currentLine + "~" + lastViewableLine + " while having "
+			    + lines + " lines.");
+			toViewFrame(currentLine, lastViewableLine);
 		}
 	}
 
-	private void updateTextImmidiately() {
-		int linesToRead = Math.min(viewLines, lines);
-		if (linesToRead == 0) {
-			return;
-		}
-		String content = fileReader.readLinesFromFile(currentLine, linesToRead);
+	private void toViewFrame(int fromLine, int toLine) {
+		String content = fileReader.readLinesFromFile(fromLine, toLine);
 		String parsed = parseBackspace(content);
 		textView.clear();
 		textView.appendANSI(parsed, true);
@@ -155,14 +158,17 @@ public class ReaderController implements ProcessCallback {
 					public void run() {
 						updateScrollBar();
 
-						// Delete as many rows as needed to add the new line while not overstepping the viewLines.
-						int linesInView = textView.getText()
-						    .split("\n").length - 1;
-						if (linesInView >= viewLines) {
-							textView.removeFirstLine();
+						if (isCaptured(lines - 1) && lines >= viewLines) {
+							// Delete as many rows as needed to add the new line while not overstepping the viewLines.
+							int linesInView = textView.getText()
+							    .split("\n").length - 1;
+							if (linesInView >= viewLines) {
+								textView.removeFirstLine();
+							}
+							currentLine++;
 						}
 						textView.appendANSI(line, true);
-						currentLine++;
+
 						jumpToLastLine();
 					}
 				});
@@ -248,6 +254,16 @@ public class ReaderController implements ProcessCallback {
 		FontMetrics fontMetrics = textView.getFontMetrics(textView.getFont());
 		viewLines = (textView.getHeight() - textView.getInsets().top - textView.getInsets().bottom)
 		    / fontMetrics.getHeight();
+
+		Container parent = SwingUtilities.getUnwrappedParent(textView.getParent());
+		if (parent instanceof JScrollPane) {
+			JScrollPane jScrollPane = (JScrollPane) parent;
+			if (jScrollPane.getHorizontalScrollBar()
+			    .isVisible()) {
+				viewLines -= 1;
+			}
+		}
+
 	}
 
 	private void updateScrollBar() {
@@ -256,9 +272,8 @@ public class ReaderController implements ProcessCallback {
 			BoundedRangeModel model = this.lineScroller.getModel();
 			model.setMinimum(0);
 			model.setExtent(viewLines);
-			int max = Math.max(0, lines - viewLines);
+			int max = Math.max(0, lines - 1);
 			model.setMaximum(max);
-			System.out.println("Set scroll maximum to " + max + " but got " + lines + " lines and viewLines:  " + viewLines);
 			ignoreAdjustmentListener = false;
 		}
 	}

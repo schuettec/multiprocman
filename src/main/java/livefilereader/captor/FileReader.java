@@ -25,11 +25,11 @@ public class FileReader {
 		this.fileInfo = fileInfo;
 	}
 
-	public String readLinesFromFile(int fromLine, int linesToRead) {
+	public String readLinesFromFile(int fromLine, int toLine) {
 		try {
 			lock.tryLock(1000, TimeUnit.SECONDS);
 			try {
-				return synchronizedReadLinesFromFile(fromLine, linesToRead);
+				return synchronizedReadLinesFromFile(fromLine, toLine);
 			} finally {
 				lock.unlock();
 			}
@@ -38,17 +38,14 @@ public class FileReader {
 		}
 	}
 
-	private String synchronizedReadLinesFromFile(int fromLine, int linesToRead) {
-		if (linesToRead == 0) {
-			return "";
+	private String synchronizedReadLinesFromFile(int fromLine, int toLine) {
+		if (toLine < fromLine) {
+			throw new IllegalArgumentException("'fromLine' must be lower than 'toLine'.");
 		}
 		try {
 			int startOffsets = fileInfo.getStartOffset(fromLine);
-			int endOffsets = fileInfo.getEndOffset(fromLine + linesToRead - 1);
+			int endOffsets = fileInfo.getEndOffset(toLine);
 			input.seek(startOffsets);
-			if (endOffsets - startOffsets < 0) {
-				System.out.println("HÄÄÄÄ");
-			}
 			byte[] data = new byte[endOffsets - startOffsets];
 			input.read(data, 0, data.length);
 			return new String(data);
