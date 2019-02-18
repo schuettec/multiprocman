@@ -2,6 +2,7 @@ package livefilereader;
 
 import java.awt.BorderLayout;
 import java.awt.EventQueue;
+import java.awt.font.TextLayout;
 import java.io.File;
 
 import javax.swing.JFrame;
@@ -23,19 +24,21 @@ public class ReaderUI extends JFrame {
 	 * Launch the application.
 	 */
 	public static void main(String[] args) {
+
 		EventQueue.invokeLater(new Runnable() {
 			@Override
 			public void run() {
 				try {
 
+					String projectDir = new File(".").getCanonicalPath();
+					String jre = System.getProperty("java.home");
+
 					String[] commandRandom = new String[] {
-					    "C:\\Program Files\\Java\\jre1.8.0_131\\bin\\java.exe", "-jar",
-					    "C:\\Users\\cschu\\git\\multiprocman\\randomOutput.jar"
+					    jre + "/bin/java.exe", "-jar", projectDir + "/randomOutput.jar"
 					};
 
 					String[] commandProgress = new String[] {
-					    "C:\\Program Files\\Java\\jre1.8.0_131\\bin\\java.exe", "-jar",
-					    "C:\\Users\\cschu\\git\\multiprocman\\ConsoleTest.jar"
+					    jre + "/bin/java.exe", "-jar", projectDir + "/ConsoleTest.jar"
 					};
 
 					String[] command = commandRandom;
