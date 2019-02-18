@@ -11,7 +11,8 @@ public interface InputCaptorCallback {
 	boolean shouldRun();
 
 	/**
-	 * Called by the {@link InputCaptor} to signal, that a new line was read from the input.
+	 * Called by the {@link InputCaptor} to signal, that a new line was read from the input. The string may include ASCII
+	 * control chars that have to be interpreted.
 	 *
 	 * @param lines The current number of lines available.
 	 * @param string The line to append.

@@ -80,7 +80,7 @@ public class InputCaptor {
 					continue;
 				}
 				String string = new String(buffer.getData());
-				// System.out.print(string);
+				System.out.print(string);
 				bytesRead += buffer.size();
 				// If xrefs is empty create the first line
 				if (lineXrefs.isEmpty()) {
@@ -103,7 +103,7 @@ public class InputCaptor {
 						callback.append(string);
 					}
 				}
-			} while (callback.shouldRun());
+			} while (input.available() > 0 || callback.shouldRun());
 		} catch (IOException e) {
 			if (callback.shouldRun()) {
 				throw e;
@@ -213,7 +213,7 @@ public class InputCaptor {
 
 	/**
 	 * Returns the end offset of the specified line.
-	 * 
+	 *
 	 * @param line
 	 *        The line to retrieve the end offset for.
 	 * @return Returns the end offset of the specified line
