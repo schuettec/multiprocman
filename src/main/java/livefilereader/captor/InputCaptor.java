@@ -227,4 +227,27 @@ public class InputCaptor {
 		}
 	}
 
+	public int getStartOffset(int lineNumber) {
+		if (lineNumber == 0) {
+			return 0;
+		} else if (lineNumber >= lineXrefs.size()) {
+			throw new IndexOutOfBoundsException(
+			    String.format("Requesting start offset for line %d while having %d lines.", lineNumber, lineXrefs.size()));
+		} else {
+			return lineXrefs.get(lineNumber - 1);
+		}
+	}
+
+	public int getEndOffset(int lineNumber) {
+		if (lineNumber < 0) {
+			throw new IndexOutOfBoundsException("Line number must not be negative!");
+		}
+		if (lineNumber >= lineXrefs.size()) {
+			throw new IndexOutOfBoundsException(
+			    String.format("Requesting end offset for line %d while having %d lines.", lineNumber, lineXrefs.size()));
+		} else {
+			return lineXrefs.get(lineNumber);
+		}
+	}
+
 }

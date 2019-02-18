@@ -98,11 +98,6 @@ public class ProcessObserverImpl extends Thread implements ProcessObserver, Proc
 		return captor.getLines();
 	}
 
-	@Override
-	public int getLineByteOffset(int line) {
-		return captor.getLineByteOffset(line);
-	}
-
 	/*
 	 * (non-Javadoc)
 	 *
@@ -123,13 +118,18 @@ public class ProcessObserverImpl extends Thread implements ProcessObserver, Proc
 	}
 
 	@Override
-	public int getLineEnd(int line) {
-		return captor.getLineEnd(0);
+	public File getFile() {
+		return outputFile;
 	}
 
 	@Override
-	public File getFile() {
-		return this.outputFile;
+	public int getStartOffset(int lineNumber) {
+		return captor.getStartOffset(lineNumber);
+	}
+
+	@Override
+	public int getEndOffset(int lineNumber) {
+		return captor.getEndOffset(lineNumber);
 	}
 
 }

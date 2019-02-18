@@ -1,8 +1,5 @@
 package livefilereader;
 
-import static java.lang.Math.max;
-import static java.lang.Math.round;
-
 import java.awt.FontMetrics;
 import java.awt.event.AdjustmentEvent;
 import java.awt.event.AdjustmentListener;
@@ -41,7 +38,7 @@ public class ReaderController implements ProcessCallback {
 	private boolean currentlyScrolling = false;
 
 	private boolean jumpToLastLine = true;
-	private boolean ignoreAdjustmentListener = false;
+	private volatile boolean ignoreAdjustmentListener = false;
 
 	private ComponentListener resizeListener = new ComponentListener() {
 
@@ -62,7 +59,7 @@ public class ReaderController implements ProcessCallback {
 					currentLine = 0;
 					updateTextImmidiately();
 				} else if (currentLine > lines - viewLines) {
-					currentLine = Math.max(0, lines - viewLines);
+					currentLine = Math.max(0, lines);
 					updateTextImmidiately();
 				} else {
 					updateText();
@@ -89,12 +86,17 @@ public class ReaderController implements ProcessCallback {
 
 			if (e.getValue() == (lineScroller.getMaximum() - lineScroller.getModel()
 			    .getExtent())) {
+				if (lines >= viewLines) {
+					currentLine = e.getValue();
+					updateTextImmidiately();
+				}
 				jumpToLastLine = true;
 			} else if (currentLine != e.getValue()) {
 				// Only update if the currentLine changed or if
 				currentLine = e.getValue();
-				updateText();
+				updateTextImmidiately();
 			}
+			System.out.println("Set current line to " + e.getValue());
 		}
 	};
 
@@ -133,8 +135,11 @@ public class ReaderController implements ProcessCallback {
 	}
 
 	private void updateTextImmidiately() {
-		System.out.println("UPDATING TEXT");
-		String content = fileReader.readLinesFromFile(currentLine, Math.min(viewLines, lines));
+		int linesToRead = Math.min(viewLines, lines);
+		if (linesToRead == 0) {
+			return;
+		}
+		String content = fileReader.readLinesFromFile(currentLine, linesToRead);
 		String parsed = parseBackspace(content);
 		textView.clear();
 		textView.appendANSI(parsed, true);
@@ -151,18 +156,14 @@ public class ReaderController implements ProcessCallback {
 						updateScrollBar();
 
 						// Delete as many rows as needed to add the new line while not overstepping the viewLines.
-						if (isCaptured(lines - 1)) {
-							int linesInView = textView.getText()
-							    .split("\n").length - 1;
-
-							int toRemove = Math.max(0, linesInView - viewLines);
-
-							for (int r = 0; r < toRemove; r++) {
-								textView.removeFirstLine();
-								currentLine++;
-							}
-							textView.appendANSI(line, true);
+						int linesInView = textView.getText()
+						    .split("\n").length - 1;
+						if (linesInView >= viewLines) {
+							textView.removeFirstLine();
 						}
+						textView.appendANSI(line, true);
+						currentLine++;
+						jumpToLastLine();
 					}
 				});
 			} catch (InvocationTargetException e) {
@@ -173,16 +174,13 @@ public class ReaderController implements ProcessCallback {
 				e.printStackTrace();
 			}
 		}
-		jumpToLastLine();
 	}
 
 	private void jumpToLastLine() {
 		if (jumpToLastLine) {
+			updateScrollBar();
 			ignoreAdjustmentListener = true;
 			BoundedRangeModel model = this.lineScroller.getModel();
-			model.setMinimum(0);
-			model.setExtent(max(1, (int) round(viewLines / 2.0)));
-			model.setMaximum(Math.max(0, lines - viewLines));
 			model.setValue(lines - viewLines);
 			ignoreAdjustmentListener = false;
 		}
@@ -257,9 +255,10 @@ public class ReaderController implements ProcessCallback {
 			ignoreAdjustmentListener = true;
 			BoundedRangeModel model = this.lineScroller.getModel();
 			model.setMinimum(0);
-			// model.setExtent(max(1, (int) round(Math.max(0, lines - viewLines) / 2.0)));
-			model.setExtent(1);
-			model.setMaximum(Math.max(0, lines - viewLines));
+			model.setExtent(viewLines);
+			int max = Math.max(0, lines - viewLines);
+			model.setMaximum(max);
+			System.out.println("Set scroll maximum to " + max + " but got " + lines + " lines and viewLines:  " + viewLines);
 			ignoreAdjustmentListener = false;
 		}
 	}

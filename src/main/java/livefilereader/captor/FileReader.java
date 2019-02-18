@@ -39,16 +39,12 @@ public class FileReader {
 	}
 
 	private String synchronizedReadLinesFromFile(int fromLine, int linesToRead) {
+		if (linesToRead == 0) {
+			return "";
+		}
 		try {
-			int startOffsets;
-			int endOffsets;
-			if (fromLine == 0 && linesToRead == 1) {
-				startOffsets = 0;
-				endOffsets = fileInfo.getLineEnd(0);
-			} else {
-				startOffsets = fileInfo.getLineByteOffset(fromLine);
-				endOffsets = fileInfo.getLineByteOffset(fromLine + linesToRead);
-			}
+			int startOffsets = fileInfo.getStartOffset(fromLine);
+			int endOffsets = fileInfo.getEndOffset(fromLine + linesToRead - 1);
 			input.seek(startOffsets);
 			if (endOffsets - startOffsets < 0) {
 				System.out.println("HÄÄÄÄ");
