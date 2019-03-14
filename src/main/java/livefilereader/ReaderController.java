@@ -54,7 +54,7 @@ public class ReaderController implements ProcessCallback {
 			int viewLinesOld = viewLines;
 			determineMaxLines();
 
-			if (viewLinesOld != viewLinesOld) {
+			if (viewLinesOld != viewLines) {
 				System.out.println("Component resized: View Lines Before: " + viewLinesOld + " View Lines Now: " + viewLines);
 				updateViewFrame();
 			}
@@ -77,11 +77,16 @@ public class ReaderController implements ProcessCallback {
 				return;
 			}
 
-			currentLine = e.getValue();
+			setCurrentLine(e.getValue());
 			System.out.println("Scroller set current line to " + currentLine);
 			updateViewFrame();
 		}
 	};
+
+	private void setCurrentLine(int line) {
+		currentLine = line;
+		updateScrollBar();
+	}
 
 	private MouseListener mouseListener = new MouseAdapter() {
 		@Override
@@ -110,23 +115,18 @@ public class ReaderController implements ProcessCallback {
 	}
 
 	private void updateViewFrame() {
-		if (viewLines == 0) {
+		if (viewLines == 0 || lines == 0) {
 			return;
 		}
 
-		if (lines <= viewLines) {
+		if (isViewFrameUnderflow()) {
 			// View frame underflow!
 			// If there are not enough lines in the output to fill the view frame:
-			if (currentLine > 0) {
-				throw new IllegalArgumentException(
-				    "Cannot scroll to a specific line, if current lines underflow the view frame.");
-			}
+			setCurrentLine(Math.max(0, lines - 1 - viewLines));
 			int lastViewableLine = (lines - 1);
 			System.out.println("Should update content to view line " + currentLine + "~" + lastViewableLine + " while having "
 			    + lines + " lines.");
-
 			toViewFrame(currentLine, lastViewableLine);
-
 		} else {
 			// No view frame underflow.
 			int lastViewableLine = currentLine + viewLines;
@@ -139,6 +139,11 @@ public class ReaderController implements ProcessCallback {
 			    + lines + " lines.");
 			toViewFrame(currentLine, lastViewableLine);
 		}
+		updateScrollBar();
+	}
+
+	private boolean isViewFrameUnderflow() {
+		return lines - 1 <= viewLines;
 	}
 
 	private void toViewFrame(int fromLine, int toLine) {
@@ -187,7 +192,7 @@ public class ReaderController implements ProcessCallback {
 			updateScrollBar();
 			ignoreAdjustmentListener = true;
 			BoundedRangeModel model = this.lineScroller.getModel();
-			model.setValue(lines - viewLines);
+			setCurrentLine(lines - viewLines);
 			ignoreAdjustmentListener = false;
 		}
 	}
@@ -271,6 +276,7 @@ public class ReaderController implements ProcessCallback {
 			ignoreAdjustmentListener = true;
 			BoundedRangeModel model = this.lineScroller.getModel();
 			model.setMinimum(0);
+			model.setValue(currentLine);
 			model.setExtent(viewLines);
 			int max = Math.max(0, lines - 1);
 			model.setMaximum(max);

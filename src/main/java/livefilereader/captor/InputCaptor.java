@@ -9,6 +9,8 @@ import java.util.concurrent.ConcurrentHashMap;
 
 public class InputCaptor {
 
+	private static final int WAIT_FOR_STREAM = 50;
+
 	private int lines = 0;
 
 	private ConcurrentHashMap<Integer, Integer> lineXrefs = new ConcurrentHashMap<>();
@@ -117,7 +119,7 @@ public class InputCaptor {
 	private Buffer bufferInputUntilNewLineOrAsciiCode(BufferedInputStream input) throws IOException {
 		ByteArrayOutputStream buffer = new ByteArrayOutputStream();
 		boolean dataRead = false;
-		while (input.available() > 0) {
+		while (waitForStreams(input) > 0) {
 			input.mark(1);
 			int b = input.read();
 
@@ -129,6 +131,7 @@ public class InputCaptor {
 					// next loop.
 					input.reset();
 					byte[] data = buffer.toByteArray();
+					System.out.println("flush buffer:  " + new String(data));
 					return new Buffer(false, data, false);
 				} else {
 					// or there was no buffered data, then buffer all upcoming ascii codes until the
@@ -142,7 +145,8 @@ public class InputCaptor {
 					boolean wasLineDelimiter = false;
 					int sequenceCounter = 0;
 					int next;
-					while (input.available() > 0 && sequenceCounter < 2) {
+					while (waitForStreams(input) > 0 && sequenceCounter < 2) {
+						// Instead of input available > 0 wait for stream input
 						input.mark(1);
 						next = input.read();
 						if (isSupportedAsciiCode(next) && sequenceCounter == 0) {
@@ -159,7 +163,9 @@ public class InputCaptor {
 							sequenceCounter = 2;
 						}
 					}
-					return new Buffer(true, asciiBuffer.toByteArray(), wasLineDelimiter);
+					byte[] byteArray = asciiBuffer.toByteArray();
+					System.out.println("read until next code:  " + new String(byteArray));
+					return new Buffer(true, byteArray, wasLineDelimiter);
 				}
 			}
 			// if the char is not an ascii code
@@ -169,6 +175,7 @@ public class InputCaptor {
 				if (isLineDelimiter(b)) {
 					// Line finished, return the buffer
 					byte[] data = buffer.toByteArray();
+					System.out.println("line finished:  " + new String(data));
 					return new Buffer(false, data, true);
 				} else {
 					// go to the next loop but remember already written data.
@@ -178,7 +185,23 @@ public class InputCaptor {
 		}
 		// If the stream is empty, the return the buffer.
 		// Note: It cannot be that the buffer contains ANSI control chars or a line delimiter.
+		System.out.println("stream is empty: " + new String(buffer.toByteArray()));
 		return new Buffer(false, buffer.toByteArray(), false);
+	}
+
+	private static int waitForStreams(final InputStream inputStream) throws IOException {
+		while (!hasOutput(inputStream)) {
+			try {
+				Thread.sleep(WAIT_FOR_STREAM);
+			} catch (InterruptedException e) {
+				// Nothing to do.
+			}
+		}
+		return inputStream.available();
+	}
+
+	private static boolean hasOutput(final InputStream inputStream) throws IOException {
+		return inputStream.available() > 0;
 	}
 
 	private boolean isLineDelimiter(int b) {

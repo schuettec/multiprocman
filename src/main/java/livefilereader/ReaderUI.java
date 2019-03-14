@@ -46,7 +46,7 @@ public class ReaderUI extends JFrame {
 					    "-Dorg.gradle.appname=user-service -classpath .\\gradle\\wrapper\\gradle-wrapper.jar org.gradle.wrapper.GradleWrapperMain bootrun"
 					};
 
-					String[] command = commandRandom;
+					String[] command = commandProgress;
 
 					ProcessBuilder builder = new ProcessBuilder(command);
 					builder.directory(new File(System.getProperty("user.home") + "/git/user-service"));
