@@ -42,11 +42,12 @@ public class ReaderUI extends JFrame {
 					};
 
 					String[] commandService = new String[] {
-					    jre + "/bin/java.exe",
-					    "-Dorg.gradle.appname=user-service -classpath .\\gradle\\wrapper\\gradle-wrapper.jar org.gradle.wrapper.GradleWrapperMain bootrun"
+					    jre + "/bin/java.exe", "-Dorg.gradle.appname=user-service", "-classpath",
+					    "C:\\Users\\schuettec\\git\\user-service\\gradle\\wrapper\\gradle-wrapper.jar",
+					    "org.gradle.wrapper.GradleWrapperMain", "bootrun"
 					};
 
-					String[] command = commandProgress;
+					String[] command = commandService;
 
 					ProcessBuilder builder = new ProcessBuilder(command);
 					builder.directory(new File(System.getProperty("user.home") + "/git/user-service"));
