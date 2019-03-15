@@ -53,7 +53,6 @@ public class ReaderController implements ProcessCallback {
 			determineMaxLines();
 
 			if (viewLinesOld != viewLines) {
-				System.out.println("Component resized: View Lines Before: " + viewLinesOld + " View Lines Now: " + viewLines);
 				updateViewFrame();
 			}
 		}
@@ -76,7 +75,6 @@ public class ReaderController implements ProcessCallback {
 			}
 
 			setCurrentLine(e.getValue());
-			System.out.println("Scroller set current line to " + currentLine);
 			updateViewFrame();
 		}
 	};
@@ -106,6 +104,8 @@ public class ReaderController implements ProcessCallback {
 		this.lineScroller.addMouseWheelListener(mouseWheelListener);
 		this.lineScroller.addAdjustmentListener(scrollerListener);
 		this.lineScroller.addMouseListener(mouseListener);
+		updateScrollBar();
+
 		this.textView = new AnsiColorTextPane();
 		this.textView.addMouseWheelListener(mouseWheelListener);
 		this.textView.setWrapLines(false);
@@ -125,8 +125,6 @@ public class ReaderController implements ProcessCallback {
 			// If there are not enough lines in the output to fill the view frame:
 			setCurrentLine(Math.max(0, lines - 1 - viewLines));
 			int lastViewableLine = (lines - 1);
-			System.out.println("Should update content to view line " + currentLine + "~" + lastViewableLine + " while having "
-			    + lines + " lines.");
 			toViewFrame(currentLine, lastViewableLine);
 		} else {
 			// No view frame underflow.
@@ -136,8 +134,6 @@ public class ReaderController implements ProcessCallback {
 				currentLine = lastViewableLine - viewLines;
 			}
 
-			System.out.println("Should update content to view line " + currentLine + "~" + lastViewableLine + " while having "
-			    + lines + " lines.");
 			toViewFrame(currentLine, lastViewableLine);
 		}
 		updateScrollBar();
@@ -204,7 +200,6 @@ public class ReaderController implements ProcessCallback {
 		if (isCaptured(lines - 1)) {
 			// append the content
 			try {
-				System.out.println("append: " + string);
 				SwingUtilities.invokeAndWait(new Runnable() {
 					@Override
 					public void run() {

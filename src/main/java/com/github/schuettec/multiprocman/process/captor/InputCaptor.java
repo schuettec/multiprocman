@@ -131,7 +131,6 @@ public class InputCaptor {
 					// next loop.
 					input.reset();
 					byte[] data = buffer.toByteArray();
-					System.out.println("flush buffer:  " + new String(data));
 					return new Buffer(false, data, false);
 				} else {
 					// or there was no buffered data, then buffer all upcoming ascii codes until the
@@ -164,7 +163,6 @@ public class InputCaptor {
 						}
 					}
 					byte[] byteArray = asciiBuffer.toByteArray();
-					System.out.println("read until next code:  " + new String(byteArray));
 					return new Buffer(true, byteArray, wasLineDelimiter);
 				}
 			}
@@ -175,7 +173,6 @@ public class InputCaptor {
 				if (isLineDelimiter(b)) {
 					// Line finished, return the buffer
 					byte[] data = buffer.toByteArray();
-					System.out.println("line finished:  " + new String(data));
 					return new Buffer(false, data, true);
 				} else {
 					// go to the next loop but remember already written data.
@@ -185,7 +182,6 @@ public class InputCaptor {
 		}
 		// If the stream is empty, the return the buffer.
 		// Note: It cannot be that the buffer contains ANSI control chars or a line delimiter.
-		System.out.println("stream is empty: " + new String(buffer.toByteArray()));
 		return new Buffer(false, buffer.toByteArray(), false);
 	}
 
