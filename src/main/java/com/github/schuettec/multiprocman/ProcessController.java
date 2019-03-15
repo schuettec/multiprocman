@@ -19,12 +19,14 @@ import org.apache.commons.lang3.event.EventListenerSupport;
 
 import com.github.schuettec.multiprocman.console.AnsiColorTextPane;
 import com.github.schuettec.multiprocman.consolepreview.ConsolePreview;
+import com.github.schuettec.multiprocman.process.ProcessCallback;
 import com.github.schuettec.multiprocman.process.ProcessObserverImpl;
+import com.github.schuettec.multiprocman.process.ProcessOutputInfo;
 import com.github.schuettec.multiprocman.process.ReaderController;
 import com.github.schuettec.multiprocman.themes.ThemeUtil;
 import com.github.schuettec.multiprocman.themes.console.AnsiColorTextPaneTheme;
 
-public class ProcessController {
+public class ProcessController implements ProcessCallback {
 
 	private static final int WAIT_FOR_STREAM = 75;
 
@@ -163,23 +165,6 @@ public class ProcessController {
 			ExceptionDialog.showException(textPane, e, "Exception occurred while starting the process.");
 			updateState(State.NOT_STARTED);
 		}
-
-		// TODO: Where should we do this?:
-		// try {
-		// boolean exited = process.waitFor(10l, TimeUnit.SECONDS);
-		// if (exited) {
-		// int exitValue = process.exitValue();
-		// if (exitValue == 0) {
-		// updateState(State.STOPPED_OK);
-		// } else {
-		// updateState(State.STOPPED_ALERT);
-		// }
-		// } else {
-		// updateState(State.ABANDONED);
-		// }
-		// controllers.remove(ProcessController.this);
-		// } catch (InterruptedException e) {
-		// }
 	}
 
 	private void updateState(State state) {
@@ -268,6 +253,25 @@ public class ProcessController {
 				controller.stop(true);
 			}
 		}
+	}
+
+	@Override
+	public void started(ProcessOutputInfo processOutputInfo, File outputFile, Charset charset) {
+		updateState(State.RUNNING);
+	}
+
+	@Override
+	public void exited(int exitValue) {
+		if (exitValue == 0) {
+			updateState(State.STOPPED_OK);
+		} else {
+			updateState(State.STOPPED_ALERT);
+		}
+	}
+
+	@Override
+	public void abandoned() {
+		updateState(State.ABANDONED);
 	}
 
 	/**

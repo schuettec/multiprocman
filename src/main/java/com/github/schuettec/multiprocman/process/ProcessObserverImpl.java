@@ -9,6 +9,7 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.charset.Charset;
+import java.util.concurrent.TimeUnit;
 
 import com.github.schuettec.multiprocman.ExceptionDialog;
 import com.github.schuettec.multiprocman.process.captor.InputCaptor;
@@ -64,7 +65,18 @@ public class ProcessObserverImpl extends Thread implements ProcessObserver, Proc
 					}
 				}, input, output);
 				captor.run();
-				callback.exited();
+
+				try {
+					boolean exited = process.waitFor(10l, TimeUnit.SECONDS);
+					if (exited) {
+						int exitValue = process.exitValue();
+						callback.exited(exitValue);
+					} else {
+						callback.abandoned();
+					}
+				} catch (InterruptedException e) {
+				}
+
 			} catch (Exception e) {
 				stopProcess();
 				callback.cannotWriteOutput(outputFile, e);
@@ -94,6 +106,7 @@ public class ProcessObserverImpl extends Thread implements ProcessObserver, Proc
 		ExceptionDialog.showException(null, new Exception("Not implemented!"), "Stop process forcibly not implemented!");
 	}
 
+	@Override
 	public void waitFor() {
 		ExceptionDialog.showException(null, new Exception("Not implemented!"), "Wait for process not implemented!");
 	}

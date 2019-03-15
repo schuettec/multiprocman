@@ -315,16 +315,6 @@ public class ReaderController implements ProcessCallback {
 		});
 	}
 
-	@Override
-	public void exited() {
-		SwingUtilities.invokeLater(new Runnable() {
-			@Override
-			public void run() {
-				// DO SOMETHING
-			}
-		});
-	}
-
 	public JScrollBar getLineScroller() {
 		return lineScroller;
 	}
