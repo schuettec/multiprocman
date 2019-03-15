@@ -1,4 +1,4 @@
-package livefilereader;
+package com.github.schuettec.multiprocman.process;
 
 import static java.util.Objects.nonNull;
 import static java.util.Objects.requireNonNull;
@@ -10,8 +10,9 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.nio.charset.Charset;
 
-import livefilereader.captor.InputCaptor;
-import livefilereader.captor.InputCaptorCallback;
+import com.github.schuettec.multiprocman.ExceptionDialog;
+import com.github.schuettec.multiprocman.process.captor.InputCaptor;
+import com.github.schuettec.multiprocman.process.captor.InputCaptorCallback;
 
 public class ProcessObserverImpl extends Thread implements ProcessObserver, ProcessOutputInfo {
 
@@ -83,9 +84,18 @@ public class ProcessObserverImpl extends Thread implements ProcessObserver, Proc
 	public void stopProcess() {
 		if (nonNull(this.process)) {
 			this.process.destroy();
-			// Wait for or destroy forcibly.
+			// TODO: Wait for or destroy forcibly.
 			running = false;
 		}
+	}
+
+	@Override
+	public void stopProcessForcibly() {
+		ExceptionDialog.showException(null, new Exception("Not implemented!"), "Stop process forcibly not implemented!");
+	}
+
+	public void waitFor() {
+		ExceptionDialog.showException(null, new Exception("Not implemented!"), "Wait for process not implemented!");
 	}
 
 	/*

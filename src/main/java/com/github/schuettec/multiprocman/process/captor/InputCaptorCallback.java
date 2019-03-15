@@ -1,4 +1,4 @@
-package livefilereader.captor;
+package com.github.schuettec.multiprocman.process.captor;
 
 public interface InputCaptorCallback {
 

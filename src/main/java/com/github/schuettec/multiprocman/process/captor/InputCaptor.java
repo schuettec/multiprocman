@@ -1,4 +1,4 @@
-package livefilereader.captor;
+package com.github.schuettec.multiprocman.process.captor;
 
 import java.io.BufferedInputStream;
 import java.io.ByteArrayOutputStream;

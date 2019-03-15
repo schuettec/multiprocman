@@ -1,4 +1,4 @@
-package livefilereader.captor;
+package com.github.schuettec.multiprocman.process.captor;
 
 import java.io.FileNotFoundException;
 import java.io.IOException;
@@ -9,7 +9,7 @@ import java.util.concurrent.locks.ReentrantLock;
 
 import org.apache.commons.lang3.exception.ExceptionUtils;
 
-import livefilereader.ProcessOutputInfo;
+import com.github.schuettec.multiprocman.process.ProcessOutputInfo;
 
 public class FileReader {
 

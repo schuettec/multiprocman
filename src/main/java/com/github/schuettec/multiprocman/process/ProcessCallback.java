@@ -1,9 +1,9 @@
-package livefilereader;
+package com.github.schuettec.multiprocman.process;
 
 import java.io.File;
 import java.nio.charset.Charset;
 
-import livefilereader.captor.InputCaptor;
+import com.github.schuettec.multiprocman.process.captor.InputCaptor;
 
 public interface ProcessCallback {
 

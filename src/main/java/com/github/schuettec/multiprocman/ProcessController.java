@@ -1,34 +1,26 @@
 package com.github.schuettec.multiprocman;
 
-import static java.lang.Math.min;
-import static java.util.Objects.nonNull;
-
 import java.awt.Component;
-import java.io.ByteArrayOutputStream;
 import java.io.File;
-import java.io.IOException;
-import java.io.InputStream;
 import java.nio.charset.Charset;
-import java.util.Iterator;
+import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
-import java.util.Map.Entry;
 import java.util.Queue;
+import java.util.StringTokenizer;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.TimeUnit;
-import java.util.concurrent.atomic.AtomicInteger;
 
 import javax.swing.JOptionPane;
-import javax.swing.SwingUtilities;
+import javax.swing.JScrollBar;
 
 import org.apache.commons.lang3.event.EventListenerSupport;
 
-import com.github.schuettec.multiprocman.common.EventJoin;
 import com.github.schuettec.multiprocman.console.AnsiColorTextPane;
-import com.github.schuettec.multiprocman.console.LimitedStyledDocument;
-import com.github.schuettec.multiprocman.console.ScrollableAnsiColorTextPaneContainer;
 import com.github.schuettec.multiprocman.consolepreview.ConsolePreview;
+import com.github.schuettec.multiprocman.process.ProcessObserverImpl;
+import com.github.schuettec.multiprocman.process.ReaderController;
 import com.github.schuettec.multiprocman.themes.ThemeUtil;
 import com.github.schuettec.multiprocman.themes.console.AnsiColorTextPaneTheme;
 
@@ -61,24 +53,25 @@ public class ProcessController {
 
 	private EventListenerSupport<ProcessListener> processListener = new EventListenerSupport<>(ProcessListener.class);
 
-	private ScrollableAnsiColorTextPaneContainer consoleScroller;
 	private AnsiColorTextPane textPane;
 	private ConsolePreview consolePreview;
 	private ProcessDescriptor processDescriptor;
 	private CounterExpressions counterExpressions;
-	private Thread processObserver;
 
-	private Process process;
 	private State state;
 
 	private Statistics statistics;
 
+	private ReaderController controller;
+
+	private ProcessObserverImpl processObserver;
+
 	public ProcessController(ProcessDescriptor processDescriptor) {
+		this.controller = new ReaderController();
 		this.processDescriptor = processDescriptor;
 		this.statistics = new Statistics();
-		this.textPane = new AnsiColorTextPane(new LimitedStyledDocument(processDescriptor.getMaxLineNumbers()));
+		this.textPane = new AnsiColorTextPane();
 		ThemeUtil.theme(textPane, AnsiColorTextPaneTheme.class);
-		this.consoleScroller = new ScrollableAnsiColorTextPaneContainer(textPane);
 		this.consolePreview = new ConsolePreview(this);
 		this.textPane.addAppendListener(consolePreview);
 		processListener.addListener(consolePreview);
@@ -114,187 +107,79 @@ public class ProcessController {
 	public boolean start() {
 		try {
 			statistics.clear();
-			consoleScroller.setAutoScrollToBottom(true);
-			String command = processDescriptor.getCommandForExecution();
-			this.process = executeCommand(command);
 			startProcessObserver();
-		} catch (IOException e) {
+		} catch (Exception e) {
 			ExceptionDialog.showException(textPane, e, "Error while starting the application.");
 			return false;
 		}
 		return true;
 	}
 
-	private Process executeCommand(String command) throws IOException {
+	private ProcessBuilder setupProcessBuilderCommand(boolean forTermination, ProcessDescriptor processDescriptor) {
+		String command = null;
+		if (forTermination) {
+			command = processDescriptor.getTerminationCommandForExecution();
+		} else {
+			command = processDescriptor.getCommandForExecution();
+		}
+
 		File workingDir = null;
 		if (processDescriptor.hasExecutionDirectory()) {
 			workingDir = new File(processDescriptor.getExecutionDirectoryForExecution());
 		}
-		String[] env = null;
+
+		// Tokenize command string
+		StringTokenizer st = new StringTokenizer(command);
+		List<String> cmdList = new ArrayList<>(st.countTokens());
+		for (int i = 0; st.hasMoreTokens(); i++) {
+			cmdList.add(st.nextToken());
+		}
+
+		// Setup process builder
+		ProcessBuilder builder = new ProcessBuilder(cmdList);
+		builder.redirectErrorStream(true);
+		builder.directory(workingDir);
 		if (processDescriptor.hasEnvironmentVariables()) {
 			Map<String, String> environment = processDescriptor.getEnvironment();
-			env = new String[environment.size()];
-			Iterator<Entry<String, String>> it = environment.entrySet()
-			    .iterator();
-			int i = 0;
-			while (it.hasNext()) {
-				Entry<String, String> next = it.next();
-				env[i] = next.getKey() + "=" + next.getValue();
-			}
+			builder.environment()
+			    .putAll(environment);
 		}
-		return Runtime.getRuntime()
-		    .exec(command, env, workingDir);
+
+		return builder;
 	}
 
 	private void startProcessObserver() {
-		this.processObserver = new Thread(new Runnable() {
+		updateState(State.RUNNING);
+		controllers.add(ProcessController.this);
+		Charset charset = processDescriptor.getCharset();
+		try {
+			// TODO: Use Reader Controller here
 
-			@Override
-			public void run() {
-				updateState(State.RUNNING);
-				controllers.add(ProcessController.this);
+			// TODO: Set auto-scroll to bottom to true initially
+			ProcessBuilder builder = setupProcessBuilderCommand(false, processDescriptor);
+			this.processObserver = new ProcessObserverImpl(builder, new File("output.txt"), controller);
+			processObserver.startProcess();
+		} catch (Exception e) {
+			ExceptionDialog.showException(textPane, e, "Exception occurred while starting the process.");
+			updateState(State.NOT_STARTED);
+		}
 
-				// Read outputs
-				final InputStream inputStream = process.getInputStream();
-				final InputStream errorStream = process.getErrorStream();
-
-				ByteArrayOutputStream inputBuffer = new ByteArrayOutputStream();
-				AtomicInteger inputBufferSize = new AtomicInteger(0);
-				ByteArrayOutputStream errorBuffer = new ByteArrayOutputStream();
-				AtomicInteger errorBufferSize = new AtomicInteger(0);
-
-				Charset charset = processDescriptor.getCharset();
-
-				EventJoin inputJoin = new EventJoin(new EventJoin.Callback() {
-
-					@Override
-					public void eventCallback() {
-						appendBufferInEDT(inputBuffer, inputBufferSize, charset);
-					}
-				}, 250, TimeUnit.MILLISECONDS);
-
-				EventJoin errorJoin = new EventJoin(new EventJoin.Callback() {
-
-					@Override
-					public void eventCallback() {
-						appendBufferInEDT(errorBuffer, errorBufferSize, charset);
-					}
-				}, 250, TimeUnit.MILLISECONDS);
-
-				try {
-					do {
-
-						waitForStreams(inputStream, errorStream);
-
-						buffer(inputStream, inputBufferSize, inputBuffer, charset, inputJoin);
-
-						buffer(errorStream, errorBufferSize, errorBuffer, charset, errorJoin);
-
-					} while (hasOutput(inputStream, errorStream) || process.isAlive());
-
-				} catch (Exception e) {
-					ExceptionDialog.showException(textPane, e, "Exception occurre while capturing the process output.");
-					updateState(State.ABANDONED);
-				}
-				try {
-					boolean exited = process.waitFor(10l, TimeUnit.SECONDS);
-					if (exited) {
-						int exitValue = process.exitValue();
-						if (exitValue == 0) {
-							updateState(State.STOPPED_OK);
-						} else {
-							updateState(State.STOPPED_ALERT);
-						}
-					} else {
-						updateState(State.ABANDONED);
-					}
-					controllers.remove(ProcessController.this);
-				} catch (InterruptedException e) {
-				}
-			}
-
-			private void appendBufferInEDT(ByteArrayOutputStream buffer, AtomicInteger bufferSize, Charset charset) {
-				synchronized (buffer) {
-					if (bufferSize.get() > 0) {
-						byte[] byteArray = null;
-						byteArray = buffer.toByteArray();
-						buffer.reset();
-						bufferSize.set(0);
-						appendInEDT(new String(byteArray, charset));
-					}
-				}
-			}
-
-			private void waitForStreams(final InputStream inputStream, final InputStream errorStream) throws IOException {
-				if (!hasOutput(inputStream, errorStream)) {
-					try {
-						Thread.sleep(WAIT_FOR_STREAM);
-					} catch (InterruptedException e) {
-						// Nothing to do.
-					}
-				}
-			}
-
-			private boolean hasOutput(final InputStream inputStream, final InputStream errorStream) throws IOException {
-				return inputStream.available() > 0 || errorStream.available() > 0;
-			}
-
-			private void buffer(final InputStream inputStream, AtomicInteger inputBufferSize,
-			    ByteArrayOutputStream inputBuffer, Charset charset, EventJoin inputJoin) throws IOException {
-				Chunk inputChunk = readNext(charset, inputStream);
-				if (nonNull(inputChunk)) {
-					statistics.reportOutputAmount(inputChunk.getAmount());
-					if (containsControllChars(inputChunk)) {
-						appendInEDT(new String(inputChunk.getData(), 0, inputChunk.getAmount(), charset));
-					} else {
-						// If input chunk does not contain ASCII control codes it can be buffered.
-						synchronized (inputBuffer) {
-							inputBuffer.write(inputChunk.getData(), 0, inputChunk.getAmount());
-							inputBufferSize.addAndGet(inputChunk.getAmount());
-						}
-						inputJoin.noticeEvent();
-					}
-				}
-			}
-
-			private boolean containsControllChars(Chunk inputChunk) {
-				byte[] data = inputChunk.getData();
-				for (int i = 0; i < inputChunk.getAmount(); i++) {
-					if (ASCIICode.isSupported(data[i])) {
-						return true;
-					}
-				}
-				return false;
-			}
-
-			private Chunk readNext(Charset charset, InputStream stream) throws IOException {
-				int available = 0;
-				if ((available = stream.available()) > 0) {
-					available = min(MAX_READ_AMOUNT_SIZE, available);
-					byte[] data = new byte[available];
-					int amount = stream.read(data);
-					Chunk chunk = new Chunk(data, amount);
-					return chunk;
-				}
-				return null;
-			}
-
-			private void appendInEDT(String nextLine) {
-				try {
-					SwingUtilities.invokeLater(new Runnable() {
-						@Override
-						public void run() {
-							consoleScroller.appendANSI(nextLine, processDescriptor.isSupportAsciiCodes());
-							processListener.fire()
-							    .processUpdate(ProcessController.this);
-						}
-					});
-				} catch (Exception e) {
-					e.printStackTrace();
-				}
-			}
-		});
-		processObserver.start();
+		// TODO: Where should we do this?:
+		// try {
+		// boolean exited = process.waitFor(10l, TimeUnit.SECONDS);
+		// if (exited) {
+		// int exitValue = process.exitValue();
+		// if (exitValue == 0) {
+		// updateState(State.STOPPED_OK);
+		// } else {
+		// updateState(State.STOPPED_ALERT);
+		// }
+		// } else {
+		// updateState(State.ABANDONED);
+		// }
+		// controllers.remove(ProcessController.this);
+		// } catch (InterruptedException e) {
+		// }
 	}
 
 	private void updateState(State state) {
@@ -316,9 +201,9 @@ public class ProcessController {
 			executeTermination();
 		} else {
 			if (force) {
-				this.process.destroyForcibly();
+				this.processObserver.stopProcessForcibly();
 			} else {
-				this.process.destroy();
+				this.processObserver.stopProcess();
 			}
 		}
 	}
@@ -327,9 +212,9 @@ public class ProcessController {
 		Thread termination = new Thread(new Runnable() {
 			@Override
 			public void run() {
-				String terminationCommand = processDescriptor.getTerminationCommandForExecution();
 				try {
-					Process process = executeCommand(terminationCommand);
+					ProcessBuilder termProcess = setupProcessBuilderCommand(true, processDescriptor);
+					Process process = termProcess.start();
 					boolean terminated = process.waitFor(8000, TimeUnit.MILLISECONDS);
 					if (!terminated) {
 						stopForce(false);
@@ -356,20 +241,12 @@ public class ProcessController {
 
 	private void waitForOnDemand(boolean waitFor) {
 		if (waitFor) {
-			try {
-				this.process.waitFor();
-			} catch (InterruptedException e) {
-				// Nothing to do.
-			}
+			this.processObserver.waitFor();
 		}
 	}
 
-	public ScrollableAnsiColorTextPaneContainer getConsoleScroller() {
-		return consoleScroller;
-	}
-
 	public AnsiColorTextPane getTextPane() {
-		return textPane;
+		return controller.getTextView();
 	}
 
 	public ConsolePreview getConsolePreview() {
@@ -413,6 +290,10 @@ public class ProcessController {
 
 	public CounterExpressions getCounterExpressions() {
 		return counterExpressions;
+	}
+
+	public JScrollBar getTextViewScroller() {
+		return controller.getLineScroller();
 	}
 
 }

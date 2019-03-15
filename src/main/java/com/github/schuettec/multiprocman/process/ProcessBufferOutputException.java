@@ -1,4 +1,4 @@
-package livefilereader;
+package com.github.schuettec.multiprocman.process;
 
 public class ProcessBufferOutputException extends Exception {
 

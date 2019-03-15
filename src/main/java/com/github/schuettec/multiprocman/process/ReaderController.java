@@ -1,4 +1,4 @@
-package livefilereader;
+package com.github.schuettec.multiprocman.process;
 
 import java.awt.Container;
 import java.awt.FontMetrics;
@@ -17,15 +17,13 @@ import java.nio.charset.Charset;
 import javax.swing.BoundedRangeModel;
 import javax.swing.JScrollBar;
 import javax.swing.JScrollPane;
-import javax.swing.JTextPane;
 import javax.swing.SwingUtilities;
 
 import com.github.schuettec.multiprocman.ExceptionDialog;
 import com.github.schuettec.multiprocman.console.AnsiColorTextPane;
+import com.github.schuettec.multiprocman.process.captor.FileReader;
 import com.github.schuettec.multiprocman.themes.ThemeUtil;
 import com.github.schuettec.multiprocman.themes.console.AnsiColorTextPaneTheme;
-
-import livefilereader.captor.FileReader;
 
 public class ReaderController implements ProcessCallback {
 
@@ -104,9 +102,12 @@ public class ReaderController implements ProcessCallback {
 
 	public ReaderController() {
 		this.lineScroller = new JScrollBar(JScrollBar.VERTICAL);
+		MouseWheelScroller mouseWheelListener = new MouseWheelScroller(lineScroller);
+		this.lineScroller.addMouseWheelListener(mouseWheelListener);
 		this.lineScroller.addAdjustmentListener(scrollerListener);
 		this.lineScroller.addMouseListener(mouseListener);
 		this.textView = new AnsiColorTextPane();
+		this.textView.addMouseWheelListener(mouseWheelListener);
 		this.textView.setWrapLines(false);
 		ThemeUtil.theme(textView, AnsiColorTextPaneTheme.class);
 
@@ -333,7 +334,7 @@ public class ReaderController implements ProcessCallback {
 		return lineScroller;
 	}
 
-	public JTextPane getTextView() {
+	public AnsiColorTextPane getTextView() {
 		return textView;
 	}
 

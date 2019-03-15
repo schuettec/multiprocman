@@ -1,4 +1,4 @@
-package livefilereader;
+package com.github.schuettec.multiprocman.process;
 
 import java.io.File;
 
