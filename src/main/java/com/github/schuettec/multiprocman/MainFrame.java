@@ -600,7 +600,9 @@ public class MainFrame extends JFrame implements WindowListener, ProcessListener
 
 		if (nonNull(selectedValue)) {
 			AnsiColorTextPane textPane = selectedValue.getTextPane();
-			centerContainer.add(textPane, BorderLayout.CENTER);
+			JScrollPane scrollPane = new JScrollPane(textPane, JScrollPane.VERTICAL_SCROLLBAR_NEVER,
+			    JScrollPane.HORIZONTAL_SCROLLBAR_ALWAYS);
+			centerContainer.add(scrollPane, BorderLayout.CENTER);
 			JScrollBar scroller = selectedValue.getTextViewScroller();
 			centerContainer.add(scroller, BorderLayout.EAST);
 			addGitToToolbarOnDemand(selectedValue);

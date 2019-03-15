@@ -11,6 +11,8 @@ import java.io.InputStream;
 import java.nio.charset.Charset;
 import java.util.concurrent.TimeUnit;
 
+import org.apache.commons.lang3.event.EventListenerSupport;
+
 import com.github.schuettec.multiprocman.ExceptionDialog;
 import com.github.schuettec.multiprocman.process.captor.InputCaptor;
 import com.github.schuettec.multiprocman.process.captor.InputCaptorCallback;
@@ -21,19 +23,25 @@ public class ProcessObserverImpl extends Thread implements ProcessObserver, Proc
 	private File outputFile;
 
 	private boolean running = false;
-	private ProcessCallback callback;
+	private EventListenerSupport<ProcessCallback> callbacks;
 	private Process process;
 	private InputCaptor captor;
 
-	public ProcessObserverImpl(ProcessBuilder builder, File outputFile, ProcessCallback callback)
-	    throws ProcessBufferOutputException {
+	public ProcessObserverImpl(ProcessBuilder builder, File outputFile) throws ProcessBufferOutputException {
 		requireNonNull(builder, "Builder must not be null!");
 		requireNonNull(outputFile, "Output file must not be null.");
-		requireNonNull(callback, "The callback must not be null.");
 		this.processBuilder = builder;
 		this.processBuilder.redirectErrorStream(true);
 		this.outputFile = outputFile;
-		this.callback = callback;
+		this.callbacks = new EventListenerSupport<>(ProcessCallback.class);
+	}
+
+	public void addListener(ProcessCallback listener) {
+		callbacks.addListener(listener);
+	}
+
+	public void removeListener(ProcessCallback listener) {
+		callbacks.removeListener(listener);
 	}
 
 	@Override
@@ -46,7 +54,8 @@ public class ProcessObserverImpl extends Thread implements ProcessObserver, Proc
 			InputStream inputStr = process.getInputStream();
 			try (BufferedInputStream input = new BufferedInputStream(inputStr);
 			    FileOutputStream output = new FileOutputStream(outputFile);) {
-				callback.started(this, outputFile, defaultCharset);
+				callbacks.fire()
+				    .started(this, outputFile, defaultCharset);
 				this.captor = new InputCaptor(new InputCaptorCallback() {
 
 					@Override
@@ -56,12 +65,14 @@ public class ProcessObserverImpl extends Thread implements ProcessObserver, Proc
 
 					@Override
 					public void newLine(int lines, String line) {
-						callback.output(lines, line);
+						callbacks.fire()
+						    .output(lines, line);
 					}
 
 					@Override
 					public void append(String string) {
-						callback.append(string);
+						callbacks.fire()
+						    .append(string);
 					}
 				}, input, output);
 				captor.run();
@@ -70,20 +81,24 @@ public class ProcessObserverImpl extends Thread implements ProcessObserver, Proc
 					boolean exited = process.waitFor(10l, TimeUnit.SECONDS);
 					if (exited) {
 						int exitValue = process.exitValue();
-						callback.exited(exitValue);
+						callbacks.fire()
+						    .exited(exitValue);
 					} else {
-						callback.abandoned();
+						callbacks.fire()
+						    .abandoned();
 					}
 				} catch (InterruptedException e) {
 				}
 
 			} catch (Exception e) {
 				stopProcess();
-				callback.cannotWriteOutput(outputFile, e);
+				callbacks.fire()
+				    .cannotWriteOutput(outputFile, e);
 			}
 		} catch (IOException e) {
 			stopProcess();
-			callback.cannotStartProcess(e);
+			callbacks.fire()
+			    .cannotStartProcess(e);
 		}
 	}
 
