@@ -23,15 +23,8 @@ import com.github.schuettec.multiprocman.process.ProcessCallback;
 import com.github.schuettec.multiprocman.process.ProcessObserverImpl;
 import com.github.schuettec.multiprocman.process.ProcessOutputInfo;
 import com.github.schuettec.multiprocman.process.ReaderController;
-import com.github.schuettec.multiprocman.themes.ThemeUtil;
-import com.github.schuettec.multiprocman.themes.console.AnsiColorTextPaneTheme;
 
 public class ProcessController implements ProcessCallback {
-
-	private static final int WAIT_FOR_STREAM = 75;
-
-	private static final int MAX_READ_AMOUNT_SIZE = 512;
-
 	private static Queue<ProcessController> controllers = new ConcurrentLinkedQueue<>();
 
 	static {
@@ -55,7 +48,6 @@ public class ProcessController implements ProcessCallback {
 
 	private EventListenerSupport<ProcessListener> processListener = new EventListenerSupport<>(ProcessListener.class);
 
-	private AnsiColorTextPane textPane;
 	private ConsolePreview consolePreview;
 	private ProcessDescriptor processDescriptor;
 	private CounterExpressions counterExpressions;
@@ -70,16 +62,18 @@ public class ProcessController implements ProcessCallback {
 
 	public ProcessController(ProcessDescriptor processDescriptor) {
 		this.controller = new ReaderController();
+
 		this.processDescriptor = processDescriptor;
 		this.statistics = new Statistics();
-		this.textPane = new AnsiColorTextPane();
-		ThemeUtil.theme(textPane, AnsiColorTextPaneTheme.class);
 		this.consolePreview = new ConsolePreview(this);
-		this.textPane.addAppendListener(consolePreview);
 		processListener.addListener(consolePreview);
 		this.counterExpressions = new CounterExpressions(this);
-		this.textPane.addAppendListener(counterExpressions);
 		this.state = State.NOT_STARTED;
+
+		this.getTextPane()
+		    .addAppendListener(consolePreview);
+		this.getTextPane()
+		    .addAppendListener(counterExpressions);
 	}
 
 	public Statistics getStatistics() {
@@ -111,7 +105,7 @@ public class ProcessController implements ProcessCallback {
 			statistics.clear();
 			startProcessObserver();
 		} catch (Exception e) {
-			ExceptionDialog.showException(textPane, e, "Error while starting the application.");
+			ExceptionDialog.showException(getTextPane(), e, "Error while starting the application.");
 			return false;
 		}
 		return true;
@@ -159,10 +153,12 @@ public class ProcessController implements ProcessCallback {
 
 			// TODO: Set auto-scroll to bottom to true initially
 			ProcessBuilder builder = setupProcessBuilderCommand(false, processDescriptor);
-			this.processObserver = new ProcessObserverImpl(builder, new File("output.txt"), controller);
+			this.processObserver = new ProcessObserverImpl(builder, new File("output.txt"));
+			this.processObserver.addListener(controller);
+			this.processObserver.addListener(this);
 			processObserver.startProcess();
 		} catch (Exception e) {
-			ExceptionDialog.showException(textPane, e, "Exception occurred while starting the process.");
+			ExceptionDialog.showException(getTextPane(), e, "Exception occurred while starting the process.");
 			updateState(State.NOT_STARTED);
 		}
 	}
@@ -203,13 +199,13 @@ public class ProcessController implements ProcessCallback {
 					boolean terminated = process.waitFor(8000, TimeUnit.MILLISECONDS);
 					if (!terminated) {
 						stopForce(false);
-						JOptionPane.showMessageDialog(textPane, String.format(
+						JOptionPane.showMessageDialog(getTextPane(), String.format(
 						    "The application %s was stopped with the termination command but the command did not respond. The applicationwas killed to force termination.",
 						    processDescriptor.getTitle()), "Termination command", JOptionPane.ERROR_MESSAGE);
 					}
 				} catch (Exception e) {
 					stopForce(false);
-					JOptionPane.showMessageDialog(textPane, String.format(
+					JOptionPane.showMessageDialog(getTextPane(), String.format(
 					    "The application %s was stopped with the termination command but the command threw an error. A kill signal is used to force termination.",
 					    processDescriptor.getTitle()), "Termination command", JOptionPane.ERROR_MESSAGE);
 				}

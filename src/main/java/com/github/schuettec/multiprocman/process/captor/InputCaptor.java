@@ -119,7 +119,7 @@ public class InputCaptor {
 	private Buffer bufferInputUntilNewLineOrAsciiCode(BufferedInputStream input) throws IOException {
 		ByteArrayOutputStream buffer = new ByteArrayOutputStream();
 		boolean dataRead = false;
-		while (waitForStreams(input) > 0) {
+		while (waitForStreams(input, callback) > 0) {
 			input.mark(1);
 			int b = input.read();
 
@@ -144,7 +144,7 @@ public class InputCaptor {
 					boolean wasLineDelimiter = false;
 					int sequenceCounter = 0;
 					int next;
-					while (waitForStreams(input) > 0 && sequenceCounter < 2) {
+					while (waitForStreams(input, callback) > 0 && sequenceCounter < 2) {
 						// Instead of input available > 0 wait for stream input
 						input.mark(1);
 						next = input.read();
@@ -185,8 +185,8 @@ public class InputCaptor {
 		return new Buffer(false, buffer.toByteArray(), false);
 	}
 
-	private static int waitForStreams(final InputStream inputStream) throws IOException {
-		while (!hasOutput(inputStream)) {
+	private static int waitForStreams(final InputStream inputStream, InputCaptorCallback callback) throws IOException {
+		while (!hasOutput(inputStream) && callback.shouldRun()) {
 			try {
 				Thread.sleep(WAIT_FOR_STREAM);
 			} catch (InterruptedException e) {
