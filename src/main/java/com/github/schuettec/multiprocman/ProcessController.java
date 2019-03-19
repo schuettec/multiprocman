@@ -156,6 +156,7 @@ public class ProcessController implements ProcessCallback {
 			this.processObserver = new ProcessObserverImpl(builder, new File("output.txt"));
 			this.processObserver.addListener(controller);
 			this.processObserver.addListener(this);
+			this.controller.addListener(processObserver);
 			processObserver.startProcess();
 		} catch (Exception e) {
 			ExceptionDialog.showException(getTextPane(), e, "Exception occurred while starting the process.");

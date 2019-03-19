@@ -93,4 +93,12 @@ public interface ProcessCallback {
 
 	}
 
+	/**
+	 * Called by the {@link InputCaptor} to signal, that the reader should jump to the last line after a block read.
+	 *
+	 * @param lines The current number of lines available.
+	 */
+	default void jumpToLastLine(int lines) {
+	}
+
 }

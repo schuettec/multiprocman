@@ -17,7 +17,7 @@ import com.github.schuettec.multiprocman.ExceptionDialog;
 import com.github.schuettec.multiprocman.process.captor.InputCaptor;
 import com.github.schuettec.multiprocman.process.captor.InputCaptorCallback;
 
-public class ProcessObserverImpl extends Thread implements ProcessObserver, ProcessOutputInfo {
+public class ProcessObserverImpl extends Thread implements ProcessObserver, ProcessOutputInfo, ViewFrameListener {
 
 	private ProcessBuilder processBuilder;
 	private File outputFile;
@@ -73,6 +73,12 @@ public class ProcessObserverImpl extends Thread implements ProcessObserver, Proc
 					public void append(String string) {
 						callbacks.fire()
 						    .append(string);
+					}
+
+					@Override
+					public void jumpToLastLine(int lines) {
+						callbacks.fire()
+						    .jumpToLastLine(lines);
 					}
 				}, input, output);
 				captor.run();
@@ -168,6 +174,11 @@ public class ProcessObserverImpl extends Thread implements ProcessObserver, Proc
 	@Override
 	public int getEndOffset(int lineNumber) {
 		return captor.getEndOffset(lineNumber);
+	}
+
+	@Override
+	public void viewFrameChanged(int viewFrameLines) {
+		captor.setViewFrame(viewFrameLines);
 	}
 
 }

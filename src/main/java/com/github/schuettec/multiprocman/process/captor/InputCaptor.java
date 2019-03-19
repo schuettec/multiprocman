@@ -20,6 +20,8 @@ public class InputCaptor {
 
 	private InputCaptorCallback callback;
 
+	private int viewFrameLines;
+
 	private class Buffer {
 		boolean isAsciiControl;
 		byte data[];
@@ -70,7 +72,16 @@ public class InputCaptor {
 	public void run() throws IOException {
 		try {
 			int bytesRead = 0;
+			int blockReadLines = 0;
+
 			do {
+				if (blockReadLines == 0) {
+					BlockRead blockRead = isBlockRead(input);
+					if (blockRead.isBlockRead()) {
+						blockReadLines = blockRead.getLinesInBuffer();
+					}
+				}
+
 				Buffer buffer = bufferInputUntilNewLineOrAsciiCode(input);
 				if (buffer.isEmpty()) {
 					try {
@@ -92,17 +103,30 @@ public class InputCaptor {
 					output.write(buffer.getData());
 					output.flush();
 					lineXrefs.put(lines - 1, bytesRead);
-					callback.append(string);
+					if (blockReadLines == 0) {
+						callback.append(string);
+					}
 				} else {
 					output.write(buffer.getData());
 					output.flush();
 					if (buffer.isLineBreak()) {
 						lineXrefs.put(lines, bytesRead);
 						lines++;
-						callback.newLine(lines, string);
+						if (blockReadLines > 0) {
+							blockReadLines--;
+						}
+						if (blockReadLines == 1) {
+							blockReadLines = 0;
+							callback.jumpToLastLine(lines);
+						}
+						if (blockReadLines == 0) {
+							callback.newLine(lines, string);
+						}
 					} else {
 						lineXrefs.put(lines - 1, bytesRead);
-						callback.append(string);
+						if (blockReadLines == 0) {
+							callback.append(string);
+						}
 					}
 				}
 			} while (input.available() > 0 || callback.shouldRun());
@@ -113,6 +137,28 @@ public class InputCaptor {
 				System.out.println("InputCaptor was requested to stop and IO Exception was thrown.");
 				e.printStackTrace();
 			}
+		}
+	}
+
+	private BlockRead isBlockRead(BufferedInputStream input) throws IOException {
+		int available = input.available();
+		if (available <= 0) {
+			return new BlockRead(false, 0);
+		}
+		try {
+			input.mark(available);
+			int linesInBuffer = 0;
+			byte[] data = new byte[available];
+			int readAmount = input.read(data);
+			for (int i = 0; i < readAmount; i++) {
+				if (isLineDelimiter(data[i])) {
+					linesInBuffer++;
+				}
+			}
+			boolean isBlockRead = linesInBuffer > viewFrameLines;
+			return new BlockRead(isBlockRead, linesInBuffer);
+		} finally {
+			input.reset();
 		}
 	}
 
@@ -270,6 +316,10 @@ public class InputCaptor {
 		} else {
 			return lineXrefs.get(lineNumber);
 		}
+	}
+
+	public void setViewFrame(int viewFrameLines) {
+		this.viewFrameLines = viewFrameLines;
 	}
 
 }

@@ -19,6 +19,8 @@ import javax.swing.JScrollBar;
 import javax.swing.JScrollPane;
 import javax.swing.SwingUtilities;
 
+import org.apache.commons.lang3.event.EventListenerSupport;
+
 import com.github.schuettec.multiprocman.ExceptionDialog;
 import com.github.schuettec.multiprocman.console.AnsiColorTextPane;
 import com.github.schuettec.multiprocman.process.captor.FileReader;
@@ -26,6 +28,8 @@ import com.github.schuettec.multiprocman.themes.ThemeUtil;
 import com.github.schuettec.multiprocman.themes.console.AnsiColorTextPaneTheme;
 
 public class ReaderController implements ProcessCallback {
+
+	private EventListenerSupport<ViewFrameListener> viewFrameListeners;
 
 	private JScrollBar lineScroller;
 	private AnsiColorTextPane textView;
@@ -54,6 +58,8 @@ public class ReaderController implements ProcessCallback {
 
 			if (viewLinesOld != viewLines) {
 				updateViewFrame();
+				viewFrameListeners.fire()
+				    .viewFrameChanged(viewLines);
 			}
 		}
 
@@ -99,6 +105,7 @@ public class ReaderController implements ProcessCallback {
 	};
 
 	public ReaderController() {
+		this.viewFrameListeners = new EventListenerSupport<>(ViewFrameListener.class);
 		this.lineScroller = new JScrollBar(JScrollBar.VERTICAL);
 		MouseWheelScroller mouseWheelListener = new MouseWheelScroller(lineScroller);
 		this.lineScroller.addMouseWheelListener(mouseWheelListener);
@@ -113,6 +120,14 @@ public class ReaderController implements ProcessCallback {
 
 		this.textView.addComponentListener(resizeListener);
 		this.textView.setEditable(false);
+	}
+
+	public void addListener(ViewFrameListener listener) {
+		viewFrameListeners.addListener(listener);
+	}
+
+	public void removeListener(ViewFrameListener listener) {
+		viewFrameListeners.removeListener(listener);
 	}
 
 	private void updateViewFrame() {
@@ -323,4 +338,12 @@ public class ReaderController implements ProcessCallback {
 		return textView;
 	}
 
+	@Override
+	public void jumpToLastLine(int lines) {
+		this.lines = lines;
+		if (jumpToLastLine) {
+			jumpToLastLine();
+			updateViewFrame();
+		}
+	}
 }
