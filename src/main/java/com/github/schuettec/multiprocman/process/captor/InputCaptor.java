@@ -168,10 +168,6 @@ public class InputCaptor {
 		while (waitForStreams(input, callback) > 0) {
 			input.mark(1);
 			int b = input.read();
-
-			// TODO: Analyze the number of lines. If it exceeds view frame size, then fall to batch mode and
-			// read the complete buffer. Return the block at once?
-
 			// If the read char is an ascii code
 			if (isSupportedAsciiCode(b)) {
 				// ...and data was buffered before,
