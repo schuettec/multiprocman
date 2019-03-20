@@ -87,7 +87,9 @@ public class MainFrame extends JFrame implements WindowListener, ProcessListener
 		@Override
 		public void actionPerformed(ActionEvent e) {
 			JToggleButton source = (JToggleButton) e.getSource();
-			// TODO: Set new auto-scroll value.
+			boolean autoScroll = source.isSelected();
+			currentProcess.setAutoScrollToBottom(autoScroll);
+			currentProcess.scrollToBottom();
 		}
 	};
 
@@ -833,9 +835,9 @@ public class MainFrame extends JFrame implements WindowListener, ProcessListener
 	@Override
 	public void processUpdate(ProcessController controller) {
 		this.processList.repaint();
+		tglScrollToBottom.setSelected(controller.setAutoScrollToBottom());
 		refreshInfoBar();
 		processCurrentState();
-
 	}
 
 	private void refreshInfoBar() {

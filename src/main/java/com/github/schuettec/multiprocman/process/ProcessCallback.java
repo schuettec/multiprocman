@@ -63,6 +63,25 @@ public interface ProcessCallback {
 	}
 
 	/**
+	 * Called by the {@link InputCaptor} to signal, that the content should be appended to the last line. The implementor
+	 * should check if the last line is currently captured and the change is of interest. The string may include ASCII
+	 * control chars that have to be interpreted.
+	 *
+	 * @param string The string to append at last line.
+	 */
+	default void append(String string) {
+
+	}
+
+	/**
+	 * Called by the {@link InputCaptor} to signal, that the reader should jump to the last line after a block read.
+	 *
+	 * @param lines The current number of lines available.
+	 */
+	default void jumpToLastLine(int lines) {
+	}
+
+	/**
 	 * Called by the {@link ProcessObserver} to signal that the process terminated.
 	 *
 	 * <p>
@@ -76,29 +95,10 @@ public interface ProcessCallback {
 	}
 
 	/**
-	 * Called by the {@link InputCaptor} to signal, that the content should be appended to the last line. The implementor
-	 * should check if the last line is currently captured and the change is of interest. The string may include ASCII
-	 * control chars that have to be interpreted.
-	 *
-	 * @param string The string to append at last line.
-	 */
-	default void append(String string) {
-
-	}
-
-	/**
 	 * Called by the {@link InputCaptor} to signal, that the process status cannot be determined.
 	 */
 	default void abandoned() {
 
-	}
-
-	/**
-	 * Called by the {@link InputCaptor} to signal, that the reader should jump to the last line after a block read.
-	 *
-	 * @param lines The current number of lines available.
-	 */
-	default void jumpToLastLine(int lines) {
 	}
 
 }

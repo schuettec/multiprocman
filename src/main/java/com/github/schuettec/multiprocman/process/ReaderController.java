@@ -80,7 +80,10 @@ public class ReaderController implements ProcessCallback {
 				return;
 			}
 
-			setCurrentLine(e.getValue());
+			int newLine = e.getValue();
+			setJumpToLastLine(newLine + lineScroller.getModel()
+			    .getExtent() >= lineScroller.getMaximum());
+			setCurrentLine(newLine);
 			updateViewFrame();
 		}
 	};
@@ -186,7 +189,7 @@ public class ReaderController implements ProcessCallback {
 						}
 						textView.appendANSI(line, true);
 
-						jumpToLastLine();
+						_jumpToLastLine();
 					}
 				});
 			} catch (InvocationTargetException e) {
@@ -199,7 +202,7 @@ public class ReaderController implements ProcessCallback {
 		}
 	}
 
-	private void jumpToLastLine() {
+	private void _jumpToLastLine() {
 		if (jumpToLastLine) {
 			updateScrollBar();
 			ignoreAdjustmentListener = true;
@@ -343,7 +346,27 @@ public class ReaderController implements ProcessCallback {
 		this.lines = lines;
 		if (jumpToLastLine) {
 			jumpToLastLine();
-			updateViewFrame();
 		}
 	}
+
+	public void jumpToLastLine() {
+		_jumpToLastLine();
+		updateViewFrame();
+	}
+
+	public boolean isJumpToLastLine() {
+		return jumpToLastLine;
+	}
+
+	public void setJumpToLastLine(boolean jumpToLastLine) {
+		this.jumpToLastLine = jumpToLastLine;
+		viewFrameListeners.fire()
+		    .autoScrollStateChanged(this.jumpToLastLine);
+	}
+
+	public String getLastLines(int linesCount) {
+		int fromLine = Math.max(0, lines - 1 - linesCount);
+		return fileReader.readLinesFromFile(fromLine, lines - 1);
+	}
+
 }

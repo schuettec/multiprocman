@@ -23,8 +23,9 @@ import com.github.schuettec.multiprocman.process.ProcessCallback;
 import com.github.schuettec.multiprocman.process.ProcessObserverImpl;
 import com.github.schuettec.multiprocman.process.ProcessOutputInfo;
 import com.github.schuettec.multiprocman.process.ReaderController;
+import com.github.schuettec.multiprocman.process.ViewFrameListener;
 
-public class ProcessController implements ProcessCallback {
+public class ProcessController implements ProcessCallback, ViewFrameListener {
 	private static Queue<ProcessController> controllers = new ConcurrentLinkedQueue<>();
 
 	static {
@@ -147,16 +148,15 @@ public class ProcessController implements ProcessCallback {
 	private void startProcessObserver() {
 		updateState(State.RUNNING);
 		controllers.add(ProcessController.this);
-		Charset charset = processDescriptor.getCharset();
 		try {
-			// TODO: Use Reader Controller here
-
-			// TODO: Set auto-scroll to bottom to true initially
+			controller.setJumpToLastLine(true);
+			Charset charset = processDescriptor.getCharset();
 			ProcessBuilder builder = setupProcessBuilderCommand(false, processDescriptor);
-			this.processObserver = new ProcessObserverImpl(builder, new File("output.txt"));
+			this.processObserver = new ProcessObserverImpl(builder, new File("output.txt"), charset);
 			this.processObserver.addListener(controller);
 			this.processObserver.addListener(this);
 			this.controller.addListener(processObserver);
+			this.controller.addListener(this);
 			processObserver.startProcess();
 		} catch (Exception e) {
 			ExceptionDialog.showException(getTextPane(), e, "Exception occurred while starting the process.");
@@ -289,12 +289,33 @@ public class ProcessController implements ProcessCallback {
 		updateListeners();
 	}
 
+	@Override
+	public void autoScrollStateChanged(boolean autoScrollNewValue) {
+		updateListeners();
+	}
+
 	public CounterExpressions getCounterExpressions() {
 		return counterExpressions;
 	}
 
 	public JScrollBar getTextViewScroller() {
 		return controller.getLineScroller();
+	}
+
+	public void setAutoScrollToBottom(boolean autoScroll) {
+		controller.setJumpToLastLine(autoScroll);
+	}
+
+	public void scrollToBottom() {
+		controller.jumpToLastLine();
+	}
+
+	public boolean setAutoScrollToBottom() {
+		return controller.isJumpToLastLine();
+	}
+
+	public String getLastLines(int linesCount) {
+		return controller.getLastLines(linesCount);
 	}
 
 }

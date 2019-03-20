@@ -26,10 +26,13 @@ public class ProcessObserverImpl extends Thread implements ProcessObserver, Proc
 	private EventListenerSupport<ProcessCallback> callbacks;
 	private Process process;
 	private InputCaptor captor;
+	private Charset charset;
 
-	public ProcessObserverImpl(ProcessBuilder builder, File outputFile) throws ProcessBufferOutputException {
+	public ProcessObserverImpl(ProcessBuilder builder, File outputFile, Charset charset)
+	    throws ProcessBufferOutputException {
 		requireNonNull(builder, "Builder must not be null!");
 		requireNonNull(outputFile, "Output file must not be null.");
+		this.charset = charset;
 		this.processBuilder = builder;
 		this.processBuilder.redirectErrorStream(true);
 		this.outputFile = outputFile;
@@ -46,8 +49,6 @@ public class ProcessObserverImpl extends Thread implements ProcessObserver, Proc
 
 	@Override
 	public void run() {
-		// TODO: Use charset of launcher config here.
-		Charset defaultCharset = Charset.defaultCharset();
 		try {
 			this.process = processBuilder.start();
 			running = true;
@@ -55,7 +56,7 @@ public class ProcessObserverImpl extends Thread implements ProcessObserver, Proc
 			try (BufferedInputStream input = new BufferedInputStream(inputStr);
 			    FileOutputStream output = new FileOutputStream(outputFile);) {
 				callbacks.fire()
-				    .started(this, outputFile, defaultCharset);
+				    .started(this, outputFile, charset);
 				this.captor = new InputCaptor(new InputCaptorCallback() {
 
 					@Override
