@@ -72,8 +72,6 @@ public class ProcessController implements ProcessCallback, ViewFrameListener {
 		this.state = State.NOT_STARTED;
 
 		this.getTextPane()
-		    .addAppendListener(consolePreview);
-		this.getTextPane()
 		    .addAppendListener(counterExpressions);
 	}
 
@@ -153,6 +151,7 @@ public class ProcessController implements ProcessCallback, ViewFrameListener {
 			Charset charset = processDescriptor.getCharset();
 			ProcessBuilder builder = setupProcessBuilderCommand(false, processDescriptor);
 			this.processObserver = new ProcessObserverImpl(builder, new File("output.txt"), charset);
+			this.processObserver.addListener(consolePreview);
 			this.processObserver.addListener(controller);
 			this.processObserver.addListener(this);
 			this.controller.addListener(processObserver);
@@ -316,6 +315,25 @@ public class ProcessController implements ProcessCallback, ViewFrameListener {
 
 	public String getLastLines(int linesCount) {
 		return controller.getLastLines(linesCount);
+	}
+
+	@Override
+	public void output(int lines, String line) {
+		processListener.fire()
+		    .processOutput(this);
+	}
+
+	@Override
+	public void append(String string) {
+		processListener.fire()
+		    .processOutput(this);
+
+	}
+
+	@Override
+	public void jumpToLastLine(int lines) {
+		processListener.fire()
+		    .processOutput(this);
 	}
 
 }

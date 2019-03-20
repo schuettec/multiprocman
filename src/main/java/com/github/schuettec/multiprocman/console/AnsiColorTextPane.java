@@ -48,10 +48,9 @@ public class AnsiColorTextPane extends JTextPane implements Appendable {
 	static final Color cReset = Color.getHSBColor(0.000f, 0.000f, 1.000f);
 
 	static Color colorCurrent = cReset;
+	private String remaining = "";
 
 	private EventListenerSupport<AppendListener> appendListener = new EventListenerSupport<>(AppendListener.class);
-
-	private String remaining = "";
 
 	private StyleContext lastStyleContext;
 
