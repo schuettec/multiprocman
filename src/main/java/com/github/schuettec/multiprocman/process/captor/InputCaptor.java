@@ -130,6 +130,7 @@ public class InputCaptor {
 					}
 				}
 			} while (input.available() > 0 || callback.shouldRun());
+			System.out.println("Capture looop finished.");
 		} catch (IOException e) {
 			if (callback.shouldRun()) {
 				throw e;

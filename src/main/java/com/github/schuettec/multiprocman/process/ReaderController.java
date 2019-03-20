@@ -161,6 +161,10 @@ public class ReaderController implements ProcessCallback {
 		return lines - 1 <= viewLines;
 	}
 
+	public void close() {
+		fileReader.close();
+	}
+
 	private void toViewFrame(int fromLine, int toLine) {
 		String content = fileReader.readLinesFromFile(fromLine, toLine);
 		String parsed = parseBackspace(content);

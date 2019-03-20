@@ -2,6 +2,7 @@ package com.github.schuettec.multiprocman;
 
 import java.awt.Component;
 import java.io.File;
+import java.io.IOException;
 import java.nio.charset.Charset;
 import java.util.ArrayList;
 import java.util.LinkedList;
@@ -9,11 +10,13 @@ import java.util.List;
 import java.util.Map;
 import java.util.Queue;
 import java.util.StringTokenizer;
+import java.util.UUID;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.TimeUnit;
 
 import javax.swing.JOptionPane;
 import javax.swing.JScrollBar;
+import javax.swing.SwingUtilities;
 
 import org.apache.commons.lang3.event.EventListenerSupport;
 
@@ -60,6 +63,8 @@ public class ProcessController implements ProcessCallback, ViewFrameListener {
 	private ReaderController controller;
 
 	private ProcessObserverImpl processObserver;
+
+	private File outputFile;
 
 	public ProcessController(ProcessDescriptor processDescriptor) {
 		this.controller = new ReaderController();
@@ -150,7 +155,8 @@ public class ProcessController implements ProcessCallback, ViewFrameListener {
 			controller.setJumpToLastLine(true);
 			Charset charset = processDescriptor.getCharset();
 			ProcessBuilder builder = setupProcessBuilderCommand(false, processDescriptor);
-			this.processObserver = new ProcessObserverImpl(builder, new File("output.txt"), charset);
+			this.outputFile = createOutputFile();
+			this.processObserver = new ProcessObserverImpl(builder, outputFile, charset);
 			this.processObserver.addListener(consolePreview);
 			this.processObserver.addListener(controller);
 			this.processObserver.addListener(this);
@@ -160,6 +166,49 @@ public class ProcessController implements ProcessCallback, ViewFrameListener {
 		} catch (Exception e) {
 			ExceptionDialog.showException(getTextPane(), e, "Exception occurred while starting the process.");
 			updateState(State.NOT_STARTED);
+		}
+	}
+
+	private File createOutputFile() throws IOException {
+		File file = new File("multiprocman_" + UUID.randomUUID()
+		    .toString() + ".txt");
+		System.out.println("Output capturing file created: " + file.getAbsolutePath());
+		return file;
+	}
+
+	public void deleteOutputFile() {
+		if (state == State.RUNNING) {
+			int answer = JOptionPane.showConfirmDialog(controller.getTextView(),
+			    "Cannot delete the output capturing file because process is running. Do you want to stop the process and delete?",
+			    "Delete output file", JOptionPane.YES_NO_OPTION, JOptionPane.WARNING_MESSAGE);
+			if (answer == JOptionPane.YES_OPTION) {
+				stop(false);
+			} else {
+				return;
+			}
+		}
+		try {
+			controller.close();
+			boolean deleted = this.outputFile.delete();
+			if (!deleted) {
+				SwingUtilities.invokeLater(new Runnable() {
+
+					@Override
+					public void run() {
+						JOptionPane.showMessageDialog(controller.getTextView(),
+						    "Cannot delete output file: " + outputFile.getAbsolutePath(), "Delete output file",
+						    JOptionPane.WARNING_MESSAGE);
+					}
+				});
+			}
+		} catch (Exception e) {
+			SwingUtilities.invokeLater(new Runnable() {
+				@Override
+				public void run() {
+					ExceptionDialog.showException(controller.getTextView(), e,
+					    "Cannot delete output capturing file: " + outputFile.getAbsolutePath());
+				}
+			});
 		}
 	}
 
@@ -247,6 +296,7 @@ public class ProcessController implements ProcessCallback, ViewFrameListener {
 			List<ProcessController> toShutdown = new LinkedList<>(controllers);
 			for (ProcessController controller : toShutdown) {
 				controller.stop(true);
+				controller.deleteOutputFile();
 			}
 		}
 	}

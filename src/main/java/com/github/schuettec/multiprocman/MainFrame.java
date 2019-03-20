@@ -715,6 +715,7 @@ public class MainFrame extends JFrame implements WindowListener, ProcessListener
 
 	private void removeProcessController(ProcessController processController) {
 		processController.removeProcessListener(this);
+		processController.deleteOutputFile();
 		this.processes.removeElement(processController);
 		if (this.processes.isEmpty()) {
 			ProcessManager.getInstance()
