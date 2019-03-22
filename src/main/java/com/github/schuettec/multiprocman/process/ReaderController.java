@@ -57,7 +57,7 @@ public class ReaderController implements ProcessCallback {
 			determineMaxLines();
 
 			if (viewLinesOld != viewLines) {
-				updateViewFrame();
+				updateViewFrame(false);
 				viewFrameListeners.fire()
 				    .viewFrameChanged(viewLines);
 			}
@@ -84,7 +84,7 @@ public class ReaderController implements ProcessCallback {
 			setJumpToLastLine(newLine + lineScroller.getModel()
 			    .getExtent() >= lineScroller.getMaximum());
 			setCurrentLine(newLine);
-			updateViewFrame();
+			updateViewFrame(false);
 		}
 	};
 
@@ -133,7 +133,7 @@ public class ReaderController implements ProcessCallback {
 		viewFrameListeners.removeListener(listener);
 	}
 
-	private void updateViewFrame() {
+	private void updateViewFrame(boolean async) {
 		if (viewLines == 0 || lines == 0) {
 			return;
 		}
@@ -143,7 +143,7 @@ public class ReaderController implements ProcessCallback {
 			// If there are not enough lines in the output to fill the view frame:
 			setCurrentLine(Math.max(0, lines - 1 - viewLines));
 			int lastViewableLine = (lines - 1);
-			toViewFrame(currentLine, lastViewableLine);
+			toViewFrame(async, currentLine, lastViewableLine);
 		} else {
 			// No view frame underflow.
 			int lastViewableLine = currentLine + viewLines;
@@ -152,7 +152,7 @@ public class ReaderController implements ProcessCallback {
 				currentLine = lastViewableLine - viewLines;
 			}
 
-			toViewFrame(currentLine, lastViewableLine);
+			toViewFrame(async, currentLine, lastViewableLine);
 		}
 		updateScrollBar();
 	}
@@ -165,20 +165,28 @@ public class ReaderController implements ProcessCallback {
 		fileReader.close();
 	}
 
-	private void toViewFrame(int fromLine, int toLine) {
+	private void toViewFrame(boolean async, int fromLine, int toLine) {
 		String content = fileReader.readLinesFromFile(fromLine, toLine);
 		String parsed = parseBackspace(content);
-		try {
-			SwingUtilities.invokeAndWait(new Runnable() {
-				@Override
-				public void run() {
-					textView.clear();
-					textView.appendANSI(parsed, true);
-				}
-			});
-		} catch (Exception e) {
-			e.printStackTrace();
+		if (async) {
+			try {
+				SwingUtilities.invokeAndWait(new Runnable() {
+					@Override
+					public void run() {
+						refreshTextView(parsed);
+					}
+				});
+			} catch (Exception e) {
+				e.printStackTrace();
+			}
+		} else {
+			refreshTextView(parsed);
 		}
+	}
+
+	private void refreshTextView(String parsed) {
+		textView.clear();
+		textView.appendANSI(parsed, true);
 	}
 
 	@Override
@@ -364,7 +372,7 @@ public class ReaderController implements ProcessCallback {
 
 	public void jumpToLastLine() {
 		_jumpToLastLine();
-		updateViewFrame();
+		updateViewFrame(true);
 	}
 
 	public boolean isJumpToLastLine() {
