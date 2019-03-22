@@ -168,8 +168,17 @@ public class ReaderController implements ProcessCallback {
 	private void toViewFrame(int fromLine, int toLine) {
 		String content = fileReader.readLinesFromFile(fromLine, toLine);
 		String parsed = parseBackspace(content);
-		textView.clear();
-		textView.appendANSI(parsed, true);
+		try {
+			SwingUtilities.invokeAndWait(new Runnable() {
+				@Override
+				public void run() {
+					textView.clear();
+					textView.appendANSI(parsed, true);
+				}
+			});
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
 	}
 
 	@Override

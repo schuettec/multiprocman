@@ -179,7 +179,9 @@ public class ProcessObserverImpl extends Thread implements ProcessObserver, Proc
 
 	@Override
 	public void viewFrameChanged(int viewFrameLines) {
-		captor.setViewFrame(viewFrameLines);
+		if (nonNull(captor)) {
+			captor.setViewFrame(viewFrameLines);
+		}
 	}
 
 }

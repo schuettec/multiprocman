@@ -895,9 +895,7 @@ public class MainFrame extends JFrame implements WindowListener, ProcessListener
 
 	@Override
 	public void processOutput(ProcessController processController) {
-		if (currentProcess == processController) {
-			this.processList.repaint();
-		}
+		this.processList.repaint();
 	}
 
 }
