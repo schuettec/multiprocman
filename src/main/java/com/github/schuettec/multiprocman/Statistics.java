@@ -1,5 +1,7 @@
 package com.github.schuettec.multiprocman;
 
+import static java.util.Objects.isNull;
+
 import java.text.DecimalFormat;
 
 /**
@@ -7,7 +9,7 @@ import java.text.DecimalFormat;
  */
 public class Statistics {
 
-	private long overallOutputAmount;
+	private Long overallOutputAmount;
 
 	public Statistics() {
 		super();
@@ -15,22 +17,30 @@ public class Statistics {
 	}
 
 	public void clear() {
-		this.overallOutputAmount = 0;
+		this.overallOutputAmount = null;
 	}
 
 	public String overallOutbutAmountPresentable() {
-		return size(this.overallOutputAmount);
-	}
-
-	public long overallOutbutAmount() {
-		return this.overallOutputAmount;
+		if (isNull(overallOutputAmount)) {
+			return "N/A";
+		} else {
+			return size(this.overallOutputAmount);
+		}
 	}
 
 	/**
 	 * Reports a std/in/err read amount.
 	 */
 	protected void reportOutputAmount(long readAmount) {
-		overallOutputAmount += readAmount;
+		if (isNull(overallOutputAmount)) {
+			overallOutputAmount = readAmount;
+		} else {
+			overallOutputAmount += readAmount;
+		}
+	}
+
+	public void setOverallOutputAmount(Long overallOutputAmount) {
+		this.overallOutputAmount = overallOutputAmount;
 	}
 
 	public static String size(long bytes) {

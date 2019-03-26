@@ -63,4 +63,16 @@ public class FileReader {
 		}
 	}
 
+	/**
+	 * @return Returns the file size or <code>null</code> if the file size could not be determined.
+	 */
+	public Long getFileSize() {
+		try {
+			return input.length();
+		} catch (IOException e) {
+			e.printStackTrace();
+			return null;
+		}
+	}
+
 }

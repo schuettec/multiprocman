@@ -836,6 +836,7 @@ public class MainFrame extends JFrame implements WindowListener, ProcessListener
 	@Override
 	public void processUpdate(ProcessController controller) {
 		this.processList.repaint();
+		refreshStatistics();
 		tglScrollToBottom.setSelected(controller.setAutoScrollToBottom());
 		refreshInfoBar();
 		processCurrentState();
@@ -843,6 +844,10 @@ public class MainFrame extends JFrame implements WindowListener, ProcessListener
 
 	private void refreshInfoBar() {
 		refreshCurrentBranch();
+		refreshStatistics();
+	}
+
+	private void refreshStatistics() {
 		if (nonNull(currentProcess)) {
 			Statistics statistics = currentProcess.getStatistics();
 			String appOutput = statistics.overallOutbutAmountPresentable();
@@ -896,6 +901,7 @@ public class MainFrame extends JFrame implements WindowListener, ProcessListener
 	@Override
 	public void processOutput(ProcessController processController) {
 		this.processList.repaint();
+		refreshStatistics();
 	}
 
 }

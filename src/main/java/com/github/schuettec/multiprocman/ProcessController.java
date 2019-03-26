@@ -371,12 +371,14 @@ public class ProcessController implements ProcessCallback, ViewFrameListener {
 	public void output(int lines, String line) {
 		processListener.fire()
 		    .processOutput(this);
+		statistics.setOverallOutputAmount(controller.getCaptureFileSize());
 	}
 
 	@Override
 	public void append(String string) {
 		processListener.fire()
 		    .processOutput(this);
+		statistics.setOverallOutputAmount(controller.getCaptureFileSize());
 
 	}
 
@@ -384,6 +386,7 @@ public class ProcessController implements ProcessCallback, ViewFrameListener {
 	public void jumpToLastLine(int lines) {
 		processListener.fire()
 		    .processOutput(this);
+		statistics.setOverallOutputAmount(controller.getCaptureFileSize());
 	}
 
 }

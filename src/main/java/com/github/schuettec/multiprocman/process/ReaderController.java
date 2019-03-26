@@ -1,5 +1,7 @@
 package com.github.schuettec.multiprocman.process;
 
+import static java.util.Objects.isNull;
+
 import java.awt.Container;
 import java.awt.FontMetrics;
 import java.awt.event.AdjustmentEvent;
@@ -163,6 +165,17 @@ public class ReaderController implements ProcessCallback {
 
 	public void close() {
 		fileReader.close();
+	}
+
+	/**
+	 * @return Returns the output capturing file size or <code>null</code> if the file is inaccessible.
+	 */
+	public Long getCaptureFileSize() {
+		if (isNull(fileReader)) {
+			return null;
+		} else {
+			return fileReader.getFileSize();
+		}
 	}
 
 	private void toViewFrame(boolean async, int fromLine, int toLine) {
@@ -387,7 +400,8 @@ public class ReaderController implements ProcessCallback {
 
 	public String getLastLines(int linesCount) {
 		int fromLine = Math.max(0, lines - 1 - linesCount);
-		return fileReader.readLinesFromFile(fromLine, lines - 1);
+		int toLine = Math.max(0, lines - 1);
+		return fileReader.readLinesFromFile(fromLine, toLine);
 	}
 
 }
