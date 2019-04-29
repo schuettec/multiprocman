@@ -1,8 +1,9 @@
 package com.github.schuettec.multiprocman.consolepreview;
 
+import static com.github.schuettec.multiprocman.AnsiColors.getANSIColor;
+
 import java.awt.AlphaComposite;
 import java.awt.BasicStroke;
-import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.FontMetrics;
@@ -14,11 +15,9 @@ import java.awt.geom.Rectangle2D;
 import java.awt.image.BufferedImage;
 import java.util.List;
 
-import javax.swing.JFrame;
 import javax.swing.JPanel;
 import javax.swing.plaf.BorderUIResource;
 
-import com.github.schuettec.multiprocman.AppendListener;
 import com.github.schuettec.multiprocman.CounterExpressions;
 import com.github.schuettec.multiprocman.CounterState;
 import com.github.schuettec.multiprocman.ProcessController;
@@ -26,9 +25,9 @@ import com.github.schuettec.multiprocman.ProcessController.State;
 import com.github.schuettec.multiprocman.ProcessDescriptor;
 import com.github.schuettec.multiprocman.ProcessListener;
 import com.github.schuettec.multiprocman.Resources;
-import com.github.schuettec.multiprocman.console.AnsiColorTextPane;
+import com.github.schuettec.multiprocman.process.ProcessCallback;
 
-public class ConsolePreview extends JPanel implements AppendListener, ProcessListener {
+public class ConsolePreview extends JPanel implements ProcessListener, ProcessCallback {
 
 	private static final int MAX_COUNTER_VALUE = 99;
 	private static final int COUNTER_DIMENSIONS = 18;
@@ -61,39 +60,10 @@ public class ConsolePreview extends JPanel implements AppendListener, ProcessLis
 	private ProcessController controller;
 	private BufferedImage titleImage;
 
-	public static void main(String[] args) {
-		JFrame frame = new JFrame();
-		AnsiColorTextPane ansiText = new AnsiColorTextPane();
-		ProcessDescriptor processDescriptor = new ProcessDescriptor();
-		processDescriptor.setTitle("title");
-		ConsolePreview preview = new ConsolePreview(new ProcessController(processDescriptor));
-		ansiText.addAppendListener(preview);
-		frame.add(preview, BorderLayout.NORTH);
-		frame.add(ansiText, BorderLayout.CENTER);
-		ansiText.appendANSI("Listening for transport dt_socket at address: 5012\n"
-		    + "2018-06-25 12:56:24.920  INFO [user-service] [,] 17528 --- [           main] s.c.a.AnnotationConfigApplicationContext : Refreshing org.springframework.context.annotation.AnnotationConfigApplicationContext@38aa816f: startup date [Mon Jun 25 12:56:24 CEST 2018]; root of context hierarchy\n"
-		    + "2018-06-25 12:56:25.273  INFO [user-service] [,] 17528 --- [           main] f.a.AutowiredAnnotationBeanPostProcessor : JSR-330 'javax.inject.Inject' annotation found and supported for autowiring\n"
-		    + "2018-06-25 12:56:25.364  INFO [user-service] [,] 17528 --- [           main] trationDelegate$BeanPostProcessorChecker : Bean 'configurationPropertiesRebinderAutoConfiguration' of type [org.springframework.cloud.autoconfigure.ConfigurationPropertiesRebinderAutoConfiguration$$EnhancerBySpringCGLIB$$66b84db6] is not eligible for getting processed by all BeanPostProcessors (for example: not eligible for auto-proxying)\n"
-		    + "                    ________________________________________________\n"
-		    + "                   |  _____  ______      _   _ ________          __ |\n"
-		    + "            /|     | |  __ \\|  ____|    | \\ | |  ____\\ \\        / / |\n"
-		    + "            ||     | | |__) | |__ ______|  \\| | |__   \\ \\  /\\  / /  |\n"
-		    + "       .----|-----,| |  _  /|  __|______| . ` |  __|   \\ \\/  \\/ /   |\n"
-		    + "       ||  ||   ==|| | | \\ \\| |____     | |\\  | |____   \\  /\\  /    |\n"
-		    + "  .-----'--'|   ==|| |_|  \\_\\______|    |_| \\_|______|   \\/  \\/     |\n"
-		    + "  |)-      ~|     ||________________________________________________|\n"
-		    + "  | ___     |     |____.________  ________________________________|\n"
-		    + " [_/.-.\\\"--\"-------- //.-.  .-.\\\\/                 \\\\ .-.  .-. //\n"
-		    + "   ( o )`===\"\"\"\"\"\"\"\"\"`( o )( o )                    `( o )( o )`\n"
-		    + "    '-'                '-'  '-'                       '-'  '-'\n" + "\n" + " user-service v0.0.1\n" + "\n"
-		    + "\n"
-		    + "2018-06-25 12:56:26.309  INFO [renew-user-service] [,] 17528 --- [           main] c.r.r.u.UserServiceApplication           : The following profiles are active: dev\n"
-		    + "2018-06-25 12:56:26.364  INFO [renew-user-service] [,] 17528 --- [           main] ationConfigEmbeddedWebApplicationContext : Refreshing",
-		    false);
-		frame.pack();
-		frame.setLocationRelativeTo(null);
-		frame.setVisible(true);
-	}
+	private Color cReset = Color.getHSBColor(0.000f, 0.000f, 1.000f);
+
+	private Color colorCurrent = cReset;
+	private String remaining = "";
 
 	public ConsolePreview(ProcessController controller) {
 		super();
@@ -107,10 +77,8 @@ public class ConsolePreview extends JPanel implements AppendListener, ProcessLis
 		this.bufferedImage = new BufferedImage(WIDTH, HEIGHT, BufferedImage.TYPE_INT_RGB);
 		Insets insets = this.getInsets();
 		this.titleImage = new BufferedImage(HEIGHT - insets.top - insets.bottom, TITLE_SPACE_X, BufferedImage.TYPE_INT_RGB);
-
 		clearImage(bufferedImage, Color.BLACK);
 		drawTitleImage();
-
 	}
 
 	private void toUnselectedBorder() {
@@ -231,8 +199,63 @@ public class ConsolePreview extends JPanel implements AppendListener, ProcessLis
 		g2d.drawImage(stateIcon, x, y, this);
 	}
 
-	@Override
-	public void append(Color color, String s) {
+	private void _appendANSI(String s) { // convert ANSI color codes first
+		int aPos = 0; // current char position in addString
+		int aIndex = 0; // index of next Escape sequence
+		int mIndex = 0; // index of "m" terminating Escape sequence
+		String tmpString = "";
+		boolean stillSearching = true; // true until no more Escape sequences
+		String addString = remaining + s;
+		remaining = "";
+
+		if (addString.length() > 0) {
+			aIndex = addString.indexOf("\u001B"); // find first escape
+			if (aIndex == -1) { // no escape/color change in this string, so just send it with current color
+				_append(colorCurrent, addString);
+				return;
+			}
+			// otherwise There is an escape character in the string, so we must process it
+
+			if (aIndex > 0) { // Escape is not first char, so send text up to first escape
+				tmpString = addString.substring(0, aIndex);
+				_append(colorCurrent, tmpString);
+				aPos = aIndex;
+			}
+			// aPos is now at the beginning of the first escape sequence
+
+			stillSearching = true;
+			while (stillSearching) {
+				mIndex = addString.indexOf("m", aPos); // find the end of the escape sequence
+				if (mIndex < 0) { // the buffer ends halfway through the ansi string!
+					remaining = addString.substring(aPos, addString.length());
+					stillSearching = false;
+					continue;
+				} else {
+					tmpString = addString.substring(aPos, mIndex + 1);
+					colorCurrent = getANSIColor(tmpString, cReset);
+				}
+				aPos = mIndex + 1;
+				// now we have the color, send text that is in that color (up to next escape)
+
+				aIndex = addString.indexOf("\u001B", aPos);
+
+				if (aIndex == -1) { // if that was the last sequence of the input, send remaining text
+					tmpString = addString.substring(aPos, addString.length());
+					_append(colorCurrent, tmpString);
+					stillSearching = false;
+					continue; // jump out of loop early, as the whole string has been sent now
+				}
+
+				// there is another escape sequence, so send part of the string and prepare for
+				// the next
+				tmpString = addString.substring(aPos, aIndex);
+				aPos = aIndex;
+				_append(colorCurrent, tmpString);
+			} // while there's text in the input buffer
+		}
+	}
+
+	private void _append(Color color, String s) {
 		for (int i = 0; i < s.length(); i++) {
 			int localCurY = HEIGHT - Y_INC;
 			char c = s.charAt(i);
@@ -249,8 +272,6 @@ public class ConsolePreview extends JPanel implements AppendListener, ProcessLis
 				curX += X_INC;
 			}
 		}
-
-		this.repaint();
 	}
 
 	private BufferedImage cropImage(BufferedImage oldImage) {
@@ -272,4 +293,23 @@ public class ConsolePreview extends JPanel implements AppendListener, ProcessLis
 		this.processState = controller.getState();
 	}
 
+	@Override
+	public void output(int lines, String line) {
+		_appendANSI(line);
+	}
+
+	@Override
+	public void append(String string) {
+		_appendANSI(string);
+	}
+
+	@Override
+	public void jumpToLastLine(int lines) {
+		String lastLines = controller.getLastLines((int) Math.round(HEIGHT / (double) Y_INC));
+		_appendANSI(lastLines);
+	}
+
+	@Override
+	public void processOutput(ProcessController processController) {
+	}
 }

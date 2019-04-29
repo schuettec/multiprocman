@@ -38,6 +38,7 @@ import javax.swing.JMenuBar;
 import javax.swing.JMenuItem;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
+import javax.swing.JScrollBar;
 import javax.swing.JScrollPane;
 import javax.swing.JSeparator;
 import javax.swing.JToggleButton;
@@ -54,10 +55,9 @@ import javax.swing.event.ListSelectionEvent;
 import javax.swing.event.ListSelectionListener;
 
 import com.github.schuettec.multiprocman.ProcessController.State;
+import com.github.schuettec.multiprocman.console.AnsiColorTextPane;
 import com.github.schuettec.multiprocman.console.AnsiColorTextPane.ExportType;
 import com.github.schuettec.multiprocman.console.AutoScrollToBottomListener;
-import com.github.schuettec.multiprocman.console.ScrollableAnsiColorTextPaneContainer;
-import com.github.schuettec.multiprocman.console.SearchFieldListener;
 import com.github.schuettec.multiprocman.consolepreview.ConsolePreview;
 import com.github.schuettec.multiprocman.git.GitBranchSelection;
 import com.github.schuettec.multiprocman.git.GitException;
@@ -67,7 +67,7 @@ import com.github.schuettec.multiprocman.themes.ThemeUtil;
 
 import javafx.stage.FileChooser.ExtensionFilter;
 
-public class MainFrame extends JFrame implements WindowListener, ProcessListener, SearchFieldListener {
+public class MainFrame extends JFrame implements WindowListener, ProcessListener {
 
 	private static final String WINDOW_TITLE = "Running applications";
 
@@ -87,10 +87,9 @@ public class MainFrame extends JFrame implements WindowListener, ProcessListener
 		@Override
 		public void actionPerformed(ActionEvent e) {
 			JToggleButton source = (JToggleButton) e.getSource();
-			ScrollableAnsiColorTextPaneContainer consoleScroller = currentProcess.getConsoleScroller();
 			boolean autoScroll = source.isSelected();
-			consoleScroller.setAutoScrollToBottom(autoScroll);
-			consoleScroller.scrollToBottom();
+			currentProcess.setAutoScrollToBottom(autoScroll);
+			currentProcess.scrollToBottom();
 		}
 	};
 
@@ -129,7 +128,6 @@ public class MainFrame extends JFrame implements WindowListener, ProcessListener
 	private JMenuItem mntmNewProcess;
 	private JMenu mnView;
 	private JCheckBoxMenuItem chckbxmntmAutoScrollTo;
-	private JCheckBoxMenuItem chckbxmntmFind;
 	private JToolBar toolBar;
 	private JButton btnStop;
 	private JButton btnStopForcibly;
@@ -148,6 +146,8 @@ public class MainFrame extends JFrame implements WindowListener, ProcessListener
 	private JPanel pnlInfo;
 	private JLabel lblOutputSoFar;
 	private JLabel lblAppOutput;
+
+	private JPanel centerContainer;
 
 	private static class Holder {
 		private static final MainFrame INSTANCE = new MainFrame();
@@ -174,10 +174,15 @@ public class MainFrame extends JFrame implements WindowListener, ProcessListener
 		contentPane.setLayout(new BorderLayout(0, 0));
 		setContentPane(contentPane);
 
+		centerContainer = new JPanel();
+		centerContainer.setBorder(null);
+		centerContainer.setLayout(new BorderLayout(0, 0));
+		contentPane.add(centerContainer, BorderLayout.CENTER);
+
 		footerContainer = new JPanel();
 		footerContainer.setBorder(null);
-		contentPane.add(footerContainer, BorderLayout.SOUTH);
 		footerContainer.setLayout(new BorderLayout(0, 0));
+		contentPane.add(footerContainer, BorderLayout.SOUTH);
 
 		separator = new JSeparator();
 		separator.setPreferredSize(new Dimension(0, 3));
@@ -386,21 +391,6 @@ public class MainFrame extends JFrame implements WindowListener, ProcessListener
 		mnView = new JMenu("View");
 		menuBar.add(mnView);
 
-		chckbxmntmFind = new JCheckBoxMenuItem(new AbstractAction("Find") {
-			@Override
-			public void actionPerformed(ActionEvent e) {
-				if (chckbxmntmFind.isSelected()) {
-					currentProcess.getConsoleScroller()
-					    .startSearch();
-				} else {
-					currentProcess.getConsoleScroller()
-					    .finishSearch();
-				}
-			}
-		});
-		chckbxmntmFind.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_F, InputEvent.CTRL_DOWN_MASK));
-		mnView.add(chckbxmntmFind);
-
 		chckbxmntmAutoScrollTo = new JCheckBoxMenuItem("Auto scroll to bottom");
 		chckbxmntmAutoScrollTo.setModel(autoScrollToBottomToggleModel);
 		mnView.add(chckbxmntmAutoScrollTo);
@@ -605,30 +595,18 @@ public class MainFrame extends JFrame implements WindowListener, ProcessListener
 	}
 
 	private void selectConsole(ProcessController selectedValue) {
-		if (this.currentProcess != null) {
-			// Deregister everything
-			currentProcess.getConsoleScroller()
-			    .removeAutoScrollToBottomListener(autoScrollToBottomToggleModel);
-			currentProcess.getConsoleScroller()
-			    .removeSearchFieldListener(this);
-		}
-
-		BorderLayout layout = (BorderLayout) contentPane.getLayout();
-		Component centerComponent = layout.getLayoutComponent(BorderLayout.CENTER);
-		if (centerComponent != null) {
-			contentPane.remove(centerComponent);
-
-		}
+		centerContainer.removeAll();
 
 		clearProcessToolbar();
 		disableProcessToolbar();
 
 		if (nonNull(selectedValue)) {
-			ScrollableAnsiColorTextPaneContainer consoleScroller = selectedValue.getConsoleScroller();
-			contentPane.add(consoleScroller, BorderLayout.CENTER);
-			consoleScroller.addAutoScrollToBottomListener(autoScrollToBottomToggleModel);
-			consoleScroller.addSearchFieldListener(this);
-
+			AnsiColorTextPane textPane = selectedValue.getTextPane();
+			JScrollPane scrollPane = new JScrollPane(textPane, JScrollPane.VERTICAL_SCROLLBAR_NEVER,
+			    JScrollPane.HORIZONTAL_SCROLLBAR_ALWAYS);
+			centerContainer.add(scrollPane, BorderLayout.CENTER);
+			JScrollBar scroller = selectedValue.getTextViewScroller();
+			centerContainer.add(scroller, BorderLayout.EAST);
 			addGitToToolbarOnDemand(selectedValue);
 			addCounterToToolbar(selectedValue.getCounterExpressions());
 		}
@@ -737,6 +715,7 @@ public class MainFrame extends JFrame implements WindowListener, ProcessListener
 
 	private void removeProcessController(ProcessController processController) {
 		processController.removeProcessListener(this);
+		processController.deleteOutputFile();
 		this.processes.removeElement(processController);
 		if (this.processes.isEmpty()) {
 			ProcessManager.getInstance()
@@ -845,18 +824,7 @@ public class MainFrame extends JFrame implements WindowListener, ProcessListener
 
 	}
 
-	@Override
-	public void searchFieldOpen() {
-		chckbxmntmFind.setSelected(true);
-	}
-
-	@Override
-	public void searchFieldClosed() {
-		chckbxmntmFind.setSelected(false);
-	}
-
 	private void disableProcessToolbar() {
-		chckbxmntmFind.setEnabled(false);
 		btnClose.setEnabled(false);
 		btnSave.setEnabled(false);
 		btnClear.setEnabled(false);
@@ -868,13 +836,18 @@ public class MainFrame extends JFrame implements WindowListener, ProcessListener
 	@Override
 	public void processUpdate(ProcessController controller) {
 		this.processList.repaint();
+		refreshStatistics();
+		tglScrollToBottom.setSelected(controller.setAutoScrollToBottom());
 		refreshInfoBar();
 		processCurrentState();
-
 	}
 
 	private void refreshInfoBar() {
 		refreshCurrentBranch();
+		refreshStatistics();
+	}
+
+	private void refreshStatistics() {
 		if (nonNull(currentProcess)) {
 			Statistics statistics = currentProcess.getStatistics();
 			String appOutput = statistics.overallOutbutAmountPresentable();
@@ -887,7 +860,6 @@ public class MainFrame extends JFrame implements WindowListener, ProcessListener
 			switch (currentProcess.getState()) {
 				case NOT_STARTED:
 					btnClose.setEnabled(true);
-					chckbxmntmFind.setEnabled(false);
 					btnSave.setEnabled(false);
 					btnClear.setEnabled(false);
 					btnStop.setEnabled(false);
@@ -896,7 +868,6 @@ public class MainFrame extends JFrame implements WindowListener, ProcessListener
 					break;
 				case RUNNING:
 					btnClose.setEnabled(false);
-					chckbxmntmFind.setEnabled(true);
 					btnSave.setEnabled(true);
 					btnClear.setEnabled(true);
 					btnStop.setEnabled(true);
@@ -906,7 +877,6 @@ public class MainFrame extends JFrame implements WindowListener, ProcessListener
 				case STOPPED_OK:
 				case STOPPED_ALERT:
 					btnClose.setEnabled(true);
-					chckbxmntmFind.setEnabled(true);
 					btnSave.setEnabled(true);
 					btnClear.setEnabled(true);
 					btnStop.setEnabled(false);
@@ -915,7 +885,6 @@ public class MainFrame extends JFrame implements WindowListener, ProcessListener
 					break;
 				case STOPPING:
 					btnClose.setEnabled(false);
-					chckbxmntmFind.setEnabled(true);
 					btnSave.setEnabled(true);
 					btnClear.setEnabled(true);
 					btnStop.setEnabled(false);
@@ -927,6 +896,12 @@ public class MainFrame extends JFrame implements WindowListener, ProcessListener
 					break;
 			}
 		}
+	}
+
+	@Override
+	public void processOutput(ProcessController processController) {
+		this.processList.repaint();
+		refreshStatistics();
 	}
 
 }
