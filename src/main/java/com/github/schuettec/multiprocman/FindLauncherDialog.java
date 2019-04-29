@@ -339,13 +339,17 @@ public class FindLauncherDialog extends JDialog {
 				model.addElement(pd);
 			} else {
 				if (pd.getCategoryDescription()
-				    .contains(search)
+				    .toLowerCase()
+				    .contains(search.toLowerCase())
 				    || pd.getCategoryName()
-				        .contains(search)
+				        .toLowerCase()
+				        .contains(search.toLowerCase())
 				    || pd.getTitle()
-				        .contains(search)
+				        .toLowerCase()
+				        .contains(search.toLowerCase())
 				    || pd.getCommand()
-				        .contains(search)) {
+				        .toLowerCase()
+				        .contains(search.toLowerCase())) {
 					model.addElement(pd);
 				}
 			}

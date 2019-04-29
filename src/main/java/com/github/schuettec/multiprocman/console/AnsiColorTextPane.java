@@ -5,6 +5,7 @@ import static java.util.Objects.isNull;
 import static java.util.Objects.nonNull;
 
 import java.awt.Color;
+import java.awt.Dimension;
 import java.awt.Font;
 import java.io.File;
 import java.io.FileNotFoundException;
@@ -16,7 +17,9 @@ import javax.swing.JTextPane;
 import javax.swing.text.AttributeSet;
 import javax.swing.text.BadLocationException;
 import javax.swing.text.DefaultEditorKit;
+import javax.swing.text.Document;
 import javax.swing.text.EditorKit;
+import javax.swing.text.Element;
 import javax.swing.text.SimpleAttributeSet;
 import javax.swing.text.StyleConstants;
 import javax.swing.text.StyleContext;
@@ -45,12 +48,13 @@ public class AnsiColorTextPane extends JTextPane implements Appendable {
 	static final Color cReset = Color.getHSBColor(0.000f, 0.000f, 1.000f);
 
 	static Color colorCurrent = cReset;
+	private String remaining = "";
 
 	private EventListenerSupport<AppendListener> appendListener = new EventListenerSupport<>(AppendListener.class);
 
-	private String remaining = "";
-
 	private StyleContext lastStyleContext;
+
+	private boolean wrapLines = true;
 
 	public AnsiColorTextPane() {
 		super();
@@ -60,6 +64,40 @@ public class AnsiColorTextPane extends JTextPane implements Appendable {
 	public AnsiColorTextPane(StyledDocument doc) {
 		super(doc);
 		initialize();
+	}
+
+	@Override
+	public boolean getScrollableTracksViewportWidth() {
+		if (wrapLines) {
+			return super.getScrollableTracksViewportWidth();
+		} else {
+			// Only track viewport width when the viewport is wider than the preferred width
+			return getUI().getPreferredSize(this).width <= getParent().getSize().width;
+		}
+	}
+
+	@Override
+	public boolean getScrollableTracksViewportHeight() {
+		// If true, the text pane will always has the height of the viewport.
+		return true;
+	}
+
+	@Override
+	public Dimension getPreferredSize() {
+		// Avoid substituting the minimum width for the preferred width when the viewport is too narrow
+		if (wrapLines) {
+			return super.getPreferredSize();
+		} else {
+			return getUI().getPreferredSize(this);
+		}
+	}
+
+	public boolean isWrapLines() {
+		return wrapLines;
+	}
+
+	public void setWrapLines(boolean wrapLines) {
+		this.wrapLines = wrapLines;
 	}
 
 	private void initialize() {
@@ -238,6 +276,38 @@ public class AnsiColorTextPane extends JTextPane implements Appendable {
 			    JOptionPane.ERROR_MESSAGE);
 		} catch (BadLocationException e) {
 			ExceptionDialog.showException(this, e, "Bad location while saving the document.");
+		}
+	}
+
+	public void clear() {
+		Document document = getDocument();
+		try {
+			document.remove(0, document.getLength());
+		} catch (BadLocationException e) {
+			e.printStackTrace();
+		}
+	}
+
+	/**
+	 * Removes the last character in the document.
+	 *
+	 * @param count
+	 */
+	public void backspace(int count) {
+		try {
+			getDocument().remove(getDocument().getLength() - count, count);
+		} catch (BadLocationException e) {
+			e.printStackTrace();
+		}
+	}
+
+	public void removeFirstLine() {
+		Element root = getDocument().getDefaultRootElement();
+		Element first = root.getElement(0);
+		try {
+			getDocument().remove(first.getStartOffset(), first.getEndOffset());
+		} catch (BadLocationException e) {
+			e.printStackTrace();
 		}
 	}
 
