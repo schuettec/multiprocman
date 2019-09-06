@@ -264,11 +264,13 @@ public class ConsolePreview extends JPanel implements ProcessListener, ProcessCa
 				bufferedImage = cropImage(bufferedImage);
 				curX = INITIAL_X;
 			} else {
-				// Paint charatcer
-				Graphics2D g = (Graphics2D) bufferedImage.getGraphics();
-				g.setColor(color);
-				g.setStroke(new BasicStroke(Y_INC - 1));
-				g.drawLine(curX, localCurY, curX + X_INC, localCurY);
+				if (c != ' ') {
+					// Paint character
+					Graphics2D g = (Graphics2D) bufferedImage.getGraphics();
+					g.setColor(color);
+					g.setStroke(new BasicStroke(Y_INC - 1));
+					g.drawLine(curX, localCurY, curX + X_INC, localCurY);
+				}
 				curX += X_INC;
 			}
 		}
