@@ -84,18 +84,7 @@ public class ProcessObserverImpl extends Thread implements ProcessObserver, Proc
 				}, input, output);
 				captor.run();
 
-				try {
-					boolean exited = process.waitFor(10l, TimeUnit.SECONDS);
-					if (exited) {
-						int exitValue = process.exitValue();
-						callbacks.fire()
-						    .exited(exitValue);
-					} else {
-						callbacks.fire()
-						    .abandoned();
-					}
-				} catch (InterruptedException e) {
-				}
+				_waitFor();
 
 			} catch (Exception e) {
 				stopProcess();
@@ -106,6 +95,18 @@ public class ProcessObserverImpl extends Thread implements ProcessObserver, Proc
 			stopProcess();
 			callbacks.fire()
 			    .cannotStartProcess(e);
+		}
+	}
+
+	private void _waitFor() throws InterruptedException {
+		boolean exited = process.waitFor(10l, TimeUnit.SECONDS);
+		if (exited) {
+			int exitValue = process.exitValue();
+			callbacks.fire()
+			    .exited(exitValue);
+		} else {
+			callbacks.fire()
+			    .abandoned();
 		}
 	}
 
@@ -124,7 +125,11 @@ public class ProcessObserverImpl extends Thread implements ProcessObserver, Proc
 
 	@Override
 	public void waitFor() {
-		ExceptionDialog.showException(null, new Exception("Not implemented!"), "Wait for process not implemented!");
+		try {
+			_waitFor();
+		} catch (InterruptedException e) {
+			ExceptionDialog.showException(null, e, "Error while waiting for process to finish!");
+		}
 	}
 
 	/*
