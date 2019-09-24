@@ -63,6 +63,7 @@ import com.github.schuettec.multiprocman.git.GitBranchSelection;
 import com.github.schuettec.multiprocman.git.GitException;
 import com.github.schuettec.multiprocman.git.GitManagerImpl;
 import com.github.schuettec.multiprocman.manager.ProcessManager;
+import com.github.schuettec.multiprocman.preferences.PreferencesDialog;
 import com.github.schuettec.multiprocman.themes.ThemeUtil;
 
 import javafx.stage.FileChooser.ExtensionFilter;
@@ -147,6 +148,8 @@ public class MainFrame extends JFrame implements WindowListener, ProcessListener
 	private JLabel lblAppOutput;
 
 	private JPanel centerContainer;
+	private JMenu mnNewMenu;
+	private JMenuItem mntmPreferences;
 
 	private static class Holder {
 		private static final MainFrame INSTANCE = new MainFrame();
@@ -393,6 +396,18 @@ public class MainFrame extends JFrame implements WindowListener, ProcessListener
 		chckbxmntmAutoScrollTo = new JCheckBoxMenuItem("Auto scroll to bottom");
 		chckbxmntmAutoScrollTo.setModel(autoScrollToBottomToggleModel);
 		mnView.add(chckbxmntmAutoScrollTo);
+
+		mnNewMenu = new JMenu("Window");
+		menuBar.add(mnNewMenu);
+
+		mntmPreferences = new JMenuItem(new AbstractAction("Preferences") {
+
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				PreferencesDialog.showPreferences();
+			}
+		});
+		mnNewMenu.add(mntmPreferences);
 
 		this.defaultToolbarButtons = Arrays.asList(new Component[] {
 		    btnClose, btnSave, btnClear, btnStop, btnRestart
