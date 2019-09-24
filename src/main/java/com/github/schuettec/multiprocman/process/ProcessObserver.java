@@ -6,8 +6,6 @@ public interface ProcessObserver {
 
 	void stopProcess();
 
-	void stopProcessForcibly();
-
 	void waitFor();
 
 	long getLines();

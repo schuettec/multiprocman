@@ -221,20 +221,16 @@ public class ProcessController implements ProcessCallback, ViewFrameListener {
 	public void stop(boolean waitFor) {
 		if (state == State.RUNNING || state == State.ABANDONED) {
 			updateState(State.STOPPING);
-			_stopProcess(false);
+			_stopProcess();
 			waitForOnDemand(waitFor);
 		}
 	}
 
-	private void _stopProcess(boolean force) {
+	private void _stopProcess() {
 		if (processDescriptor.isUseTerminationCommand()) {
 			executeTermination();
 		} else {
-			if (force) {
-				this.processObserver.stopProcessForcibly();
-			} else {
-				this.processObserver.stopProcess();
-			}
+			this.processObserver.stopProcess();
 		}
 	}
 
@@ -247,13 +243,13 @@ public class ProcessController implements ProcessCallback, ViewFrameListener {
 					Process process = termProcess.start();
 					boolean terminated = process.waitFor(8000, TimeUnit.MILLISECONDS);
 					if (!terminated) {
-						stopForce(false);
+						stop(false);
 						JOptionPane.showMessageDialog(getTextPane(), String.format(
 						    "The application %s was stopped with the termination command but the command did not respond. The applicationwas killed to force termination.",
 						    processDescriptor.getTitle()), "Termination command", JOptionPane.ERROR_MESSAGE);
 					}
 				} catch (Exception e) {
-					stopForce(false);
+					stop(false);
 					JOptionPane.showMessageDialog(getTextPane(), String.format(
 					    "The application %s was stopped with the termination command but the command threw an error. A kill signal is used to force termination.",
 					    processDescriptor.getTitle()), "Termination command", JOptionPane.ERROR_MESSAGE);
@@ -261,12 +257,6 @@ public class ProcessController implements ProcessCallback, ViewFrameListener {
 			}
 		});
 		termination.start();
-	}
-
-	public void stopForce(boolean waitFor) {
-		updateState(State.STOPPING);
-		_stopProcess(true);
-		waitForOnDemand(waitFor);
 	}
 
 	private void waitForOnDemand(boolean waitFor) {

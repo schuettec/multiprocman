@@ -118,14 +118,8 @@ public class ProcessObserverImpl extends Thread implements ProcessObserver, Proc
 	public void stopProcess() {
 		if (nonNull(this.process)) {
 			this.process.destroy();
-			// TODO: Wait for or destroy forcibly.
 			running = false;
 		}
-	}
-
-	@Override
-	public void stopProcessForcibly() {
-		ExceptionDialog.showException(null, new Exception("Not implemented!"), "Stop process forcibly not implemented!");
 	}
 
 	@Override

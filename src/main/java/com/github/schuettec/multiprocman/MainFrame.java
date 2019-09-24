@@ -130,7 +130,6 @@ public class MainFrame extends JFrame implements WindowListener, ProcessListener
 	private JCheckBoxMenuItem chckbxmntmAutoScrollTo;
 	private JToolBar toolBar;
 	private JButton btnStop;
-	private JButton btnStopForcibly;
 	private JButton btnRestart;
 	private JButton btnClear;
 	private JPanel panel;
@@ -396,7 +395,7 @@ public class MainFrame extends JFrame implements WindowListener, ProcessListener
 		mnView.add(chckbxmntmAutoScrollTo);
 
 		this.defaultToolbarButtons = Arrays.asList(new Component[] {
-		    btnClose, btnSave, btnClear, btnStop, btnStopForcibly, btnRestart
+		    btnClose, btnSave, btnClear, btnStop, btnRestart
 		});
 	}
 
@@ -459,20 +458,6 @@ public class MainFrame extends JFrame implements WindowListener, ProcessListener
 		btnStop.setToolTipText("Stop");
 		allProcessesToolbar.add(btnStop);
 
-		btnStopForcibly = new JButton(new AbstractAction(null, new ImageIcon(Resources.getStopForcibly())) {
-
-			@Override
-			public void actionPerformed(ActionEvent e) {
-				Enumeration<ProcessController> elements = processes.elements();
-				while (elements.hasMoreElements()) {
-					ProcessController pc = elements.nextElement();
-					pc.stopForce(false);
-				}
-			}
-
-		});
-		btnStopForcibly.setToolTipText("Stop forcibly");
-		allProcessesToolbar.add(btnStopForcibly);
 		allProcessesToolbar.addSeparator();
 		addGitToToolbarForAll();
 		allProcessesToolbar.addSeparator();
@@ -559,17 +544,6 @@ public class MainFrame extends JFrame implements WindowListener, ProcessListener
 		btnStop.setToolTipText("Stop");
 		toolBar.add(btnStop);
 
-		btnStopForcibly = new JButton(new AbstractAction(null, new ImageIcon(Resources.getStopForcibly())) {
-
-			@Override
-			public void actionPerformed(ActionEvent e) {
-				currentProcess.stopForce(false);
-			}
-
-		});
-		btnStopForcibly.setEnabled(false);
-		btnStopForcibly.setToolTipText("Stop forcibly");
-		toolBar.add(btnStopForcibly);
 		toolBar.addSeparator();
 
 		btnClose = new JButton(new AbstractAction(null, new ImageIcon(Resources.getX())) {
@@ -829,7 +803,6 @@ public class MainFrame extends JFrame implements WindowListener, ProcessListener
 		btnSave.setEnabled(false);
 		btnClear.setEnabled(false);
 		btnStop.setEnabled(false);
-		btnStopForcibly.setEnabled(false);
 		btnRestart.setEnabled(false);
 	}
 
@@ -863,7 +836,6 @@ public class MainFrame extends JFrame implements WindowListener, ProcessListener
 					btnSave.setEnabled(false);
 					btnClear.setEnabled(false);
 					btnStop.setEnabled(false);
-					btnStopForcibly.setEnabled(false);
 					btnRestart.setEnabled(true);
 					break;
 				case RUNNING:
@@ -871,7 +843,6 @@ public class MainFrame extends JFrame implements WindowListener, ProcessListener
 					btnSave.setEnabled(true);
 					btnClear.setEnabled(true);
 					btnStop.setEnabled(true);
-					btnStopForcibly.setEnabled(true);
 					btnRestart.setEnabled(true);
 					break;
 				case STOPPED_OK:
@@ -880,7 +851,6 @@ public class MainFrame extends JFrame implements WindowListener, ProcessListener
 					btnSave.setEnabled(true);
 					btnClear.setEnabled(true);
 					btnStop.setEnabled(false);
-					btnStopForcibly.setEnabled(false);
 					btnRestart.setEnabled(true);
 					break;
 				case STOPPING:
@@ -888,7 +858,6 @@ public class MainFrame extends JFrame implements WindowListener, ProcessListener
 					btnSave.setEnabled(true);
 					btnClear.setEnabled(true);
 					btnStop.setEnabled(false);
-					btnStopForcibly.setEnabled(false);
 					btnRestart.setEnabled(false);
 					break;
 				case ABANDONED:
