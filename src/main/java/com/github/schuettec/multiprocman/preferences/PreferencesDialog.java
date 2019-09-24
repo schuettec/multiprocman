@@ -12,7 +12,6 @@ import java.util.Hashtable;
 import java.util.Map;
 
 import javax.swing.AbstractAction;
-import javax.swing.ButtonGroup;
 import javax.swing.GroupLayout;
 import javax.swing.GroupLayout.Alignment;
 import javax.swing.ImageIcon;
@@ -31,9 +30,12 @@ import javax.swing.SwingConstants;
 import javax.swing.table.DefaultTableModel;
 
 import com.github.schuettec.multiprocman.Resources;
-import com.github.schuettec.multiprocman.themes.ThemeUtil;
 
 public class PreferencesDialog extends JDialog {
+	/**
+	 *
+	 */
+	private static final long serialVersionUID = 1L;
 	private final JPanel environmentPanel = new JPanel();
 	private JTabbedPane tabbedPane;
 	private JTable tblEnv;
@@ -90,7 +92,6 @@ public class PreferencesDialog extends JDialog {
 		getContentPane().setLayout(new BorderLayout());
 
 		tabbedPane = new JTabbedPane();
-		ButtonGroup group = new ButtonGroup();
 		tabbedPane.add("Global variables", environmentPanel);
 
 		JLabel lblNewLabel_1 = new JLabel(
@@ -129,6 +130,11 @@ public class PreferencesDialog extends JDialog {
 
 		JButton btnPlus = new JButton(new AbstractAction(null, new ImageIcon(Resources.getPlus())) {
 
+			/**
+			 *
+			 */
+			private static final long serialVersionUID = 1L;
+
 			@Override
 			public void actionPerformed(ActionEvent e) {
 				variables.addRow(new String[] {
@@ -139,6 +145,11 @@ public class PreferencesDialog extends JDialog {
 		toolBar.add(btnPlus);
 
 		JButton btnMinus = new JButton(new AbstractAction(null, new ImageIcon(Resources.getMinus())) {
+
+			/**
+			 *
+			 */
+			private static final long serialVersionUID = 1L;
 
 			@Override
 			public void actionPerformed(ActionEvent e) {
@@ -165,6 +176,11 @@ public class PreferencesDialog extends JDialog {
 			{
 				JButton okButton = new JButton(new AbstractAction("OK") {
 
+					/**
+					 *
+					 */
+					private static final long serialVersionUID = 1L;
+
 					@Override
 					public void actionPerformed(ActionEvent e) {
 						performOk();
@@ -182,6 +198,11 @@ public class PreferencesDialog extends JDialog {
 			}
 			{
 				JButton cancelButton = new JButton(new AbstractAction("Cancel") {
+
+					/**
+					 *
+					 */
+					private static final long serialVersionUID = 1L;
 
 					@Override
 					public void actionPerformed(ActionEvent e) {
@@ -236,8 +257,7 @@ public class PreferencesDialog extends JDialog {
 		dispose();
 	}
 
-	public static void main(String[] args) {
-		ThemeUtil.setLookAndFeel();
+	public static void showPreferences() {
 		Preferences preferences = Preferences.loadFromPreferences();
 		new PreferencesDialog(preferences, null);
 	}

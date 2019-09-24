@@ -78,6 +78,10 @@ import javafx.stage.FileChooser.ExtensionFilter;
 
 public class ApplicationEditor extends JDialog {
 
+	/**
+	 *
+	 */
+	private static final long serialVersionUID = 1L;
 	private final JPanel terminatePanel = new JPanel();
 	private final JPanel mainPanel = new JPanel();
 	private final JPanel environmentPanel = new JPanel();
@@ -170,6 +174,11 @@ public class ApplicationEditor extends JDialog {
 
 		JButton btnTermFind = new JButton(new AbstractAction("Find...") {
 
+			/**
+			 *
+			 */
+			private static final long serialVersionUID = 1L;
+
 			@Override
 			public void actionPerformed(ActionEvent e) {
 				FileUtil.showFileChooser(FileUtil.Type.OPEN, new FileChooserCallback() {
@@ -239,27 +248,37 @@ public class ApplicationEditor extends JDialog {
 		lblVariablesDefinedOn.setVerticalAlignment(SwingConstants.TOP);
 
 		JScrollPane scrollPane_4 = new JScrollPane();
+
+		JLabel lblusevarnameTo = new JLabel("<html>Use <tt>!{VAR_NAME}</tt> to reference user defined variables.</html>");
 		GroupLayout gl_pnlVariables = new GroupLayout(pnlVariables);
 		gl_pnlVariables.setHorizontalGroup(gl_pnlVariables.createParallelGroup(Alignment.LEADING)
 		    .addGroup(gl_pnlVariables.createSequentialGroup()
 		        .addContainerGap()
 		        .addGroup(gl_pnlVariables.createParallelGroup(Alignment.LEADING)
+		            .addComponent(scrollPane_4, GroupLayout.DEFAULT_SIZE, 499, Short.MAX_VALUE)
 		            .addComponent(lblVariablesDefinedOn, GroupLayout.DEFAULT_SIZE, 499, Short.MAX_VALUE)
-		            .addComponent(scrollPane_4, GroupLayout.DEFAULT_SIZE, 499, Short.MAX_VALUE))
+		            .addComponent(lblusevarnameTo, GroupLayout.PREFERRED_SIZE, 499, GroupLayout.PREFERRED_SIZE))
 		        .addContainerGap()));
 		gl_pnlVariables.setVerticalGroup(gl_pnlVariables.createParallelGroup(Alignment.LEADING)
 		    .addGroup(gl_pnlVariables.createSequentialGroup()
 		        .addContainerGap()
 		        .addComponent(lblVariablesDefinedOn, GroupLayout.PREFERRED_SIZE, 44, GroupLayout.PREFERRED_SIZE)
 		        .addPreferredGap(ComponentPlacement.RELATED)
-		        .addComponent(scrollPane_4, GroupLayout.PREFERRED_SIZE, 408, GroupLayout.PREFERRED_SIZE)
-		        .addContainerGap(GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)));
+		        .addComponent(scrollPane_4, GroupLayout.PREFERRED_SIZE, 385, GroupLayout.PREFERRED_SIZE)
+		        .addPreferredGap(ComponentPlacement.RELATED)
+		        .addComponent(lblusevarnameTo, GroupLayout.PREFERRED_SIZE, 16, GroupLayout.PREFERRED_SIZE)
+		        .addContainerGap(12, Short.MAX_VALUE)));
 
 		this.promptVariables = new DefaultTableModel(new Object[][] {}, new String[] {
 		    "Name", "Message", "Default", "Prompt", "Selection", "Selection values (CSV)"
 		}) {
+			/**
+			 *
+			 */
+			private static final long serialVersionUID = 1L;
+
 			@Override
-			public Class getColumnClass(int column) {
+			public Class<? extends Object> getColumnClass(int column) {
 				return getValueAt(0, column).getClass();
 			}
 		};
@@ -277,6 +296,11 @@ public class ApplicationEditor extends JDialog {
 
 		JButton btnPlusVariables = new JButton(new AbstractAction(null, new ImageIcon(Resources.getPlus())) {
 
+			/**
+			 *
+			 */
+			private static final long serialVersionUID = 1L;
+
 			@Override
 			public void actionPerformed(ActionEvent e) {
 				promptVariables.addRow(new Object[] {
@@ -288,6 +312,11 @@ public class ApplicationEditor extends JDialog {
 		toolbarVariables.add(btnPlusVariables);
 
 		JButton btnMinusVariables = new JButton(new AbstractAction(null, new ImageIcon(Resources.getMinus())) {
+
+			/**
+			 *
+			 */
+			private static final long serialVersionUID = 1L;
 
 			@Override
 			public void actionPerformed(ActionEvent e) {
@@ -363,6 +392,11 @@ public class ApplicationEditor extends JDialog {
 
 		JButton btnPlusExpression = new JButton(new AbstractAction(null, new ImageIcon(Resources.getPlus())) {
 
+			/**
+			 *
+			 */
+			private static final long serialVersionUID = 1L;
+
 			@Override
 			public void actionPerformed(ActionEvent e) {
 				expressions.addRow(new Object[] {
@@ -374,6 +408,11 @@ public class ApplicationEditor extends JDialog {
 		toolBar_1.add(btnPlusExpression);
 
 		JButton btnMinusExpression = new JButton(new AbstractAction(null, new ImageIcon(Resources.getMinus())) {
+
+			/**
+			 *
+			 */
+			private static final long serialVersionUID = 1L;
 
 			@Override
 			public void actionPerformed(ActionEvent e) {
@@ -397,22 +436,29 @@ public class ApplicationEditor extends JDialog {
 		    "<html>The environment variables are inherited from this application. To override the environment variables for this application, fill the following key/value map. The variables are for this application runtime only.</html>");
 
 		JScrollPane scrollPane_1 = new JScrollPane();
+
+		JLabel lblNewLabel_3 = new JLabel("<html>Use <tt>${VAR_NAME}</tt> to reference environment variables.</html>");
 		GroupLayout gl_environmentPanel = new GroupLayout(environmentPanel);
 		gl_environmentPanel.setHorizontalGroup(gl_environmentPanel.createParallelGroup(Alignment.LEADING)
 		    .addGroup(gl_environmentPanel.createSequentialGroup()
 		        .addContainerGap()
 		        .addGroup(gl_environmentPanel.createParallelGroup(Alignment.LEADING)
 		            .addGroup(gl_environmentPanel.createSequentialGroup()
-		                .addComponent(scrollPane_1, GroupLayout.DEFAULT_SIZE, 354, Short.MAX_VALUE)
+		                .addComponent(scrollPane_1, GroupLayout.DEFAULT_SIZE, 499, Short.MAX_VALUE)
 		                .addContainerGap())
-		            .addComponent(lblNewLabel_1))));
+		            .addComponent(lblNewLabel_1)
+		            .addGroup(Alignment.TRAILING, gl_environmentPanel.createSequentialGroup()
+		                .addComponent(lblNewLabel_3, GroupLayout.DEFAULT_SIZE, 499, Short.MAX_VALUE)
+		                .addContainerGap()))));
 		gl_environmentPanel.setVerticalGroup(gl_environmentPanel.createParallelGroup(Alignment.LEADING)
 		    .addGroup(gl_environmentPanel.createSequentialGroup()
 		        .addContainerGap()
 		        .addComponent(lblNewLabel_1)
 		        .addGap(8)
-		        .addComponent(scrollPane_1, GroupLayout.DEFAULT_SIZE, 361, Short.MAX_VALUE)
-		        .addContainerGap()));
+		        .addComponent(scrollPane_1, GroupLayout.DEFAULT_SIZE, 405, Short.MAX_VALUE)
+		        .addPreferredGap(ComponentPlacement.RELATED)
+		        .addComponent(lblNewLabel_3)
+		        .addGap(6)));
 
 		tblEnv = new JTable();
 		this.envVariables = new DefaultTableModel(new Object[][] {}, new String[] {
@@ -429,6 +475,11 @@ public class ApplicationEditor extends JDialog {
 
 		JButton btnPlus = new JButton(new AbstractAction(null, new ImageIcon(Resources.getPlus())) {
 
+			/**
+			 *
+			 */
+			private static final long serialVersionUID = 1L;
+
 			@Override
 			public void actionPerformed(ActionEvent e) {
 				envVariables.addRow(new String[] {
@@ -439,6 +490,11 @@ public class ApplicationEditor extends JDialog {
 		toolBar.add(btnPlus);
 
 		JButton btnMinus = new JButton(new AbstractAction(null, new ImageIcon(Resources.getMinus())) {
+
+			/**
+			 *
+			 */
+			private static final long serialVersionUID = 1L;
 
 			@Override
 			public void actionPerformed(ActionEvent e) {
@@ -473,6 +529,11 @@ public class ApplicationEditor extends JDialog {
 		lblNewLabel.setHorizontalAlignment(SwingConstants.RIGHT);
 
 		JButton btnFindIcon = new JButton(new AbstractAction("Find...") {
+
+			/**
+			 *
+			 */
+			private static final long serialVersionUID = 1L;
 
 			@Override
 			public void actionPerformed(ActionEvent e) {
@@ -530,6 +591,11 @@ public class ApplicationEditor extends JDialog {
 
 		JButton btnFindWorkingDir = new JButton(new AbstractAction("Find...") {
 
+			/**
+			 *
+			 */
+			private static final long serialVersionUID = 1L;
+
 			@Override
 			public void actionPerformed(ActionEvent e) {
 				FileUtil.showDirectoryChooser(new FileChooserCallback() {
@@ -555,6 +621,11 @@ public class ApplicationEditor extends JDialog {
 
 		JButton btnSelectColor = new JButton(new AbstractAction("Select color...") {
 
+			/**
+			 *
+			 */
+			private static final long serialVersionUID = 1L;
+
 			@Override
 			public void actionPerformed(ActionEvent e) {
 				Color color = JColorChooser.showDialog(ApplicationEditor.this, "Choose a color", Color.GREEN);
@@ -567,7 +638,7 @@ public class ApplicationEditor extends JDialog {
 		JLabel lblCharset = new JLabel("Charset:");
 		lblCharset.setHorizontalAlignment(SwingConstants.RIGHT);
 
-		comboBox = new JComboBox();
+		comboBox = new JComboBox<Charset>();
 		SortedMap<String, Charset> availableCharsets = Charset.availableCharsets();
 		this.charsets = new DefaultComboBoxModel<Charset>();
 		for (Charset c : availableCharsets.values()) {
@@ -578,6 +649,11 @@ public class ApplicationEditor extends JDialog {
 		comboBox.setSelectedIndex(defaultIndex);
 
 		JButton btnFindApplication = new JButton(new AbstractAction("Find...") {
+
+			/**
+			 *
+			 */
+			private static final long serialVersionUID = 1L;
 
 			@Override
 			public void actionPerformed(ActionEvent e) {
@@ -596,6 +672,11 @@ public class ApplicationEditor extends JDialog {
 		});
 
 		JButton btnDefaultIcon = new JButton(new AbstractAction("Default icon") {
+
+			/**
+			 *
+			 */
+			private static final long serialVersionUID = 1L;
 
 			@Override
 			public void actionPerformed(ActionEvent e) {
@@ -778,6 +859,11 @@ public class ApplicationEditor extends JDialog {
 			{
 				JButton okButton = new JButton(new AbstractAction("OK") {
 
+					/**
+					 *
+					 */
+					private static final long serialVersionUID = 1L;
+
 					@Override
 					public void actionPerformed(ActionEvent e) {
 						performOk();
@@ -795,6 +881,11 @@ public class ApplicationEditor extends JDialog {
 			}
 			{
 				JButton cancelButton = new JButton(new AbstractAction("Cancel") {
+
+					/**
+					 *
+					 */
+					private static final long serialVersionUID = 1L;
 
 					@Override
 					public void actionPerformed(ActionEvent e) {
@@ -820,13 +911,18 @@ public class ApplicationEditor extends JDialog {
 	private AbstractAction showSubstitutionAction(JTextComponent textComp) {
 		return new AbstractAction("Show env. variable substitution") {
 
+			/**
+			 *
+			 */
+			private static final long serialVersionUID = 1L;
+
 			@Override
 			public void actionPerformed(ActionEvent e) {
 				JOptionPane.showMessageDialog(ApplicationEditor.this,
 				    "<html><body><p style='width: 640px;'>The following command will be substituted:<br/><tt>"
-				        + ProcessDescriptor.fillEnvironmentVariables(textComp.getText())
+				        + ProcessDescriptor.substituteEnvironmentVariables(textComp.getText())
 				        + "</tt></p>The following workind directory will be substituted:<br/><tt>"
-				        + ProcessDescriptor.fillEnvironmentVariables(txtWorkingDir.getText())
+				        + ProcessDescriptor.substituteEnvironmentVariables(txtWorkingDir.getText())
 				        + "</tt><br/><b>Note: Only enviornment variables have been replaced.</body></html>",
 				    "Command substitution", JOptionPane.INFORMATION_MESSAGE);
 			}
@@ -836,11 +932,16 @@ public class ApplicationEditor extends JDialog {
 	private AbstractAction insertVariableAction(final JTextArea textComponent) {
 		return new AbstractAction("Insert variable") {
 
+			/**
+			 *
+			 */
+			private static final long serialVersionUID = 1L;
+
 			@Override
 			public void actionPerformed(ActionEvent e) {
-				Vector keys = new Vector<>(System.getenv()
+				Vector<String> keys = new Vector<>(System.getenv()
 				    .keySet());
-				JComboBox jcd = new JComboBox(keys);
+				JComboBox<String> jcd = new JComboBox<String>(keys);
 
 				// create a JOptionPane
 				JOptionPane jop = new JOptionPane("Please Select a variable to insert:", JOptionPane.QUESTION_MESSAGE,
@@ -854,6 +955,11 @@ public class ApplicationEditor extends JDialog {
 				JPanel contentPane = new JPanel(new BorderLayout());
 				contentPane.add(jop, BorderLayout.CENTER);
 				JButton okButton = new JButton(new AbstractAction("OK") {
+
+					/**
+					 *
+					 */
+					private static final long serialVersionUID = 1L;
 
 					@Override
 					public void actionPerformed(ActionEvent e) {
@@ -1045,8 +1151,11 @@ public class ApplicationEditor extends JDialog {
 	}
 
 	class IntegerEditor extends DefaultCellEditor {
+		/**
+		 *
+		 */
+		private static final long serialVersionUID = 1L;
 		JTextField textField;
-		private boolean DEBUG = false;
 
 		public IntegerEditor() {
 			super(new JTextField());
@@ -1066,6 +1175,11 @@ public class ApplicationEditor extends JDialog {
 
 			textField.getActionMap()
 			    .put("check", new AbstractAction() {
+				    /**
+				     *
+				     */
+				    private static final long serialVersionUID = 1L;
+
 				    @Override
 				    public void actionPerformed(ActionEvent e) {
 					    if (!isValidVariableName(textField.getText())) {

@@ -17,12 +17,16 @@ public class Preferences {
 
 	private Map<String, String> globalVariables = new Hashtable<>();
 
-	Map<String, String> getGlobalVariables() {
+	public Map<String, String> getGlobalVariables() {
 		return globalVariables;
 	}
 
-	void setGlobalVariables(Map<String, String> globalVariables) {
+	public void setGlobalVariables(Map<String, String> globalVariables) {
 		this.globalVariables = globalVariables;
+	}
+
+	public void save() {
+		saveToPreferences(this);
 	}
 
 	public static void saveToPreferences(Preferences data) {
@@ -56,7 +60,4 @@ public class Preferences {
 		return new File(System.getProperty("user.home") + File.separator + ".procman.settings");
 	}
 
-	public void save() {
-		saveToPreferences(this);
-	}
 }

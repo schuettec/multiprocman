@@ -14,6 +14,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Objects;
+import java.util.concurrent.atomic.AtomicReference;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -27,6 +28,7 @@ import com.github.schuettec.multiprocman.git.GitManagerImpl;
 import com.github.schuettec.multiprocman.git.ProgressMonitorView;
 import com.github.schuettec.multiprocman.manager.ProcessManager;
 import com.github.schuettec.multiprocman.manager.PromptVariable;
+import com.github.schuettec.multiprocman.preferences.Preferences;
 
 public class ProcessDescriptor implements Serializable {
 
@@ -118,14 +120,38 @@ public class ProcessDescriptor implements Serializable {
 		this.pullAfterCheckout = pullBeforeCheckout;
 	}
 
-	public String fillPromptVariables(String command) {
+	public String substituteVariables(String command) {
+		String substitutedPromptVariables = command;
+		if (hasPromptVariables()) {
+			substitutedPromptVariables = _substitutePromptVariables(command);
+		}
+		return _substituteGlobalVariables(substitutedPromptVariables);
+	}
+
+	private String _substituteGlobalVariables(String substitutedPromptVariables) {
+		Preferences preferences = Preferences.loadFromPreferences();
+		Map<String, String> globalVariables = preferences.getGlobalVariables();
+		AtomicReference<String> substitute = new AtomicReference<>(substitutedPromptVariables);
+		globalVariables.entrySet()
+		    .stream()
+		    .forEach(entry -> {
+			    String variableName = entry.getKey();
+			    String variableValue = entry.getValue();
+			    String placeholder = getVariablePlaceholder(PROMPT_VARIABLE_INDICATOR_CHAR, variableName);
+			    substitute.set(substitute.get()
+			        .replaceAll("(?i)" + Pattern.quote(placeholder), Matcher.quoteReplacement(variableValue)));
+		    });
+		return substitute.get();
+	}
+
+	private String _substitutePromptVariables(String command) {
 		if (hasPromptVariables()) {
 			Iterator<PromptVariable> it = promptVariables.iterator();
 			String substitute = command;
 			while (it.hasNext()) {
 				PromptVariable pv = it.next();
-				String substitution = getVariablePlaceholder(PROMPT_VARIABLE_INDICATOR_CHAR, pv.getName());
-				substitute = substitute.replaceAll("(?i)" + Pattern.quote(substitution),
+				String placeholder = getVariablePlaceholder(PROMPT_VARIABLE_INDICATOR_CHAR, pv.getName());
+				substitute = substitute.replaceAll("(?i)" + Pattern.quote(placeholder),
 				    Matcher.quoteReplacement(pv.getLastValue()));
 			}
 			return substitute;
@@ -134,16 +160,16 @@ public class ProcessDescriptor implements Serializable {
 		}
 	}
 
-	public static String fillEnvironmentVariables(String command) {
+	public static String substituteEnvironmentVariables(String command) {
 		Map<String, String> getenv = System.getenv();
 		Iterator<Entry<String, String>> it = getenv.entrySet()
 		    .iterator();
 		String substitute = command;
 		while (it.hasNext()) {
 			Entry<String, String> entry = it.next();
-			String substitution = getVariablePlaceholder(ENV_VAR_INDICATOR_CHAR, entry.getKey());
-			substitute = substitute.replaceAll("(?i)" + Pattern.quote(substitution),
-			    Matcher.quoteReplacement(entry.getValue()));
+			String placeholder = getVariablePlaceholder(ENV_VAR_INDICATOR_CHAR, entry.getKey());
+			String replacement = entry.getValue();
+			substitute = substitute.replaceAll("(?i)" + Pattern.quote(placeholder), Matcher.quoteReplacement(replacement));
 		}
 		return substitute;
 	}
@@ -286,11 +312,9 @@ public class ProcessDescriptor implements Serializable {
 	 */
 	public String getCommandForExecution() {
 		String commandResult = command;
-		if (hasPromptVariables()) {
-			commandResult = fillPromptVariables(commandResult);
-		}
+		commandResult = substituteVariables(commandResult);
 		if (variableSubstitution) {
-			return fillEnvironmentVariables(commandResult);
+			return substituteEnvironmentVariables(commandResult);
 		}
 		return commandResult;
 	}
@@ -302,7 +326,7 @@ public class ProcessDescriptor implements Serializable {
 	 */
 	public String getTerminationCommandForExecution() {
 		if (terminationVariableSubstitution) {
-			return fillEnvironmentVariables(terminationCommand);
+			return substituteEnvironmentVariables(terminationCommand);
 		} else {
 			return terminationCommand;
 		}
@@ -344,9 +368,9 @@ public class ProcessDescriptor implements Serializable {
 		if (variableSubstitution) {
 			String dirResult = this.executionDirectory;
 			if (hasPromptVariables()) {
-				dirResult = fillPromptVariables(dirResult);
+				dirResult = substituteVariables(dirResult);
 			}
-			return fillEnvironmentVariables(dirResult);
+			return substituteEnvironmentVariables(dirResult);
 		} else {
 			return executionDirectory;
 		}

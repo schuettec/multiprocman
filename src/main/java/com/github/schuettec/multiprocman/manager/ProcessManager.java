@@ -33,6 +33,8 @@ import javax.swing.JComponent;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JList;
+import javax.swing.JMenu;
+import javax.swing.JMenuBar;
 import javax.swing.JMenuItem;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
@@ -58,6 +60,7 @@ import com.github.schuettec.multiprocman.ProcessDescriptor;
 import com.github.schuettec.multiprocman.Resources;
 import com.github.schuettec.multiprocman.git.GitBranchSelection;
 import com.github.schuettec.multiprocman.git.GitManagerImpl;
+import com.github.schuettec.multiprocman.preferences.PreferencesDialog;
 import com.github.schuettec.multiprocman.themes.ThemeUtil;
 
 import javafx.stage.FileChooser.ExtensionFilter;
@@ -745,6 +748,24 @@ public class ProcessManager extends JFrame {
 			popupMenu.add(newCat);
 			popupMenu.add(editCat);
 			popupMenu.add(removeCat);
+		}
+		{
+			JMenuBar menuBar = new JMenuBar();
+			setJMenuBar(menuBar);
+			{
+				JMenu mnFile = new JMenu("Windows");
+				menuBar.add(mnFile);
+				{
+					JMenuItem mntmPreferences = new JMenuItem(new AbstractAction("Preferences") {
+
+						@Override
+						public void actionPerformed(ActionEvent e) {
+							PreferencesDialog.showPreferences();
+						}
+					});
+					mnFile.add(mntmPreferences);
+				}
+			}
 		}
 
 		String KEY = "find";
