@@ -11,6 +11,8 @@ import java.io.InputStream;
 import java.nio.charset.Charset;
 import java.util.concurrent.TimeUnit;
 
+import javax.swing.SwingUtilities;
+
 import org.apache.commons.lang3.event.EventListenerSupport;
 
 import com.github.schuettec.multiprocman.ExceptionDialog;
@@ -55,8 +57,14 @@ public class ProcessObserverImpl extends Thread implements ProcessObserver, Proc
 			InputStream inputStr = process.getInputStream();
 			try (BufferedInputStream input = new BufferedInputStream(inputStr);
 			    FileOutputStream output = new FileOutputStream(outputFile);) {
-				callbacks.fire()
-				    .started(this, outputFile, charset);
+
+				doInSwing(new Runnable() {
+					@Override
+					public void run() {
+						callbacks.fire()
+						    .started(ProcessObserverImpl.this, outputFile, charset);
+					}
+				});
 				this.captor = new InputCaptor(new InputCaptorCallback() {
 
 					@Override
@@ -66,20 +74,39 @@ public class ProcessObserverImpl extends Thread implements ProcessObserver, Proc
 
 					@Override
 					public void newLine(int lines, String line) {
-						callbacks.fire()
-						    .output(lines, line);
+						doInSwing(new Runnable() {
+							@Override
+							public void run() {
+								try {
+									callbacks.fire()
+									    .output(lines, line);
+								} catch (Exception e) {
+									e.printStackTrace();
+								}
+							}
+						});
 					}
 
 					@Override
 					public void append(String string) {
-						callbacks.fire()
-						    .append(string);
+						doInSwing(new Runnable() {
+							@Override
+							public void run() {
+								callbacks.fire()
+								    .append(string);
+							}
+						});
 					}
 
 					@Override
 					public void jumpToLastLine(int lines) {
-						callbacks.fire()
-						    .jumpToLastLine(lines);
+						doInSwing(new Runnable() {
+							@Override
+							public void run() {
+								callbacks.fire()
+								    .jumpToLastLine(lines);
+							}
+						});
 					}
 				}, input, output);
 				captor.run();
@@ -88,25 +115,58 @@ public class ProcessObserverImpl extends Thread implements ProcessObserver, Proc
 
 			} catch (Exception e) {
 				stopProcess();
-				callbacks.fire()
-				    .cannotWriteOutput(outputFile, e);
+				doInSwing(new Runnable() {
+					@Override
+					public void run() {
+						callbacks.fire()
+						    .cannotWriteOutput(outputFile, e);
+					}
+				});
 			}
 		} catch (IOException e) {
 			stopProcess();
-			callbacks.fire()
-			    .cannotStartProcess(e);
+			doInSwing(new Runnable() {
+				@Override
+				public void run() {
+					callbacks.fire()
+					    .cannotStartProcess(e);
+				}
+			});
 		}
+	}
+
+	private void doInSwing(Runnable run) {
+		SwingUtilities.invokeLater(new Runnable() {
+			@Override
+			public void run() {
+				try {
+					run.run();
+				} catch (Exception e) {
+					e.printStackTrace();
+				}
+			}
+		});
 	}
 
 	private void _waitFor() throws InterruptedException {
 		boolean exited = process.waitFor(10l, TimeUnit.SECONDS);
 		if (exited) {
 			int exitValue = process.exitValue();
-			callbacks.fire()
-			    .exited(exitValue);
+			doInSwing(new Runnable() {
+				@Override
+				public void run() {
+					callbacks.fire()
+					    .exited(exitValue);
+				}
+			});
 		} else {
-			callbacks.fire()
-			    .abandoned();
+			doInSwing(new Runnable() {
+				@Override
+				public void run() {
+					callbacks.fire()
+					    .abandoned();
+				}
+			});
 		}
 	}
 

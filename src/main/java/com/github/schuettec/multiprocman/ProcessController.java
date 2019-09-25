@@ -182,15 +182,16 @@ public class ProcessController implements ProcessCallback, ViewFrameListener {
 			controller.close();
 			boolean deleted = this.outputFile.delete();
 			if (!deleted) {
-				SwingUtilities.invokeLater(new Runnable() {
-
-					@Override
-					public void run() {
-						JOptionPane.showMessageDialog(controller.getTextView(),
-						    "Cannot delete output file: " + outputFile.getAbsolutePath(), "Delete output file",
-						    JOptionPane.WARNING_MESSAGE);
-					}
-				});
+				if (state == State.STOPPED_OK || state == State.STOPPED_ALERT) {
+					SwingUtilities.invokeLater(new Runnable() {
+						@Override
+						public void run() {
+							JOptionPane.showMessageDialog(controller.getTextView(),
+							    "Cannot delete output file: " + outputFile.getAbsolutePath(), "Delete output file",
+							    JOptionPane.WARNING_MESSAGE);
+						}
+					});
+				}
 			}
 		} catch (Exception e) {
 			SwingUtilities.invokeLater(new Runnable() {
@@ -346,6 +347,16 @@ public class ProcessController implements ProcessCallback, ViewFrameListener {
 
 	public String getLastLines(int linesCount) {
 		return controller.getLastLines(linesCount);
+	}
+
+	@Override
+	public void cannotStartProcess(Exception e) {
+		updateState(State.NOT_STARTED);
+	}
+
+	@Override
+	public void cannotWriteOutput(File outputFile, Exception cause) {
+		updateState(State.NOT_STARTED);
 	}
 
 	@Override

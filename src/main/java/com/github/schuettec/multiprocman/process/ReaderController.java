@@ -1,6 +1,7 @@
 package com.github.schuettec.multiprocman.process;
 
 import static java.util.Objects.isNull;
+import static java.util.Objects.nonNull;
 
 import java.awt.Container;
 import java.awt.FontMetrics;
@@ -164,7 +165,9 @@ public class ReaderController implements ProcessCallback {
 	}
 
 	public void close() {
-		fileReader.close();
+		if (nonNull(fileReader)) {
+			fileReader.close();
+		}
 	}
 
 	/**
@@ -206,33 +209,20 @@ public class ReaderController implements ProcessCallback {
 	public void output(int lines, String line) {
 		this.lines = lines;
 		if (!currentlyScrolling || isCaptured(lines - 1)) {
-			try {
-				SwingUtilities.invokeAndWait(new Runnable() {
-					@Override
-					public void run() {
-						updateScrollBar();
+			updateScrollBar();
 
-						if (isCaptured(lines - 1) && lines >= viewLines) {
-							// Delete as many rows as needed to add the new line while not overstepping the viewLines.
-							int linesInView = textView.getText()
-							    .split("\n").length - 1;
-							if (linesInView >= viewLines) {
-								textView.removeFirstLine();
-							}
-							currentLine++;
-						}
-						textView.appendANSI(line, true);
-
-						_jumpToLastLine();
-					}
-				});
-			} catch (InvocationTargetException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
-			} catch (InterruptedException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
+			if (isCaptured(lines - 1) && lines >= viewLines) {
+				// Delete as many rows as needed to add the new line while not overstepping the viewLines.
+				int linesInView = textView.getText()
+				    .split("\n").length - 1;
+				if (linesInView >= viewLines) {
+					textView.removeFirstLine();
+				}
+				currentLine++;
 			}
+			textView.appendANSI(line, true);
+
+			_jumpToLastLine();
 		}
 	}
 
