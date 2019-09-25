@@ -28,7 +28,9 @@ import javax.swing.JDialog;
 import javax.swing.JLabel;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
+import javax.swing.JScrollPane;
 import javax.swing.JTextField;
+import javax.swing.JTextPane;
 import javax.swing.KeyStroke;
 import javax.swing.LayoutStyle.ComponentPlacement;
 import javax.swing.SwingConstants;
@@ -90,7 +92,7 @@ public class CategoryEditor extends JDialog {
 			}
 		});
 		this.setPreferredSize(new Dimension(330, 236));
-		this.setSize(new Dimension(330, 236));
+		this.setSize(new Dimension(402, 396));
 		setLocationRelativeTo(owner);
 
 		getContentPane().setLayout(new BorderLayout());
@@ -162,12 +164,27 @@ public class CategoryEditor extends JDialog {
 		JLabel lblPleaseFillIn = new JLabel(
 		    "<html>Please fill in the desired data for the new category. When selecting a category icon use 24x24px images, otherwise the images will be scaled automatically.</html>");
 
+		JLabel lblUrl = new JLabel("URL:");
+		lblUrl.setHorizontalAlignment(SwingConstants.RIGHT);
+
+		JScrollPane scrollPane = new JScrollPane();
+
+		JLabel lblTheUrlCan = new JLabel(
+		    "<html>The URL can be used to import the XML representation of a category from a webserver or any other source that is accessible via URL.</html>");
+
+		JLabel lblNewLabel_1 = new JLabel("Last update:");
+
+		JLabel lblSadasd = new JLabel("date");
+
+		JButton btnUpdate = new JButton("Update");
+		btnUpdate.setPreferredSize(new Dimension(91, 23));
+
 		GroupLayout gl_contentPanel = new GroupLayout(contentPanel);
 		gl_contentPanel.setHorizontalGroup(gl_contentPanel.createParallelGroup(Alignment.TRAILING)
 		    .addGroup(gl_contentPanel.createSequentialGroup()
 		        .addContainerGap()
-		        .addGroup(gl_contentPanel.createParallelGroup(Alignment.TRAILING)
-		            .addComponent(lblPleaseFillIn, Alignment.LEADING, GroupLayout.DEFAULT_SIZE, 292, Short.MAX_VALUE)
+		        .addGroup(gl_contentPanel.createParallelGroup(Alignment.LEADING)
+		            .addComponent(lblPleaseFillIn, GroupLayout.DEFAULT_SIZE, 356, Short.MAX_VALUE)
 		            .addGroup(gl_contentPanel.createSequentialGroup()
 		                .addGroup(gl_contentPanel.createParallelGroup(Alignment.TRAILING)
 		                    .addGroup(gl_contentPanel.createParallelGroup(Alignment.TRAILING, false)
@@ -175,23 +192,30 @@ public class CategoryEditor extends JDialog {
 		                            GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
 		                        .addComponent(lblName, Alignment.LEADING, GroupLayout.PREFERRED_SIZE, 78,
 		                            GroupLayout.PREFERRED_SIZE))
-		                    .addComponent(lblNewLabel))
+		                    .addComponent(lblNewLabel)
+		                    .addComponent(lblUrl, GroupLayout.PREFERRED_SIZE, 57, GroupLayout.PREFERRED_SIZE)
+		                    .addComponent(lblNewLabel_1))
 		                .addPreferredGap(ComponentPlacement.RELATED)
 		                .addGroup(gl_contentPanel.createParallelGroup(Alignment.TRAILING)
+		                    .addComponent(scrollPane, GroupLayout.DEFAULT_SIZE, 272, Short.MAX_VALUE)
+		                    .addGroup(gl_contentPanel.createSequentialGroup()
+		                        .addComponent(lblSadasd, GroupLayout.DEFAULT_SIZE, 187, Short.MAX_VALUE)
+		                        .addPreferredGap(ComponentPlacement.RELATED)
+		                        .addComponent(btnUpdate, GroupLayout.PREFERRED_SIZE, 81, GroupLayout.PREFERRED_SIZE))
 		                    .addGroup(gl_contentPanel.createSequentialGroup()
 		                        .addComponent(lblIcon, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE,
 		                            GroupLayout.PREFERRED_SIZE)
 		                        .addGap(91)
 		                        .addComponent(btnNewButton, GroupLayout.PREFERRED_SIZE, 91, GroupLayout.PREFERRED_SIZE))
-		                    .addComponent(txtDescription, Alignment.LEADING, GroupLayout.DEFAULT_SIZE, 206, Short.MAX_VALUE)
-		                    .addComponent(txtName, GroupLayout.DEFAULT_SIZE, 206, Short.MAX_VALUE))
-		                .addGap(2)))
+		                    .addComponent(txtDescription, GroupLayout.DEFAULT_SIZE, 272, Short.MAX_VALUE)
+		                    .addComponent(txtName, GroupLayout.DEFAULT_SIZE, 272, Short.MAX_VALUE)
+		                    .addComponent(lblTheUrlCan, GroupLayout.DEFAULT_SIZE, 272, Short.MAX_VALUE))))
 		        .addContainerGap()));
 		gl_contentPanel.setVerticalGroup(gl_contentPanel.createParallelGroup(Alignment.TRAILING)
 		    .addGroup(gl_contentPanel.createSequentialGroup()
 		        .addGap(8)
 		        .addComponent(lblPleaseFillIn)
-		        .addPreferredGap(ComponentPlacement.RELATED, GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+		        .addPreferredGap(ComponentPlacement.RELATED)
 		        .addGroup(gl_contentPanel.createParallelGroup(Alignment.LEADING, false)
 		            .addComponent(lblForIcon, GroupLayout.PREFERRED_SIZE, 38, GroupLayout.PREFERRED_SIZE)
 		            .addGroup(gl_contentPanel.createSequentialGroup()
@@ -210,7 +234,23 @@ public class CategoryEditor extends JDialog {
 		                    .addComponent(txtDescription, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE,
 		                        GroupLayout.PREFERRED_SIZE)
 		                    .addComponent(lblNewLabel))))
-		        .addContainerGap()));
+		        .addPreferredGap(ComponentPlacement.RELATED)
+		        .addGroup(gl_contentPanel.createParallelGroup(Alignment.LEADING)
+		            .addComponent(lblUrl)
+		            .addComponent(scrollPane, GroupLayout.DEFAULT_SIZE, 87, Short.MAX_VALUE))
+		        .addPreferredGap(ComponentPlacement.RELATED)
+		        .addComponent(lblTheUrlCan)
+		        .addPreferredGap(ComponentPlacement.RELATED)
+		        .addGroup(gl_contentPanel.createParallelGroup(Alignment.LEADING)
+		            .addGroup(gl_contentPanel.createParallelGroup(Alignment.BASELINE)
+		                .addComponent(lblNewLabel_1)
+		                .addComponent(lblSadasd))
+		            .addComponent(btnUpdate, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE,
+		                GroupLayout.PREFERRED_SIZE))
+		        .addGap(16)));
+
+		JTextPane textPane = new JTextPane();
+		scrollPane.setViewportView(textPane);
 		contentPanel.setLayout(gl_contentPanel);
 
 		{
@@ -287,5 +327,4 @@ public class CategoryEditor extends JDialog {
 		category = null;
 		dispose();
 	}
-
 }

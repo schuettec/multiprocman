@@ -1,8 +1,10 @@
 package com.github.schuettec.multiprocman.manager;
 
+import static java.util.Objects.isNull;
 import static java.util.Objects.nonNull;
 
 import java.io.Serializable;
+import java.util.Date;
 import java.util.Set;
 
 import javax.swing.DefaultListModel;
@@ -13,14 +15,14 @@ import com.github.schuettec.multiprocman.Resources;
 
 public class Category implements Serializable {
 
-	/**
-	 * 
-	 */
 	private static final long serialVersionUID = 1L;
 	private ImageIcon icon;
 	private String name;
 	private String description;
 	private DefaultListModel<ProcessDescriptor> processTemplates;
+
+	private String url;
+	private Date lastModified;
 
 	public Category() {
 		super();
@@ -42,6 +44,28 @@ public class Category implements Serializable {
 		if (nonNull(processTemplates)) {
 			processTemplates.addAll(processTemplates);
 		}
+	}
+
+	public Date getLastModified() {
+		if (isNull(lastModified)) {
+			this.lastModified = new Date();
+		}
+		return lastModified;
+	}
+
+	/**
+	 * Sets the last modified field to now.
+	 */
+	public void setLastModified() {
+		this.lastModified = new Date();
+	}
+
+	public String getUrl() {
+		return url;
+	}
+
+	public void setUrl(String url) {
+		this.url = url;
 	}
 
 	public DefaultListModel<ProcessDescriptor> getProcessTemplates() {
@@ -78,10 +102,6 @@ public class Category implements Serializable {
 
 	public void setDescription(String description) {
 		this.description = description;
-	}
-
-	public void setProcessTemplates(DefaultListModel<ProcessDescriptor> processTemplates) {
-		this.processTemplates = processTemplates;
 	}
 
 	@Override

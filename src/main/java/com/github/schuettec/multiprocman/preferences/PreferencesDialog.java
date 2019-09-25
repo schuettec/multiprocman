@@ -26,6 +26,7 @@ import javax.swing.JTabbedPane;
 import javax.swing.JTable;
 import javax.swing.JToolBar;
 import javax.swing.KeyStroke;
+import javax.swing.LayoutStyle.ComponentPlacement;
 import javax.swing.SwingConstants;
 import javax.swing.table.DefaultTableModel;
 
@@ -98,21 +99,29 @@ public class PreferencesDialog extends JDialog {
 		    "<html>Variables defined here can be used in launch configurations. This helps to create more portable launch configurations since path's can be configured globally for a specific system.</html>");
 
 		JScrollPane scrollPane_1 = new JScrollPane();
+
+		JLabel lblGlobalVariablesAre = new JLabel(
+		    "<html>Global variables are used like user-defined variables. The latter are evaluated at first, so that user-defined variables override global variables.</html>");
 		GroupLayout gl_environmentPanel = new GroupLayout(environmentPanel);
 		gl_environmentPanel.setHorizontalGroup(gl_environmentPanel.createParallelGroup(Alignment.LEADING)
 		    .addGroup(gl_environmentPanel.createSequentialGroup()
 		        .addContainerGap()
 		        .addGroup(gl_environmentPanel.createParallelGroup(Alignment.LEADING)
 		            .addGroup(gl_environmentPanel.createSequentialGroup()
-		                .addComponent(scrollPane_1, GroupLayout.DEFAULT_SIZE, 354, Short.MAX_VALUE)
+		                .addComponent(scrollPane_1, GroupLayout.DEFAULT_SIZE, 499, Short.MAX_VALUE)
 		                .addContainerGap())
-		            .addComponent(lblNewLabel_1))));
+		            .addComponent(lblNewLabel_1)
+		            .addGroup(Alignment.TRAILING, gl_environmentPanel.createSequentialGroup()
+		                .addComponent(lblGlobalVariablesAre, GroupLayout.DEFAULT_SIZE, 499, Short.MAX_VALUE)
+		                .addContainerGap()))));
 		gl_environmentPanel.setVerticalGroup(gl_environmentPanel.createParallelGroup(Alignment.LEADING)
 		    .addGroup(gl_environmentPanel.createSequentialGroup()
 		        .addContainerGap()
 		        .addComponent(lblNewLabel_1)
 		        .addGap(8)
-		        .addComponent(scrollPane_1, GroupLayout.DEFAULT_SIZE, 361, Short.MAX_VALUE)
+		        .addComponent(scrollPane_1, GroupLayout.PREFERRED_SIZE, 383, GroupLayout.PREFERRED_SIZE)
+		        .addPreferredGap(ComponentPlacement.RELATED, 11, Short.MAX_VALUE)
+		        .addComponent(lblGlobalVariablesAre)
 		        .addContainerGap()));
 
 		tblEnv = new JTable();
