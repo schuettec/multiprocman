@@ -120,15 +120,27 @@ public class ProcessDescriptor implements Serializable {
 		this.pullAfterCheckout = pullBeforeCheckout;
 	}
 
-	public String substituteVariables(String command) {
-		String substitutedPromptVariables = command;
-		if (hasPromptVariables()) {
-			substitutedPromptVariables = _substitutePromptVariables(command);
-		}
-		return _substituteGlobalVariables(substitutedPromptVariables);
+	public static String substituteEnvironmentVariables(String command) {
+		String substituted = _substituteGlobalVariables(command);
+		return _substituteEnvironmentVariables(substituted);
 	}
 
-	private String _substituteGlobalVariables(String substitutedPromptVariables) {
+	public String substituteVariables(String command) {
+		String substituted = command;
+		if (hasPromptVariables()) {
+			substituted = _substitutePromptVariables(command);
+		}
+
+		substituted = _substituteGlobalVariables(substituted);
+
+		if (variableSubstitution) {
+			substituted = substituteEnvironmentVariables(substituted);
+		}
+
+		return substituted;
+	}
+
+	public static String _substituteGlobalVariables(String substitutedPromptVariables) {
 		Preferences preferences = Preferences.loadFromPreferences();
 		Map<String, String> globalVariables = preferences.getGlobalVariables();
 		AtomicReference<String> substitute = new AtomicReference<>(substitutedPromptVariables);
@@ -160,7 +172,7 @@ public class ProcessDescriptor implements Serializable {
 		}
 	}
 
-	public static String substituteEnvironmentVariables(String command) {
+	private static String _substituteEnvironmentVariables(String command) {
 		Map<String, String> getenv = System.getenv();
 		Iterator<Entry<String, String>> it = getenv.entrySet()
 		    .iterator();
@@ -313,9 +325,6 @@ public class ProcessDescriptor implements Serializable {
 	public String getCommandForExecution() {
 		String commandResult = command;
 		commandResult = substituteVariables(commandResult);
-		if (variableSubstitution) {
-			return substituteEnvironmentVariables(commandResult);
-		}
 		return commandResult;
 	}
 
