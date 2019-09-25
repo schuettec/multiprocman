@@ -183,14 +183,9 @@ public class ProcessController implements ProcessCallback, ViewFrameListener {
 			boolean deleted = this.outputFile.delete();
 			if (!deleted) {
 				if (state == State.STOPPED_OK || state == State.STOPPED_ALERT) {
-					SwingUtilities.invokeLater(new Runnable() {
-						@Override
-						public void run() {
-							JOptionPane.showMessageDialog(controller.getTextView(),
-							    "Cannot delete output file: " + outputFile.getAbsolutePath(), "Delete output file",
-							    JOptionPane.WARNING_MESSAGE);
-						}
-					});
+					JOptionPane.showMessageDialog(controller.getTextView(),
+					    "Cannot delete output file: " + outputFile.getAbsolutePath(), "Delete output file",
+					    JOptionPane.WARNING_MESSAGE);
 				}
 			}
 		} catch (Exception e) {

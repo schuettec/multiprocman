@@ -186,12 +186,7 @@ public class ReaderController implements ProcessCallback {
 		String parsed = parseBackspace(content);
 		if (async) {
 			try {
-				SwingUtilities.invokeAndWait(new Runnable() {
-					@Override
-					public void run() {
-						refreshTextView(parsed);
-					}
-				});
+				refreshTextView(parsed);
 			} catch (Exception e) {
 				e.printStackTrace();
 			}
@@ -328,33 +323,18 @@ public class ReaderController implements ProcessCallback {
 		try {
 			this.fileReader = new FileReader(charset, fileInfo);
 		} catch (FileNotFoundException e) {
-			SwingUtilities.invokeLater(new Runnable() {
-				@Override
-				public void run() {
-					ExceptionDialog.showException(textView, e, "Cannot open file for capturing application output.");
-				}
-			});
+			ExceptionDialog.showException(textView, e, "Cannot open file for capturing application output.");
 		}
 	}
 
 	@Override
 	public void cannotWriteOutput(File outputFile, Exception cause) {
-		SwingUtilities.invokeLater(new Runnable() {
-			@Override
-			public void run() {
-				cause.printStackTrace();
-			}
-		});
+		cause.printStackTrace();
 	}
 
 	@Override
 	public void cannotStartProcess(Exception e) {
-		SwingUtilities.invokeLater(new Runnable() {
-			@Override
-			public void run() {
-				e.printStackTrace();
-			}
-		});
+		e.printStackTrace();
 	}
 
 	public JScrollBar getLineScroller() {
