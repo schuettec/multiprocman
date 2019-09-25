@@ -1,6 +1,5 @@
 package com.github.schuettec.multiprocman;
 
-import java.awt.Component;
 import java.io.File;
 import java.io.IOException;
 import java.nio.charset.Charset;
@@ -94,14 +93,6 @@ public class ProcessController implements ProcessCallback, ViewFrameListener {
 
 	public void removeProcessListener(ProcessListener l) {
 		processListener.removeListener(l);
-	}
-
-	public boolean startWithVariables(Component parent) {
-		boolean cancelled = processDescriptor.promptVariables(parent);
-		if (cancelled) {
-			return cancelled;
-		}
-		return !start();
 	}
 
 	public boolean start() {

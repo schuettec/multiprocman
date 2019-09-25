@@ -62,6 +62,7 @@ public class FindLauncherDialog extends JDialog {
 			dispose();
 		}
 	};
+	private Categories categories;
 
 	/**
 	 * Launch the application.
@@ -359,7 +360,7 @@ public class FindLauncherDialog extends JDialog {
 
 	private void loadListModel() {
 		this.allProcesses = new LinkedList<>();
-		Categories categories = new Categories();
+		this.categories = new Categories();
 		Enumeration<Category> categoryElements = categories.elements();
 		while (categoryElements.hasMoreElements()) {
 			Category category = categoryElements.nextElement();
@@ -375,7 +376,7 @@ public class FindLauncherDialog extends JDialog {
 	private void startSelectedProcess() {
 		if (list.getSelectedIndex() > -1) {
 			CategoryDecorator selectedValue = list.getSelectedValue();
-			ProcessManager.startAll(FindLauncherDialog.this, asList(selectedValue.getProcessDescriptor()));
+			ProcessManager.startAll(FindLauncherDialog.this, categories, asList(selectedValue.getProcessDescriptor()));
 			FindLauncherDialog.this.setVisible(false);
 			FindLauncherDialog.this.dispose();
 		}

@@ -98,7 +98,7 @@ public class ProcessManager extends JFrame {
 					new FindLauncherDialog(null, launcherName);
 				} else {
 					ProcessDescriptor processDescriptor = results.get(0);
-					ProcessManager.startAll(null, Arrays.asList(processDescriptor));
+					ProcessManager.startAll(null, new Categories(), Arrays.asList(processDescriptor));
 					return;
 				}
 			} else {
@@ -788,7 +788,7 @@ public class ProcessManager extends JFrame {
 	}
 
 	private void startAllOrHandleCancel(ProcessDescriptor[] array) {
-		boolean cancelled = startAll(this, Arrays.asList(array));
+		boolean cancelled = startAll(this, this.categories, Arrays.asList(array));
 		if (cancelled) {
 			JOptionPane.showMessageDialog(ProcessManager.this, "The launch was cancelled.", "Launch cancelled",
 			    JOptionPane.INFORMATION_MESSAGE);
@@ -808,7 +808,7 @@ public class ProcessManager extends JFrame {
 		}
 	}
 
-	public static boolean startAll(Component parent, Collection<ProcessDescriptor> descriptors) {
+	public static boolean startAll(Component parent, Categories categories, Collection<ProcessDescriptor> descriptors) {
 		GitBranchSelection branchSelection = new GitBranchSelection();
 		Iterator<ProcessDescriptor> iterator = descriptors.iterator();
 		while (iterator.hasNext()) {
@@ -817,6 +817,9 @@ public class ProcessManager extends JFrame {
 				boolean promptVariablesCancelled = descriptor.promptVariables(parent);
 				if (promptVariablesCancelled) {
 					return true;
+				} else {
+					// Save categories because prompt variables last value may has changed.
+					categories.saveToPreferences();
 				}
 			}
 
