@@ -18,6 +18,7 @@ import org.apache.commons.lang3.event.EventListenerSupport;
 import com.github.schuettec.multiprocman.ExceptionDialog;
 import com.github.schuettec.multiprocman.process.captor.InputCaptor;
 import com.github.schuettec.multiprocman.process.captor.InputCaptorCallback;
+import com.github.schuettec.multiprocman.process.captor.SwingThreadInputCaptorCallbackDecorator;
 
 public class ProcessObserverImpl extends Thread implements ProcessObserver, ProcessOutputInfo, ViewFrameListener {
 
@@ -65,50 +66,7 @@ public class ProcessObserverImpl extends Thread implements ProcessObserver, Proc
 						    .started(ProcessObserverImpl.this, outputFile, charset);
 					}
 				});
-				this.captor = new InputCaptor(new InputCaptorCallback() {
-
-					@Override
-					public boolean shouldRun() {
-						return process.isAlive();
-					}
-
-					@Override
-					public void newLine(int lines, String line) {
-						doInSwing(new Runnable() {
-							@Override
-							public void run() {
-								try {
-									callbacks.fire()
-									    .output(lines, line);
-								} catch (Exception e) {
-									e.printStackTrace();
-								}
-							}
-						});
-					}
-
-					@Override
-					public void append(String string) {
-						doInSwing(new Runnable() {
-							@Override
-							public void run() {
-								callbacks.fire()
-								    .append(string);
-							}
-						});
-					}
-
-					@Override
-					public void jumpToLastLine(int lines) {
-						doInSwing(new Runnable() {
-							@Override
-							public void run() {
-								callbacks.fire()
-								    .jumpToLastLine(lines);
-							}
-						});
-					}
-				}, input, output);
+				this.captor = new InputCaptor(getInputCaptorCallback(), input, output);
 				captor.run();
 
 				_waitFor();
@@ -133,6 +91,34 @@ public class ProcessObserverImpl extends Thread implements ProcessObserver, Proc
 				}
 			});
 		}
+	}
+
+	private InputCaptorCallback getInputCaptorCallback() {
+		return new SwingThreadInputCaptorCallbackDecorator(new InputCaptorCallback() {
+
+			@Override
+			public boolean shouldRun() {
+				return process.isAlive();
+			}
+
+			@Override
+			public void newLine(int lines, String line) {
+				callbacks.fire()
+				    .output(lines, line);
+			}
+
+			@Override
+			public void append(String string) {
+				callbacks.fire()
+				    .append(string);
+			}
+
+			@Override
+			public void jumpToLastLine(int lines) {
+				callbacks.fire()
+				    .jumpToLastLine(lines);
+			}
+		});
 	}
 
 	private void doInSwing(Runnable run) {

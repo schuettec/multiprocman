@@ -6,6 +6,7 @@ import static java.util.Objects.requireNonNull;
 import java.util.concurrent.TimeUnit;
 import java.util.function.BiFunction;
 import java.util.function.Consumer;
+import java.util.function.Supplier;
 
 /**
  * This class defines the {@link CumulatedEventJoin} that joins multiple events into one by taking a specified maximum
@@ -19,12 +20,15 @@ public class CumulatedEventJoin<T> extends EventJoin {
 
 	private Object lock = new Object();
 	private T currentValue;
+	private Supplier<T> initialValueSupplier;
 
-	public CumulatedEventJoin(BiFunction<T, T, T> cumulationFunction, Consumer<T> consumer, long frequency,
-	    TimeUnit unit) {
+	public CumulatedEventJoin(Supplier<T> initialValueSupplier, BiFunction<T, T, T> cumulationFunction,
+	    Consumer<T> consumer, long frequency, TimeUnit unit) {
 		super(frequency, unit);
 		requireNonNull(cumulationFunction, "cumulation function must not be null!");
 		requireNonNull(consumer, "consumer  must not be null!");
+		this.initialValueSupplier = initialValueSupplier;
+		this.currentValue = initialValueSupplier.get();
 		this.cumulationFunction = cumulationFunction;
 		this.consumer = consumer;
 	}
@@ -40,7 +44,7 @@ public class CumulatedEventJoin<T> extends EventJoin {
 	public void acceptEvent() {
 		synchronized (lock) {
 			consumer.accept(currentValue);
-			currentValue = null;
+			this.currentValue = initialValueSupplier.get();
 		}
 	}
 

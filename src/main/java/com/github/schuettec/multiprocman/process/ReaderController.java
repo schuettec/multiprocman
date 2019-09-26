@@ -14,7 +14,6 @@ import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
 import java.io.File;
 import java.io.FileNotFoundException;
-import java.lang.reflect.InvocationTargetException;
 import java.nio.charset.Charset;
 
 import javax.swing.BoundedRangeModel;
@@ -236,27 +235,14 @@ public class ReaderController implements ProcessCallback {
 		// If last line is currently captured
 		if (isCaptured(lines - 1)) {
 			// append the content
-			try {
-				SwingUtilities.invokeAndWait(new Runnable() {
-					@Override
-					public void run() {
-						string.chars()
-						    .forEach(c -> {
-							    if (c == 0x8) {
-								    textView.backspace(1);
-							    } else {
-								    textView.appendANSI(String.valueOf((char) c), true);
-							    }
-						    });
-					}
-				});
-			} catch (InvocationTargetException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
-			} catch (InterruptedException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
-			}
+			string.chars()
+			    .forEach(c -> {
+				    if (c == 0x8) {
+					    textView.backspace(1);
+				    } else {
+					    textView.appendANSI(String.valueOf((char) c), true);
+				    }
+			    });
 		}
 	}
 
