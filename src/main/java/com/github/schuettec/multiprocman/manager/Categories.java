@@ -8,6 +8,7 @@ import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.net.URL;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.Enumeration;
@@ -110,6 +111,34 @@ public class Categories extends DefaultListModel<Category> {
 		}
 	}
 
+	public static Category loadCategory(String urlText) {
+		try (InputStream in = new URL(urlText).openStream()) {
+			XStream xstream = new XStream();
+			Object fromXML = xstream.fromXML(in);
+
+			if (fromXML instanceof List) {
+				List list = (List) fromXML;
+				if (list.isEmpty() || !(list.get(0) instanceof Category)) {
+					showNoCategoriesMessage();
+				}
+				if (list.size() != 1) {
+					showTooManyCategories();
+				}
+				return (Category) list.get(0);
+			} else if (fromXML instanceof Category) {
+				Category category = (Category) fromXML;
+				return category;
+			} else {
+				showNoCategoryMessage();
+				return null;
+			}
+		} catch (Exception e) {
+			ExceptionDialog.showException(ProcessManager.getInstance(), e,
+			    "Error while updating the selected category from URL.");
+			return null;
+		}
+	}
+
 	public static List<Category> importCategories(InputStream input) {
 		try (InputStream in = input) {
 			XStream xstream = new XStream();
@@ -138,6 +167,17 @@ public class Categories extends DefaultListModel<Category> {
 	private static void showNoCategoriesMessage() {
 		JOptionPane.showMessageDialog(ProcessManager.getInstance(), "The source to import does not contain categories.",
 		    "Import failed", JOptionPane.ERROR_MESSAGE);
+	}
+
+	private static void showNoCategoryMessage() {
+		JOptionPane.showMessageDialog(ProcessManager.getInstance(),
+		    "The source to import does not represent a single category.", "Update failed", JOptionPane.ERROR_MESSAGE);
+	}
+
+	private static void showTooManyCategories() {
+		JOptionPane.showMessageDialog(ProcessManager.getInstance(),
+		    "The source to import represents a collection of categories. Please export only a single category to use it as URL update source.",
+		    "Update failed", JOptionPane.ERROR_MESSAGE);
 	}
 
 	private void loadFromPreferences() {

@@ -14,11 +14,14 @@ import java.awt.event.WindowListener;
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.List;
 
 import javax.imageio.ImageIO;
 import javax.swing.AbstractAction;
+import javax.swing.DefaultListModel;
 import javax.swing.GroupLayout;
 import javax.swing.GroupLayout.Alignment;
 import javax.swing.ImageIcon;
@@ -39,6 +42,7 @@ import javax.swing.border.EmptyBorder;
 
 import com.github.schuettec.multiprocman.FileChooserCallback;
 import com.github.schuettec.multiprocman.FileUtil;
+import com.github.schuettec.multiprocman.ProcessDescriptor;
 import com.github.schuettec.multiprocman.Resources;
 
 import javafx.stage.FileChooser.ExtensionFilter;
@@ -49,6 +53,9 @@ public class CategoryEditor extends JDialog {
 	private JTextField txtName;
 	private JTextField txtDescription;
 	private Category category;
+	private JTextPane txtUrl;
+	private JLabel lblLastUpdate;
+	private JLabel lblIcon;
 
 	/**
 	 * Create the dialog.
@@ -99,7 +106,7 @@ public class CategoryEditor extends JDialog {
 		contentPanel.setBorder(new EmptyBorder(5, 5, 5, 5));
 		getContentPane().add(contentPanel, BorderLayout.CENTER);
 
-		JLabel lblIcon = new JLabel(new ImageIcon(Resources.getFolder()));
+		this.lblIcon = new JLabel(new ImageIcon(Resources.getFolder()));
 		lblIcon.setSize(new Dimension(24, 24));
 		lblIcon.setPreferredSize(new Dimension(24, 24));
 		JLabel lblForIcon = new JLabel("Category icon: ");
@@ -174,9 +181,15 @@ public class CategoryEditor extends JDialog {
 
 		JLabel lblNewLabel_1 = new JLabel("Last update:");
 
-		JLabel lblSadasd = new JLabel("date");
+		lblLastUpdate = new JLabel("date");
 
-		JButton btnUpdate = new JButton("Update");
+		JButton btnUpdate = new JButton(new AbstractAction("Update") {
+
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				updateFromUrl();
+			}
+		});
 		btnUpdate.setPreferredSize(new Dimension(91, 23));
 
 		GroupLayout gl_contentPanel = new GroupLayout(contentPanel);
@@ -199,7 +212,7 @@ public class CategoryEditor extends JDialog {
 		                .addGroup(gl_contentPanel.createParallelGroup(Alignment.TRAILING)
 		                    .addComponent(scrollPane, GroupLayout.DEFAULT_SIZE, 272, Short.MAX_VALUE)
 		                    .addGroup(gl_contentPanel.createSequentialGroup()
-		                        .addComponent(lblSadasd, GroupLayout.DEFAULT_SIZE, 187, Short.MAX_VALUE)
+		                        .addComponent(lblLastUpdate, GroupLayout.DEFAULT_SIZE, 187, Short.MAX_VALUE)
 		                        .addPreferredGap(ComponentPlacement.RELATED)
 		                        .addComponent(btnUpdate, GroupLayout.PREFERRED_SIZE, 81, GroupLayout.PREFERRED_SIZE))
 		                    .addGroup(gl_contentPanel.createSequentialGroup()
@@ -244,13 +257,13 @@ public class CategoryEditor extends JDialog {
 		        .addGroup(gl_contentPanel.createParallelGroup(Alignment.LEADING)
 		            .addGroup(gl_contentPanel.createParallelGroup(Alignment.BASELINE)
 		                .addComponent(lblNewLabel_1)
-		                .addComponent(lblSadasd))
+		                .addComponent(lblLastUpdate))
 		            .addComponent(btnUpdate, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE,
 		                GroupLayout.PREFERRED_SIZE))
 		        .addGap(16)));
 
-		JTextPane textPane = new JTextPane();
-		scrollPane.setViewportView(textPane);
+		txtUrl = new JTextPane();
+		scrollPane.setViewportView(txtUrl);
 		contentPanel.setLayout(gl_contentPanel);
 
 		{
@@ -262,13 +275,10 @@ public class CategoryEditor extends JDialog {
 
 					@Override
 					public void actionPerformed(ActionEvent e) {
-						CategoryEditor.this.category.setName(txtName.getText()
-						    .trim());
-						CategoryEditor.this.category.setDescription(txtDescription.getText()
-						    .trim());
-						CategoryEditor.this.category.setIcon((ImageIcon) lblIcon.getIcon());
+						refreshCategory(lblIcon);
 						dispose();
 					}
+
 				});
 				okButton.setPreferredSize(new Dimension(91, 23));
 				okButton.setActionCommand("OK");
@@ -301,10 +311,7 @@ public class CategoryEditor extends JDialog {
 		if (isNull(category)) {
 			this.category = new Category();
 		} else {
-			this.category = category;
-			lblIcon.setIcon(category.getIcon());
-			txtName.setText(category.getName());
-			txtDescription.setText(category.getDescription());
+			setCategory(category);
 		}
 
 		setVisible(true);
@@ -326,5 +333,49 @@ public class CategoryEditor extends JDialog {
 	private void performCancel() {
 		category = null;
 		dispose();
+	}
+
+	private void refreshCategory(JLabel lblIcon) {
+		this.category.setName(txtName.getText()
+		    .trim());
+		this.category.setDescription(txtDescription.getText()
+		    .trim());
+		this.category.setIcon((ImageIcon) lblIcon.getIcon());
+		this.category.setUrl(txtUrl.getText());
+	}
+
+	private void updateFromUrl() {
+		Category loadedCategory = Categories.loadCategory(txtUrl.getText());
+		this.category.setName(loadedCategory.getName()
+		    .trim());
+		this.category.setDescription(loadedCategory.getDescription()
+		    .trim());
+		this.category.setIcon(loadedCategory.getIcon());
+		this.category.setLastModified();
+
+		// Do not update url to prevent external systems to switch location.
+
+		this.category.setUrl(txtUrl.getText());
+
+		DefaultListModel<ProcessDescriptor> processTemplates = loadedCategory.getProcessTemplates();
+		this.category.getProcessTemplates()
+		    .clear();
+		for (int i = 0; i < processTemplates.size(); i++) {
+			ProcessDescriptor pd = processTemplates.get(i);
+			this.category.getProcessTemplates()
+			    .addElement(pd);
+		}
+
+		setCategory(this.category);
+	}
+
+	private void setCategory(Category category) {
+		this.category = category;
+		lblIcon.setIcon(category.getIcon());
+		txtName.setText(category.getName());
+		lblLastUpdate.setText(SimpleDateFormat.getDateTimeInstance(DateFormat.MEDIUM, DateFormat.MEDIUM)
+		    .format(category.getLastModified()));
+		txtDescription.setText(category.getDescription());
+		txtUrl.setText(category.getUrl());
 	}
 }
