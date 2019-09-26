@@ -10,8 +10,6 @@ import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.mockito.runners.MockitoJUnitRunner;
 
-import com.github.schuettec.multiprocman.common.EventJoin.Callback;
-
 @RunWith(MockitoJUnitRunner.class)
 public class EventJoinTest {
 
@@ -20,14 +18,14 @@ public class EventJoinTest {
 
 	@Test
 	public void shouldPerformFirstCall() {
-		EventJoin join = new EventJoin(callback, 2, TimeUnit.SECONDS);
+		EventJoin join = new CallbackEventJoin(callback, 2, TimeUnit.SECONDS);
 		join.noticeEvent();
 		verify(callback, times(1)).eventCallback();
 	}
 
 	@Test
 	public void shouldJoinCallsAndFireLast() {
-		EventJoin join = new EventJoin(callback, 500, TimeUnit.MILLISECONDS);
+		EventJoin join = new CallbackEventJoin(callback, 500, TimeUnit.MILLISECONDS);
 		join.noticeEvent();
 		verify(callback, times(1)).eventCallback();
 		join.noticeEvent();
@@ -40,7 +38,7 @@ public class EventJoinTest {
 
 	@Test
 	public void shouldJoinCallsAndSkipSchedulingIfTimerIsWaiting() {
-		EventJoin join = new EventJoin(callback, 500, TimeUnit.MILLISECONDS);
+		EventJoin join = new CallbackEventJoin(callback, 500, TimeUnit.MILLISECONDS);
 		join.noticeEvent();
 		verify(callback, times(1)).eventCallback();
 		join.noticeEvent();
@@ -55,7 +53,7 @@ public class EventJoinTest {
 
 	@Test
 	public void shouldWaitUntilElapsed() {
-		EventJoin join = new EventJoin(callback, 500, TimeUnit.MILLISECONDS);
+		EventJoin join = new CallbackEventJoin(callback, 500, TimeUnit.MILLISECONDS);
 		join.noticeEvent();
 		verify(callback, times(1)).eventCallback();
 		try {

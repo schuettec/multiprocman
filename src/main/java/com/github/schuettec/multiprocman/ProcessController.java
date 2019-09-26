@@ -179,8 +179,7 @@ public class ProcessController implements ProcessCallback, ViewFrameListener {
 			}
 		}
 		try {
-			controller.close();
-			boolean deleted = this.outputFile.delete();
+			boolean deleted = closeAndDeleteOutputFileSilent();
 			if (!deleted) {
 				if (state == State.STOPPED_OK || state == State.STOPPED_ALERT) {
 					JOptionPane.showMessageDialog(controller.getTextView(),
@@ -197,6 +196,12 @@ public class ProcessController implements ProcessCallback, ViewFrameListener {
 				}
 			});
 		}
+	}
+
+	private boolean closeAndDeleteOutputFileSilent() {
+		controller.close();
+		boolean deleted = this.outputFile.delete();
+		return deleted;
 	}
 
 	private void updateState(State state) {
@@ -273,7 +278,7 @@ public class ProcessController implements ProcessCallback, ViewFrameListener {
 			List<ProcessController> toShutdown = new LinkedList<>(controllers);
 			for (ProcessController controller : toShutdown) {
 				controller.stop(true);
-				controller.deleteOutputFile();
+				controller.closeAndDeleteOutputFileSilent();
 			}
 		}
 	}

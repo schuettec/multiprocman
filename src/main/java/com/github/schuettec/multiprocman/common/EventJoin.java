@@ -13,26 +13,17 @@ import java.util.concurrent.atomic.AtomicBoolean;
  * This class defines the {@link EventJoin} that joins multiple events into one by taking a specified maximum event
  * frequency into account.
  */
-public class EventJoin {
-
-	@FunctionalInterface
-	public interface Callback {
-		public void eventCallback();
-	}
+public abstract class EventJoin {
 
 	private Timer timer;
 	private AtomicBoolean timerIsWaiting = new AtomicBoolean(false);
 
 	private Semaphore lock = new Semaphore(1);
-	private Long lastEvent;
-	private Long frequency;
-	private Callback callback;
+	protected Long lastEvent;
+	protected Long frequency;
 
-	public EventJoin(Callback callback, long frequency, TimeUnit unit) {
-		requireNonNull(callback, "Callback must not be null!");
+	public EventJoin(long frequency, TimeUnit unit) {
 		requireNonNull(unit, "TimeUnit must not be null!");
-
-		this.callback = callback;
 		this.timer = new Timer();
 		this.frequency = unit.toNanos(frequency);
 	}
@@ -78,8 +69,13 @@ public class EventJoin {
 	}
 
 	private void fireEvent() {
-		callback.eventCallback();
 		lastEvent = System.nanoTime();
+		acceptEvent();
 	}
+
+	/**
+	 * Implement logic to accept the event.
+	 */
+	public abstract void acceptEvent();
 
 }

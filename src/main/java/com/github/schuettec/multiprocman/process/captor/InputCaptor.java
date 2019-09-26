@@ -93,7 +93,6 @@ public class InputCaptor {
 					continue;
 				}
 				String string = new String(buffer.getData());
-				// System.out.print(string);
 				bytesRead += buffer.size();
 				// If xrefs is empty create the first line
 				if (lineXrefs.isEmpty()) {
@@ -104,7 +103,6 @@ public class InputCaptor {
 					output.flush();
 					lineXrefs.put(lines - 1, bytesRead);
 					if (blockReadLines == 0) {
-						System.out.println("Append " + string);
 						callback.append(string);
 					}
 				} else {
@@ -118,29 +116,24 @@ public class InputCaptor {
 						}
 						if (blockReadLines == 1) {
 							blockReadLines = 0;
-							System.out.println("Jump to last line");
 							callback.jumpToLastLine(lines);
 							continue;
 						}
 						if (blockReadLines == 0) {
-							System.out.println("New Line " + string);
 							callback.newLine(lines, string);
 						}
 					} else {
 						lineXrefs.put(lines - 1, bytesRead);
 						if (blockReadLines == 0) {
-							System.out.println("Append " + string);
 							callback.append(string);
 						}
 					}
 				}
 			} while (input.available() > 0 || callback.shouldRun());
-			System.out.println("Capture looop finished.");
 		} catch (IOException e) {
 			if (callback.shouldRun()) {
 				throw e;
 			} else {
-				System.out.println("InputCaptor was requested to stop and IO Exception was thrown.");
 				e.printStackTrace();
 			}
 		}
