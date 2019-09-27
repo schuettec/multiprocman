@@ -314,10 +314,7 @@ public class ProcessController implements ProcessCallback, ViewFrameListener {
 	}
 
 	public void clearConsole() {
-		getTextPane().setText("");
-		getConsolePreview().clear();
-		counterExpressions.clear();
-		updateListeners();
+		processObserver.clearConsole();
 	}
 
 	@Override
@@ -379,6 +376,15 @@ public class ProcessController implements ProcessCallback, ViewFrameListener {
 		processListener.fire()
 		    .processOutput(this);
 		statistics.setOverallOutputAmount(controller.getCaptureFileSize());
+	}
+
+	@Override
+	public void clear() {
+		getTextPane().setText("");
+		statistics.clear();
+		getConsolePreview().clear();
+		counterExpressions.clear();
+		updateListeners();
 	}
 
 }

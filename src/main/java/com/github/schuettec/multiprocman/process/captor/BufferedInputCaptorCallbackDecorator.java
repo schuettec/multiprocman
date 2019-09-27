@@ -50,6 +50,11 @@ public class BufferedInputCaptorCallbackDecorator implements InputCaptorCallback
 		this.jumpCumulator.noticeEvent(new NewLineBuffer(lines));
 	}
 
+	@Override
+	public void clear() {
+		delegate.clear();
+	}
+
 	class NewLineBuffer {
 		public int lines;
 		public StringBuilder newLines;
@@ -84,4 +89,5 @@ public class BufferedInputCaptorCallbackDecorator implements InputCaptorCallback
 		}
 
 	}
+
 }

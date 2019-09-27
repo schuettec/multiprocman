@@ -31,6 +31,11 @@ public class SwingThreadInputCaptorCallbackDecorator implements InputCaptorCallb
 		doInSwing(() -> delegate.jumpToLastLine(lines));
 	}
 
+	@Override
+	public void clear() {
+		delegate.clear();
+	}
+
 	private void doInSwing(Runnable run) {
 		SwingUtilities.invokeLater(new Runnable() {
 			@Override

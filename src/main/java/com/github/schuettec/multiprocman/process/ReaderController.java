@@ -39,7 +39,6 @@ public class ReaderController implements ProcessCallback {
 	private int currentLine = 0;
 	private int viewLines = 0;
 	private int lines = 0;
-	private File outputFile;
 
 	private boolean currentlyScrolling = false;
 
@@ -305,7 +304,6 @@ public class ReaderController implements ProcessCallback {
 
 	@Override
 	public void started(ProcessOutputInfo fileInfo, File outputFile, Charset charset) {
-		this.outputFile = outputFile;
 		try {
 			this.fileReader = new FileReader(charset, fileInfo);
 		} catch (FileNotFoundException e) {
@@ -358,6 +356,12 @@ public class ReaderController implements ProcessCallback {
 		int fromLine = Math.max(0, lines - 1 - linesCount);
 		int toLine = Math.max(0, lines - 1);
 		return fileReader.readLinesFromFile(fromLine, toLine);
+	}
+
+	@Override
+	public void clear() {
+		lines = 0;
+		setCurrentLine(0);
 	}
 
 }

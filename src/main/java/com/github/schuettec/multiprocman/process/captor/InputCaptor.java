@@ -1,5 +1,7 @@
 package com.github.schuettec.multiprocman.process.captor;
 
+import static java.util.Objects.nonNull;
+
 import java.io.BufferedInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
@@ -21,6 +23,8 @@ public class InputCaptor {
 	private InputCaptorCallback callback;
 
 	private int viewFrameLines;
+
+	private Runnable scheduledAction;
 
 	private class Buffer {
 		boolean isAsciiControl;
@@ -128,6 +132,11 @@ public class InputCaptor {
 							callback.append(string);
 						}
 					}
+				}
+
+				if (nonNull(scheduledAction)) {
+					scheduledAction.run();
+					scheduledAction = null;
 				}
 			} while (input.available() > 0 || callback.shouldRun());
 		} catch (IOException e) {
@@ -315,6 +324,26 @@ public class InputCaptor {
 
 	public void setViewFrame(int viewFrameLines) {
 		this.viewFrameLines = viewFrameLines;
+	}
+
+	public void setScheduledAction(Runnable runnable) {
+		if (nonNull(scheduledAction)) {
+			throw new IllegalStateException("There is already an action scheduled.");
+		}
+		this.scheduledAction = runnable;
+	}
+
+	public void clearConsole(OutputStream newOutputStream) {
+		try {
+			if (nonNull(this.output)) {
+				this.output.close();
+			}
+		} catch (IOException e) {
+		}
+		this.output = newOutputStream;
+		lineXrefs.clear();
+		lines = 0;
+		callback.clear();
 	}
 
 }

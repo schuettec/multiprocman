@@ -5,6 +5,7 @@ import static java.util.Objects.requireNonNull;
 
 import java.io.BufferedInputStream;
 import java.io.File;
+import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
@@ -57,7 +58,7 @@ public class ProcessObserverImpl extends Thread implements ProcessObserver, Proc
 			running = true;
 			InputStream inputStr = process.getInputStream();
 			try (BufferedInputStream input = new BufferedInputStream(inputStr);
-			    FileOutputStream output = new FileOutputStream(outputFile);) {
+			    FileOutputStream output = getNewOutputFile();) {
 
 				doInSwing(new Runnable() {
 					@Override
@@ -72,14 +73,7 @@ public class ProcessObserverImpl extends Thread implements ProcessObserver, Proc
 				_waitFor();
 
 			} catch (Exception e) {
-				stopProcess();
-				doInSwing(new Runnable() {
-					@Override
-					public void run() {
-						callbacks.fire()
-						    .cannotWriteOutput(outputFile, e);
-					}
-				});
+				handleCannotWriteOutput(e);
 			}
 		} catch (IOException e) {
 			stopProcess();
@@ -91,6 +85,21 @@ public class ProcessObserverImpl extends Thread implements ProcessObserver, Proc
 				}
 			});
 		}
+	}
+
+	private void handleCannotWriteOutput(Exception e) {
+		stopProcess();
+		doInSwing(new Runnable() {
+			@Override
+			public void run() {
+				callbacks.fire()
+				    .cannotWriteOutput(outputFile, e);
+			}
+		});
+	}
+
+	private FileOutputStream getNewOutputFile() throws FileNotFoundException {
+		return new FileOutputStream(outputFile);
 	}
 
 	private InputCaptorCallback getInputCaptorCallback() {
@@ -117,6 +126,12 @@ public class ProcessObserverImpl extends Thread implements ProcessObserver, Proc
 			public void jumpToLastLine(int lines) {
 				callbacks.fire()
 				    .jumpToLastLine(lines);
+			}
+
+			@Override
+			public void clear() {
+				callbacks.fire()
+				    .clear();
 			}
 		});
 	}
@@ -226,6 +241,28 @@ public class ProcessObserverImpl extends Thread implements ProcessObserver, Proc
 	public void viewFrameChanged(int viewFrameLines) {
 		if (nonNull(captor)) {
 			captor.setViewFrame(viewFrameLines);
+		}
+	}
+
+	public void clearConsole() {
+		// Clear the file content or reset the last read line or whatever.
+		if (isRunning()) {
+			captor.setScheduledAction(() -> {
+				clearConsoleAction();
+			});
+		} else {
+			clearConsoleAction();
+		}
+	}
+
+	private void clearConsoleAction() {
+		File oldFile = outputFile;
+		try {
+			captor.clearConsole(getNewOutputFile());
+		} catch (FileNotFoundException e) {
+			handleCannotWriteOutput(e);
+		} finally {
+			oldFile.delete();
 		}
 	}
 

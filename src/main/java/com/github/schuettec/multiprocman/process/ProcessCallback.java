@@ -101,4 +101,9 @@ public interface ProcessCallback {
 
 	}
 
+	/**
+	 * Called by the {@link InputCaptor} to signal, that the captured output was cleared.
+	 */
+	void clear();
+
 }
