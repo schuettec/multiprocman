@@ -67,7 +67,36 @@ public class ProcessObserverImpl extends Thread implements ProcessObserver, Proc
 						    .started(ProcessObserverImpl.this, outputFile, charset);
 					}
 				});
-				this.captor = new InputCaptor(getInputCaptorCallback(), input, output);
+				this.captor = new InputCaptor(new InputCaptorCallback() {
+
+					@Override
+					public boolean shouldRun() {
+						return process.isAlive();
+					}
+
+					@Override
+					public void newLine(int lines, String line) {
+						callbacks.fire()
+						    .output(lines, line);
+					}
+
+					@Override
+					public void append(String string) {
+						callbacks.fire()
+						    .append(string);
+					}
+
+					@Override
+					public void jumpToLastLine(int lines) {
+						callbacks.fire()
+						    .jumpToLastLine(lines);
+					}
+
+					@Override
+					public void clear() {
+						// TODO: Implement me!
+					}
+				}, input, output);
 				captor.run();
 
 				_waitFor();

@@ -14,6 +14,7 @@ import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
 import java.io.File;
 import java.io.FileNotFoundException;
+import java.lang.reflect.InvocationTargetException;
 import java.nio.charset.Charset;
 import java.util.concurrent.TimeUnit;
 
@@ -186,7 +187,12 @@ public class ReaderController implements ProcessCallback {
 		String parsed = parseBackspace(content);
 		if (async) {
 			try {
-				refreshTextView(parsed);
+				SwingUtilities.invokeAndWait(new Runnable() {
+					@Override
+					public void run() {
+						refreshTextView(parsed);
+					}
+				});
 			} catch (Exception e) {
 				e.printStackTrace();
 			}
@@ -202,28 +208,36 @@ public class ReaderController implements ProcessCallback {
 
 	@Override
 	public void output(int lines, String line) {
-		StopWatch stopWatch = new StopWatch();
-		stopWatch.start();
 		this.lines = lines;
 		if (!currentlyScrolling || isCaptured(lines - 1)) {
-			updateScrollBar();
+			try {
+				SwingUtilities.invokeAndWait(new Runnable() {
+					@Override
+					public void run() {
+						updateScrollBar();
 
-			if (isCaptured(lines - 1) && lines >= viewLines) {
-				// Delete as many rows as needed to add the new line while not overstepping the viewLines.
-				int linesInView = textView.getText()
-				    .split("\n").length - 1;
-				if (linesInView >= viewLines) {
-					textView.removeFirstLine();
-				}
-				currentLine++;
+						if (isCaptured(lines - 1) && lines >= viewLines) {
+							// Delete as many rows as needed to add the new line while not overstepping the viewLines.
+							int linesInView = textView.getText()
+							    .split("\n").length - 1;
+							if (linesInView >= viewLines) {
+								textView.removeFirstLine();
+							}
+							currentLine++;
+						}
+						textView.appendANSI(line, true);
+
+						_jumpToLastLine();
+					}
+				});
+			} catch (InvocationTargetException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			} catch (InterruptedException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
 			}
-			textView.appendANSI(line, true);
-
-			_jumpToLastLine();
 		}
-
-		stopWatch.stop();
-		System.out.println("output took " + stopWatch.getTime(TimeUnit.MILLISECONDS));
 	}
 
 	private void _jumpToLastLine() {
@@ -313,7 +327,12 @@ public class ReaderController implements ProcessCallback {
 		try {
 			this.fileReader = new FileReader(charset, fileInfo);
 		} catch (FileNotFoundException e) {
-			ExceptionDialog.showException(textView, e, "Cannot open file for capturing application output.");
+			SwingUtilities.invokeLater(new Runnable() {
+				@Override
+				public void run() {
+					ExceptionDialog.showException(textView, e, "Cannot open file for capturing application output.");
+				}
+			});
 		}
 	}
 
