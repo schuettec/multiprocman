@@ -15,6 +15,7 @@ import java.awt.event.MouseListener;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.nio.charset.Charset;
+import java.util.concurrent.TimeUnit;
 
 import javax.swing.BoundedRangeModel;
 import javax.swing.JScrollBar;
@@ -22,6 +23,7 @@ import javax.swing.JScrollPane;
 import javax.swing.SwingUtilities;
 
 import org.apache.commons.lang3.event.EventListenerSupport;
+import org.apache.commons.lang3.time.StopWatch;
 
 import com.github.schuettec.multiprocman.ExceptionDialog;
 import com.github.schuettec.multiprocman.console.AnsiColorTextPane;
@@ -200,6 +202,8 @@ public class ReaderController implements ProcessCallback {
 
 	@Override
 	public void output(int lines, String line) {
+		StopWatch stopWatch = new StopWatch();
+		stopWatch.start();
 		this.lines = lines;
 		if (!currentlyScrolling || isCaptured(lines - 1)) {
 			updateScrollBar();
@@ -217,13 +221,15 @@ public class ReaderController implements ProcessCallback {
 
 			_jumpToLastLine();
 		}
+
+		stopWatch.stop();
+		System.out.println("output took " + stopWatch.getTime(TimeUnit.MILLISECONDS));
 	}
 
 	private void _jumpToLastLine() {
 		if (jumpToLastLine) {
 			updateScrollBar();
 			ignoreAdjustmentListener = true;
-			BoundedRangeModel model = this.lineScroller.getModel();
 			setCurrentLine(lines - viewLines);
 			ignoreAdjustmentListener = false;
 		}
@@ -331,10 +337,15 @@ public class ReaderController implements ProcessCallback {
 
 	@Override
 	public void jumpToLastLine(int lines) {
+		StopWatch stopWatch = new StopWatch();
+		stopWatch.start();
 		this.lines = lines;
 		if (jumpToLastLine) {
 			jumpToLastLine();
 		}
+		stopWatch.stop();
+		System.out.println("com.github.schuettec.multiprocman.process.ReaderController.jumpToLastLine(int) took "
+		    + stopWatch.getTime(TimeUnit.MILLISECONDS));
 	}
 
 	public void jumpToLastLine() {

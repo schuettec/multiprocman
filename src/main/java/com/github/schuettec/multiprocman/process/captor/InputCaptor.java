@@ -138,6 +138,7 @@ public class InputCaptor {
 					scheduledAction.run();
 					scheduledAction = null;
 				}
+
 			} while (input.available() > 0 || callback.shouldRun());
 		} catch (IOException e) {
 			if (callback.shouldRun()) {

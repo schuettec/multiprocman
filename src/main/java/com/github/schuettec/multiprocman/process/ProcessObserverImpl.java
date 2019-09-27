@@ -84,6 +84,8 @@ public class ProcessObserverImpl extends Thread implements ProcessObserver, Proc
 					    .cannotStartProcess(e);
 				}
 			});
+		} finally {
+			System.out.print("");
 		}
 	}
 
@@ -245,14 +247,14 @@ public class ProcessObserverImpl extends Thread implements ProcessObserver, Proc
 	}
 
 	public void clearConsole() {
-		// Clear the file content or reset the last read line or whatever.
-		if (isRunning()) {
-			captor.setScheduledAction(() -> {
-				clearConsoleAction();
-			});
-		} else {
-			clearConsoleAction();
-		}
+		// // Clear the file content or reset the last read line or whatever.
+		// if (isRunning()) {
+		// captor.setScheduledAction(() -> {
+		// clearConsoleAction();
+		// });
+		// } else {
+		// clearConsoleAction();
+		// }
 	}
 
 	private void clearConsoleAction() {

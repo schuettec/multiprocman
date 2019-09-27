@@ -18,6 +18,7 @@ import javax.swing.JScrollBar;
 import javax.swing.SwingUtilities;
 
 import org.apache.commons.lang3.event.EventListenerSupport;
+import org.apache.commons.lang3.time.StopWatch;
 
 import com.github.schuettec.multiprocman.console.AnsiColorTextPane;
 import com.github.schuettec.multiprocman.consolepreview.ConsolePreview;
@@ -373,9 +374,14 @@ public class ProcessController implements ProcessCallback, ViewFrameListener {
 
 	@Override
 	public void jumpToLastLine(int lines) {
+		StopWatch stopWatch = new StopWatch();
+		stopWatch.start();
 		processListener.fire()
 		    .processOutput(this);
 		statistics.setOverallOutputAmount(controller.getCaptureFileSize());
+		stopWatch.stop();
+		System.out.println("com.github.schuettec.multiprocman.ProcessController.jumpToLastLine(int) took "
+		    + stopWatch.getTime(TimeUnit.MILLISECONDS));
 	}
 
 	@Override
