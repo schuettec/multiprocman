@@ -14,7 +14,6 @@ import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
 import java.io.File;
 import java.io.FileNotFoundException;
-import java.lang.reflect.InvocationTargetException;
 import java.nio.charset.Charset;
 import java.util.concurrent.TimeUnit;
 
@@ -210,34 +209,22 @@ public class ReaderController implements ProcessCallback {
 	public void output(int lines, String line) {
 		this.lines = lines;
 		if (!currentlyScrolling || isCaptured(lines - 1)) {
-			try {
-				SwingUtilities.invokeAndWait(new Runnable() {
-					@Override
-					public void run() {
-						updateScrollBar();
+			updateScrollBar();
 
-						if (isCaptured(lines - 1) && lines >= viewLines) {
-							// Delete as many rows as needed to add the new line while not overstepping the viewLines.
-							int linesInView = textView.getText()
-							    .split("\n").length - 1;
-							if (linesInView >= viewLines) {
-								textView.removeFirstLine();
-							}
-							currentLine++;
-						}
-						textView.appendANSI(line, true);
-
-						_jumpToLastLine();
-					}
-				});
-			} catch (InvocationTargetException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
-			} catch (InterruptedException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
+			if (isCaptured(lines - 1) && lines >= viewLines) {
+				// Delete as many rows as needed to add the new line while not overstepping the viewLines.
+				int linesInView = textView.getText()
+				    .split("\n").length - 1;
+				if (linesInView >= viewLines) {
+					textView.removeFirstLine();
+				}
+				currentLine++;
 			}
+			textView.appendANSI(line, true);
+
+			_jumpToLastLine();
 		}
+
 	}
 
 	private void _jumpToLastLine() {
@@ -392,6 +379,7 @@ public class ReaderController implements ProcessCallback {
 	public void clear() {
 		lines = 0;
 		setCurrentLine(0);
+		updateViewFrame(false);
 	}
 
 }

@@ -1,5 +1,7 @@
 package com.github.schuettec.multiprocman;
 
+import static java.util.Objects.nonNull;
+
 import java.io.File;
 import java.io.IOException;
 import java.nio.charset.Charset;
@@ -162,8 +164,19 @@ public class ProcessController implements ProcessCallback, ViewFrameListener {
 	}
 
 	private File createOutputFile() throws IOException {
+		if (nonNull(outputFile)) {
+			try {
+				closeAndDeleteOutputFileSilent();
+			} catch (Exception e) {
+				e.printStackTrace();
+			}
+		}
 		File file = new File("multiprocman_" + UUID.randomUUID()
 		    .toString() + ".txt");
+		try {
+			file.createNewFile();
+		} catch (Exception e) {
+		}
 		System.out.println("Output capturing file created: " + file.getAbsolutePath());
 		return file;
 	}
@@ -201,8 +214,17 @@ public class ProcessController implements ProcessCallback, ViewFrameListener {
 
 	private boolean closeAndDeleteOutputFileSilent() {
 		controller.close();
-		boolean deleted = this.outputFile.delete();
+		boolean deleted = deleteOutputFileSilent();
 		return deleted;
+	}
+
+	private boolean deleteOutputFileSilent() {
+		try {
+			return this.outputFile.delete();
+		} catch (Exception e) {
+			e.printStackTrace();
+			return true;
+		}
 	}
 
 	private void updateState(State state) {
@@ -214,16 +236,17 @@ public class ProcessController implements ProcessCallback, ViewFrameListener {
 	public void stop(boolean waitFor) {
 		if (state == State.RUNNING || state == State.ABANDONED) {
 			updateState(State.STOPPING);
-			_stopProcess();
-			waitForOnDemand(waitFor);
+			_stopProcess(waitFor);
 		}
 	}
 
-	private void _stopProcess() {
+	private void _stopProcess(boolean waitFor) {
+		this.processObserver.shouldStop();
 		if (processDescriptor.isUseTerminationCommand()) {
 			executeTermination();
+			this.processObserver.waitFor();
 		} else {
-			this.processObserver.stopProcess();
+			this.processObserver.stopProcess(waitFor);
 		}
 	}
 
@@ -250,12 +273,6 @@ public class ProcessController implements ProcessCallback, ViewFrameListener {
 			}
 		});
 		termination.start();
-	}
-
-	private void waitForOnDemand(boolean waitFor) {
-		if (waitFor) {
-			this.processObserver.waitFor();
-		}
 	}
 
 	public AnsiColorTextPane getTextPane() {
@@ -391,6 +408,15 @@ public class ProcessController implements ProcessCallback, ViewFrameListener {
 		getConsolePreview().clear();
 		counterExpressions.clear();
 		updateListeners();
+	}
+
+	/**
+	 * Restarts a this process.
+	 */
+	public void restart() {
+		stop(true);
+		clearConsole();
+		start();
 	}
 
 }

@@ -6,7 +6,6 @@ import static java.util.Objects.requireNonNull;
 import java.io.BufferedInputStream;
 import java.io.File;
 import java.io.FileNotFoundException;
-import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.charset.Charset;
@@ -19,6 +18,7 @@ import org.apache.commons.lang3.event.EventListenerSupport;
 import com.github.schuettec.multiprocman.ExceptionDialog;
 import com.github.schuettec.multiprocman.process.captor.InputCaptor;
 import com.github.schuettec.multiprocman.process.captor.InputCaptorCallback;
+import com.github.schuettec.multiprocman.process.captor.StopwatchInputCaptorCallbackDecorator;
 import com.github.schuettec.multiprocman.process.captor.SwingThreadInputCaptorCallbackDecorator;
 
 public class ProcessObserverImpl extends Thread implements ProcessObserver, ProcessOutputInfo, ViewFrameListener {
@@ -57,8 +57,7 @@ public class ProcessObserverImpl extends Thread implements ProcessObserver, Proc
 			this.process = processBuilder.start();
 			running = true;
 			InputStream inputStr = process.getInputStream();
-			try (BufferedInputStream input = new BufferedInputStream(inputStr);
-			    FileOutputStream output = getNewOutputFile();) {
+			try (BufferedInputStream input = new BufferedInputStream(inputStr)) {
 
 				doInSwing(new Runnable() {
 					@Override
@@ -94,9 +93,10 @@ public class ProcessObserverImpl extends Thread implements ProcessObserver, Proc
 
 					@Override
 					public void clear() {
-						// TODO: Implement me!
+						callbacks.fire()
+						    .clear();
 					}
-				}, input, output);
+				}, input, outputFile);
 				captor.run();
 
 				_waitFor();
@@ -105,7 +105,7 @@ public class ProcessObserverImpl extends Thread implements ProcessObserver, Proc
 				handleCannotWriteOutput(e);
 			}
 		} catch (IOException e) {
-			stopProcess();
+			stopProcess(false);
 			doInSwing(new Runnable() {
 				@Override
 				public void run() {
@@ -113,13 +113,11 @@ public class ProcessObserverImpl extends Thread implements ProcessObserver, Proc
 					    .cannotStartProcess(e);
 				}
 			});
-		} finally {
-			System.out.print("");
 		}
 	}
 
 	private void handleCannotWriteOutput(Exception e) {
-		stopProcess();
+		stopProcess(false);
 		doInSwing(new Runnable() {
 			@Override
 			public void run() {
@@ -129,42 +127,39 @@ public class ProcessObserverImpl extends Thread implements ProcessObserver, Proc
 		});
 	}
 
-	private FileOutputStream getNewOutputFile() throws FileNotFoundException {
-		return new FileOutputStream(outputFile);
-	}
-
 	private InputCaptorCallback getInputCaptorCallback() {
-		return new SwingThreadInputCaptorCallbackDecorator(new InputCaptorCallback() {
+		return new StopwatchInputCaptorCallbackDecorator(
+		    new SwingThreadInputCaptorCallbackDecorator(new InputCaptorCallback() {
 
-			@Override
-			public boolean shouldRun() {
-				return process.isAlive();
-			}
+			    @Override
+			    public boolean shouldRun() {
+				    return process.isAlive();
+			    }
 
-			@Override
-			public void newLine(int lines, String line) {
-				callbacks.fire()
-				    .output(lines, line);
-			}
+			    @Override
+			    public void newLine(int lines, String line) {
+				    callbacks.fire()
+				        .output(lines, line);
+			    }
 
-			@Override
-			public void append(String string) {
-				callbacks.fire()
-				    .append(string);
-			}
+			    @Override
+			    public void append(String string) {
+				    callbacks.fire()
+				        .append(string);
+			    }
 
-			@Override
-			public void jumpToLastLine(int lines) {
-				callbacks.fire()
-				    .jumpToLastLine(lines);
-			}
+			    @Override
+			    public void jumpToLastLine(int lines) {
+				    callbacks.fire()
+				        .jumpToLastLine(lines);
+			    }
 
-			@Override
-			public void clear() {
-				callbacks.fire()
-				    .clear();
-			}
-		});
+			    @Override
+			    public void clear() {
+				    callbacks.fire()
+				        .clear();
+			    }
+		    }));
 	}
 
 	private void doInSwing(Runnable run) {
@@ -182,6 +177,7 @@ public class ProcessObserverImpl extends Thread implements ProcessObserver, Proc
 
 	private void _waitFor() throws InterruptedException {
 		boolean exited = process.waitFor(10l, TimeUnit.SECONDS);
+		captor.waitFor();
 		if (exited) {
 			int exitValue = process.exitValue();
 			doInSwing(new Runnable() {
@@ -208,10 +204,13 @@ public class ProcessObserverImpl extends Thread implements ProcessObserver, Proc
 	 * @see livefilereader.ProcessObserver#stopProcess()
 	 */
 	@Override
-	public void stopProcess() {
+	public void stopProcess(boolean waitFor) {
 		if (nonNull(this.process)) {
 			this.process.destroy();
 			running = false;
+			if (waitFor) {
+				waitFor();
+			}
 		}
 	}
 
@@ -276,25 +275,26 @@ public class ProcessObserverImpl extends Thread implements ProcessObserver, Proc
 	}
 
 	public void clearConsole() {
-		// // Clear the file content or reset the last read line or whatever.
-		// if (isRunning()) {
-		// captor.setScheduledAction(() -> {
-		// clearConsoleAction();
-		// });
-		// } else {
-		// clearConsoleAction();
-		// }
+		// Clear the file content or reset the last read line or whatever.
+		if (isRunning()) {
+			captor.setScheduledAction(() -> {
+				clearConsoleAction();
+			});
+		} else {
+			clearConsoleAction();
+		}
 	}
 
 	private void clearConsoleAction() {
-		File oldFile = outputFile;
 		try {
-			captor.clearConsole(getNewOutputFile());
+			captor.clearConsole();
 		} catch (FileNotFoundException e) {
 			handleCannotWriteOutput(e);
-		} finally {
-			oldFile.delete();
 		}
+	}
+
+	public void shouldStop() {
+		captor.shouldStop();
 	}
 
 }

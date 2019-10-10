@@ -4,7 +4,7 @@ public interface ProcessObserver {
 
 	void startProcess();
 
-	void stopProcess();
+	void stopProcess(boolean waitFor);
 
 	void waitFor();
 

@@ -4,10 +4,16 @@ import static java.util.Objects.nonNull;
 
 import java.io.BufferedInputStream;
 import java.io.ByteArrayOutputStream;
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.Semaphore;
+
+import javax.swing.SwingUtilities;
 
 public class InputCaptor {
 
@@ -25,6 +31,10 @@ public class InputCaptor {
 	private int viewFrameLines;
 
 	private Runnable scheduledAction;
+
+	private File outputFile;
+
+	private Semaphore semaphore;
 
 	private class Buffer {
 		boolean isAsciiControl;
@@ -60,10 +70,19 @@ public class InputCaptor {
 
 	}
 
-	public InputCaptor(InputCaptorCallback callback, InputStream input, OutputStream output) {
+	public InputCaptor(InputCaptorCallback callback, InputStream input, File outputFile) throws FileNotFoundException {
 		this.callback = callback;
 		this.input = new BufferedInputStream(input);
-		this.output = output;
+		this.outputFile = outputFile;
+		this.output = getNewOutputStream();
+	}
+
+	public void shouldStop() {
+		callback = new NoopInputCaptorCallback();
+	}
+
+	private FileOutputStream getNewOutputStream() throws FileNotFoundException {
+		return new FileOutputStream(outputFile);
 	}
 
 	/**
@@ -75,6 +94,9 @@ public class InputCaptor {
 	 */
 	public void run() throws IOException {
 		try {
+			semaphore = new Semaphore(1);
+			semaphore.acquireUninterruptibly();
+
 			int bytesRead = 0;
 			int blockReadLines = 0;
 
@@ -135,7 +157,13 @@ public class InputCaptor {
 				}
 
 				if (nonNull(scheduledAction)) {
-					scheduledAction.run();
+					try {
+						SwingUtilities.invokeAndWait(scheduledAction);
+						bytesRead = 0;
+						blockReadLines = 0;
+					} catch (Exception e) {
+						e.printStackTrace();
+					}
 					scheduledAction = null;
 				}
 
@@ -146,7 +174,30 @@ public class InputCaptor {
 			} else {
 				e.printStackTrace();
 			}
+		} finally {
+			if (nonNull(output)) {
+				try {
+					System.out.println("Input Captor output closing!!!!!!");
+					output.close();
+					System.out.println("Input Captor output closed!!!!!!");
+				} catch (Exception e) {
+					e.printStackTrace();
+				}
+			}
+			semaphore.release();
 		}
+	}
+
+	/**
+	 * Waits for the process output to be read completely.
+	 */
+	public void waitFor() {
+		try {
+			semaphore.acquireUninterruptibly();
+			semaphore.release();
+		} catch (Exception e) {
+		}
+
 	}
 
 	private BlockRead isBlockRead(BufferedInputStream input) throws IOException {
@@ -334,14 +385,16 @@ public class InputCaptor {
 		this.scheduledAction = runnable;
 	}
 
-	public void clearConsole(OutputStream newOutputStream) {
+	public void clearConsole() throws FileNotFoundException {
 		try {
 			if (nonNull(this.output)) {
+				System.out.println("Input Captor output closing!!!!!!");
 				this.output.close();
+				System.out.println("Input Captor output closed!!!!!!");
 			}
 		} catch (IOException e) {
 		}
-		this.output = newOutputStream;
+		this.output = getNewOutputStream();
 		lineXrefs.clear();
 		lines = 0;
 		callback.clear();

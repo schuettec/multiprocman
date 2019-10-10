@@ -527,19 +527,14 @@ public class MainFrame extends JFrame implements WindowListener, ProcessListener
 
 			@Override
 			public void actionPerformed(ActionEvent e) {
-				SwingUtilities.invokeLater(new Runnable() {
-
-					@Override
-					public void run() {
-						Cursor defaultCursor = Cursor.getDefaultCursor();
-						Cursor waitCursor = Cursor.getPredefinedCursor(Cursor.WAIT_CURSOR);
-						setCursor(waitCursor);
-						currentProcess.stop(true);
-						clearConsole();
-						currentProcess.start();
-						setCursor(defaultCursor);
-					}
-				});
+				Cursor defaultCursor = Cursor.getDefaultCursor();
+				Cursor waitCursor = Cursor.getPredefinedCursor(Cursor.WAIT_CURSOR);
+				setCursor(waitCursor);
+				try {
+					currentProcess.restart();
+				} finally {
+					setCursor(defaultCursor);
+				}
 			}
 
 		});
@@ -751,6 +746,7 @@ public class MainFrame extends JFrame implements WindowListener, ProcessListener
 	}
 
 	private void clearConsole() {
+
 		currentProcess.clearConsole();
 	}
 
