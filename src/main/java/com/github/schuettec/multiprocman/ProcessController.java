@@ -20,7 +20,6 @@ import javax.swing.JScrollBar;
 import javax.swing.SwingUtilities;
 
 import org.apache.commons.lang3.event.EventListenerSupport;
-import org.apache.commons.lang3.time.StopWatch;
 
 import com.github.schuettec.multiprocman.console.AnsiColorTextPane;
 import com.github.schuettec.multiprocman.consolepreview.ConsolePreview;
@@ -313,11 +312,13 @@ public class ProcessController implements ProcessCallback, ViewFrameListener {
 		} else {
 			updateState(State.STOPPED_ALERT);
 		}
+		controllers.remove(this);
 	}
 
 	@Override
 	public void abandoned() {
 		updateState(State.ABANDONED);
+		controllers.remove(this);
 	}
 
 	/**
@@ -391,14 +392,9 @@ public class ProcessController implements ProcessCallback, ViewFrameListener {
 
 	@Override
 	public void jumpToLastLine(int lines) {
-		StopWatch stopWatch = new StopWatch();
-		stopWatch.start();
 		processListener.fire()
 		    .processOutput(this);
 		statistics.setOverallOutputAmount(controller.getCaptureFileSize());
-		stopWatch.stop();
-		System.out.println("com.github.schuettec.multiprocman.ProcessController.jumpToLastLine(int) took "
-		    + stopWatch.getTime(TimeUnit.MILLISECONDS));
 	}
 
 	@Override
@@ -414,9 +410,16 @@ public class ProcessController implements ProcessCallback, ViewFrameListener {
 	 * Restarts a this process.
 	 */
 	public void restart() {
-		stop(true);
-		clearConsole();
-		start();
+		Thread t = new Thread(new Runnable() {
+			@Override
+			public void run() {
+				stop(true);
+				clearConsole();
+				start();
+			}
+
+		});
+		t.start();
 	}
 
 }

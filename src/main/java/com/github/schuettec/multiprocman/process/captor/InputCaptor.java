@@ -177,9 +177,7 @@ public class InputCaptor {
 		} finally {
 			if (nonNull(output)) {
 				try {
-					System.out.println("Input Captor output closing!!!!!!");
 					output.close();
-					System.out.println("Input Captor output closed!!!!!!");
 				} catch (Exception e) {
 					e.printStackTrace();
 				}
@@ -388,9 +386,7 @@ public class InputCaptor {
 	public void clearConsole() throws FileNotFoundException {
 		try {
 			if (nonNull(this.output)) {
-				System.out.println("Input Captor output closing!!!!!!");
 				this.output.close();
-				System.out.println("Input Captor output closed!!!!!!");
 			}
 		} catch (IOException e) {
 		}

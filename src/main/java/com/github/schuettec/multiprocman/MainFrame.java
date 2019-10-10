@@ -880,6 +880,7 @@ public class MainFrame extends JFrame implements WindowListener, ProcessListener
 
 	@Override
 	public void processOutput(ProcessController processController) {
+		this.processCurrentState();
 		this.processList.repaint();
 		refreshStatistics();
 	}
