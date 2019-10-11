@@ -8,10 +8,10 @@ import java.io.File;
  */
 public interface ProcessOutputInfo {
 
-	public File getFile();
+    public File getFile();
 
-	public int getStartOffset(int lineNumber);
+    public int getStartOffset(int lineNumber);
 
-	public int getEndOffset(int lineNumber);
+    public int getEndOffset(int lineNumber);
 
 }

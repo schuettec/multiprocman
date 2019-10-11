@@ -8,16 +8,16 @@ import javax.swing.Icon;
 
 public class TitledAction extends AbstractAction {
 
-	private Action delegate;
+    private Action delegate;
 
-	public TitledAction(String title, Action delegate) {
-		super(title, (Icon) delegate.getValue(Action.SMALL_ICON));
-		this.delegate = delegate;
-	}
+    public TitledAction(String title, Action delegate) {
+        super(title, (Icon) delegate.getValue(Action.SMALL_ICON));
+        this.delegate = delegate;
+    }
 
-	@Override
-	public void actionPerformed(ActionEvent e) {
-		delegate.actionPerformed(e);
-	}
+    @Override
+    public void actionPerformed(ActionEvent e) {
+        delegate.actionPerformed(e);
+    }
 
 }

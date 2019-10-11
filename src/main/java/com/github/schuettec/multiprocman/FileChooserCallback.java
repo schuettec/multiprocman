@@ -6,9 +6,9 @@ import javafx.stage.FileChooser.ExtensionFilter;
 
 public interface FileChooserCallback {
 
-	public void fileSelected(File file, ExtensionFilter selectedFilter);
+    public void fileSelected(File file, ExtensionFilter selectedFilter);
 
-	public default void noFile() {
-	}
+    public default void noFile() {
+    }
 
 }

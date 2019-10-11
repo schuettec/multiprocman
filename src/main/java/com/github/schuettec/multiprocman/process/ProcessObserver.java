@@ -2,14 +2,14 @@ package com.github.schuettec.multiprocman.process;
 
 public interface ProcessObserver {
 
-	void startProcess();
+    void startProcess();
 
-	void stopProcess(boolean waitFor);
+    void stopProcess(boolean waitFor);
 
-	void waitFor();
+    void waitFor();
 
-	long getLines();
+    long getLines();
 
-	boolean isRunning();
+    boolean isRunning();
 
 }

@@ -10,54 +10,53 @@ import java.util.function.Supplier;
 
 /**
  * This class defines the {@link CumulatedEventJoin} that joins multiple events into one by taking a specified maximum
- * event
- * frequency into account.
+ * event frequency into account.
  */
 public class CumulatedEventJoin<T> extends EventJoin {
 
-	private BiFunction<T, T, T> cumulationFunction;
-	private Consumer<T> consumer;
+    private BiFunction<T, T, T> cumulationFunction;
+    private Consumer<T> consumer;
 
-	private Object lock = new Object();
-	private T currentValue;
-	private Supplier<T> initialValueSupplier;
+    private Object lock = new Object();
+    private T currentValue;
+    private Supplier<T> initialValueSupplier;
 
-	public CumulatedEventJoin(Supplier<T> initialValueSupplier, BiFunction<T, T, T> cumulationFunction,
-	    Consumer<T> consumer, long frequency, TimeUnit unit) {
-		super(frequency, unit);
-		requireNonNull(cumulationFunction, "cumulation function must not be null!");
-		requireNonNull(consumer, "consumer  must not be null!");
-		this.initialValueSupplier = initialValueSupplier;
-		this.currentValue = initialValueSupplier.get();
-		this.cumulationFunction = cumulationFunction;
-		this.consumer = consumer;
-	}
+    public CumulatedEventJoin(Supplier<T> initialValueSupplier, BiFunction<T, T, T> cumulationFunction,
+            Consumer<T> consumer, long frequency, TimeUnit unit) {
+        super(frequency, unit);
+        requireNonNull(cumulationFunction, "cumulation function must not be null!");
+        requireNonNull(consumer, "consumer  must not be null!");
+        this.initialValueSupplier = initialValueSupplier;
+        this.currentValue = initialValueSupplier.get();
+        this.cumulationFunction = cumulationFunction;
+        this.consumer = consumer;
+    }
 
-	public void noticeEvent(T value) {
-		synchronized (lock) {
-			this.currentValue = cumulationFunction.apply(currentValue, value);
-			this.noticeEvent();
-		}
-	}
+    public void noticeEvent(T value) {
+        synchronized (lock) {
+            this.currentValue = cumulationFunction.apply(currentValue, value);
+            this.noticeEvent();
+        }
+    }
 
-	@Override
-	public void acceptEvent() {
-		synchronized (lock) {
-			consumer.accept(currentValue);
-			this.currentValue = initialValueSupplier.get();
-		}
-	}
+    @Override
+    public void acceptEvent() {
+        synchronized (lock) {
+            consumer.accept(currentValue);
+            this.currentValue = initialValueSupplier.get();
+        }
+    }
 
-	public static <T> BiFunction<T, T, T> returnOnNull(BiFunction<T, T, T> function) {
-		return (s, t) -> {
-			if (isNull(s) || isNull(t)) {
-				if (isNull(s)) {
-					return t;
-				} else {
-					return s;
-				}
-			}
-			return function.apply(s, t);
-		};
-	}
+    public static <T> BiFunction<T, T, T> returnOnNull(BiFunction<T, T, T> function) {
+        return (s, t) -> {
+            if (isNull(s) || isNull(t)) {
+                if (isNull(s)) {
+                    return t;
+                } else {
+                    return s;
+                }
+            }
+            return function.apply(s, t);
+        };
+    }
 }

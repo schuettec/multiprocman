@@ -23,278 +23,265 @@ import com.github.schuettec.multiprocman.process.captor.SwingThreadInputCaptorCa
 
 public class ProcessObserverImpl extends Thread implements ProcessObserver, ProcessOutputInfo, ViewFrameListener {
 
-	private ProcessBuilder processBuilder;
-	private File outputFile;
+    private ProcessBuilder processBuilder;
+    private File outputFile;
 
-	private boolean running = false;
-	private EventListenerSupport<ProcessCallback> callbacks;
-	private Process process;
-	private InputCaptor captor;
-	private Charset charset;
+    private boolean running = false;
+    private EventListenerSupport<ProcessCallback> callbacks;
+    private Process process;
+    private InputCaptor captor;
+    private Charset charset;
 
-	public ProcessObserverImpl(ProcessBuilder builder, File outputFile, Charset charset)
-	    throws ProcessBufferOutputException {
-		requireNonNull(builder, "Builder must not be null!");
-		requireNonNull(outputFile, "Output file must not be null.");
-		this.charset = charset;
-		this.processBuilder = builder;
-		this.processBuilder.redirectErrorStream(true);
-		this.outputFile = outputFile;
-		this.callbacks = new EventListenerSupport<>(ProcessCallback.class);
-	}
+    public ProcessObserverImpl(ProcessBuilder builder, File outputFile, Charset charset)
+            throws ProcessBufferOutputException {
+        requireNonNull(builder, "Builder must not be null!");
+        requireNonNull(outputFile, "Output file must not be null.");
+        this.charset = charset;
+        this.processBuilder = builder;
+        this.processBuilder.redirectErrorStream(true);
+        this.outputFile = outputFile;
+        this.callbacks = new EventListenerSupport<>(ProcessCallback.class);
+    }
 
-	public void addListener(ProcessCallback listener) {
-		callbacks.addListener(listener);
-	}
+    public void addListener(ProcessCallback listener) {
+        callbacks.addListener(listener);
+    }
 
-	public void removeListener(ProcessCallback listener) {
-		callbacks.removeListener(listener);
-	}
+    public void removeListener(ProcessCallback listener) {
+        callbacks.removeListener(listener);
+    }
 
-	@Override
-	public void run() {
-		try {
-			this.process = processBuilder.start();
-			running = true;
-			InputStream inputStr = process.getInputStream();
-			try (BufferedInputStream input = new BufferedInputStream(inputStr)) {
+    @Override
+    public void run() {
+        try {
+            this.process = processBuilder.start();
+            running = true;
+            InputStream inputStr = process.getInputStream();
+            try (BufferedInputStream input = new BufferedInputStream(inputStr)) {
 
-				doInSwing(new Runnable() {
-					@Override
-					public void run() {
-						callbacks.fire()
-						    .started(ProcessObserverImpl.this, outputFile, charset);
-					}
-				});
-				this.captor = new InputCaptor(new InputCaptorCallback() {
+                doInSwing(new Runnable() {
+                    @Override
+                    public void run() {
+                        callbacks.fire().started(ProcessObserverImpl.this, outputFile, charset);
+                    }
+                });
+                this.captor = new InputCaptor(new InputCaptorCallback() {
 
-					@Override
-					public boolean shouldRun() {
-						return process.isAlive();
-					}
+                    @Override
+                    public boolean shouldRun() {
+                        return process.isAlive();
+                    }
 
-					@Override
-					public void newLine(int lines, String line) {
-						callbacks.fire()
-						    .output(lines, line);
-					}
+                    @Override
+                    public void newLine(int lines, String line) {
+                        callbacks.fire().output(lines, line);
+                    }
 
-					@Override
-					public void append(String string) {
-						callbacks.fire()
-						    .append(string);
-					}
+                    @Override
+                    public void append(String string) {
+                        callbacks.fire().append(string);
+                    }
 
-					@Override
-					public void jumpToLastLine(int lines) {
-						callbacks.fire()
-						    .jumpToLastLine(lines);
-					}
+                    @Override
+                    public void jumpToLastLine(int lines) {
+                        callbacks.fire().jumpToLastLine(lines);
+                    }
 
-					@Override
-					public void clear() {
-						callbacks.fire()
-						    .clear();
-					}
-				}, input, outputFile);
-				captor.run();
+                    @Override
+                    public void clear() {
+                        callbacks.fire().clear();
+                    }
+                }, input, outputFile);
+                captor.run();
 
-				_waitFor();
+                _waitFor();
 
-			} catch (Exception e) {
-				handleCannotWriteOutput(e);
-			}
-		} catch (IOException e) {
-			stopProcess(false);
-			doInSwing(new Runnable() {
-				@Override
-				public void run() {
-					callbacks.fire()
-					    .cannotStartProcess(e);
-				}
-			});
-		}
-	}
+            } catch (Exception e) {
+                handleCannotWriteOutput(e);
+            }
+        } catch (IOException e) {
+            stopProcess(false);
+            doInSwing(new Runnable() {
+                @Override
+                public void run() {
+                    callbacks.fire().cannotStartProcess(e);
+                }
+            });
+        }
+    }
 
-	private void handleCannotWriteOutput(Exception e) {
-		stopProcess(false);
-		doInSwing(new Runnable() {
-			@Override
-			public void run() {
-				callbacks.fire()
-				    .cannotWriteOutput(outputFile, e);
-			}
-		});
-	}
+    private void handleCannotWriteOutput(Exception e) {
+        stopProcess(false);
+        doInSwing(new Runnable() {
+            @Override
+            public void run() {
+                callbacks.fire().cannotWriteOutput(outputFile, e);
+            }
+        });
+    }
 
-	private InputCaptorCallback getInputCaptorCallback() {
-		return new StopwatchInputCaptorCallbackDecorator(
-		    new SwingThreadInputCaptorCallbackDecorator(new InputCaptorCallback() {
+    private InputCaptorCallback getInputCaptorCallback() {
+        return new StopwatchInputCaptorCallbackDecorator(
+                new SwingThreadInputCaptorCallbackDecorator(new InputCaptorCallback() {
 
-			    @Override
-			    public boolean shouldRun() {
-				    return process.isAlive();
-			    }
+                    @Override
+                    public boolean shouldRun() {
+                        return process.isAlive();
+                    }
 
-			    @Override
-			    public void newLine(int lines, String line) {
-				    callbacks.fire()
-				        .output(lines, line);
-			    }
+                    @Override
+                    public void newLine(int lines, String line) {
+                        callbacks.fire().output(lines, line);
+                    }
 
-			    @Override
-			    public void append(String string) {
-				    callbacks.fire()
-				        .append(string);
-			    }
+                    @Override
+                    public void append(String string) {
+                        callbacks.fire().append(string);
+                    }
 
-			    @Override
-			    public void jumpToLastLine(int lines) {
-				    callbacks.fire()
-				        .jumpToLastLine(lines);
-			    }
+                    @Override
+                    public void jumpToLastLine(int lines) {
+                        callbacks.fire().jumpToLastLine(lines);
+                    }
 
-			    @Override
-			    public void clear() {
-				    callbacks.fire()
-				        .clear();
-			    }
-		    }));
-	}
+                    @Override
+                    public void clear() {
+                        callbacks.fire().clear();
+                    }
+                }));
+    }
 
-	private void doInSwing(Runnable run) {
-		SwingUtilities.invokeLater(new Runnable() {
-			@Override
-			public void run() {
-				try {
-					run.run();
-				} catch (Exception e) {
-					e.printStackTrace();
-				}
-			}
-		});
-	}
+    private void doInSwing(Runnable run) {
+        SwingUtilities.invokeLater(new Runnable() {
+            @Override
+            public void run() {
+                try {
+                    run.run();
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+            }
+        });
+    }
 
-	private void _waitFor() throws InterruptedException {
-		boolean exited = process.waitFor(10l, TimeUnit.SECONDS);
-		captor.waitFor();
-		if (exited) {
-			int exitValue = process.exitValue();
-			doInSwing(new Runnable() {
-				@Override
-				public void run() {
-					callbacks.fire()
-					    .exited(exitValue);
-				}
-			});
-		} else {
-			doInSwing(new Runnable() {
-				@Override
-				public void run() {
-					callbacks.fire()
-					    .abandoned();
-				}
-			});
-		}
-	}
+    private void _waitFor() throws InterruptedException {
+        boolean exited = process.waitFor(10l, TimeUnit.SECONDS);
+        captor.waitFor();
+        if (exited) {
+            int exitValue = process.exitValue();
+            doInSwing(new Runnable() {
+                @Override
+                public void run() {
+                    callbacks.fire().exited(exitValue);
+                }
+            });
+        } else {
+            doInSwing(new Runnable() {
+                @Override
+                public void run() {
+                    callbacks.fire().abandoned();
+                }
+            });
+        }
+    }
 
-	/*
-	 * (non-Javadoc)
-	 *
-	 * @see livefilereader.ProcessObserver#stopProcess()
-	 */
-	@Override
-	public void stopProcess(boolean waitFor) {
-		if (nonNull(this.process)) {
-			this.process.destroy();
-			running = false;
-			if (waitFor) {
-				waitFor();
-			}
-		}
-	}
+    /*
+     * (non-Javadoc)
+     *
+     * @see livefilereader.ProcessObserver#stopProcess()
+     */
+    @Override
+    public void stopProcess(boolean waitFor) {
+        if (nonNull(this.process)) {
+            this.process.destroy();
+            running = false;
+            if (waitFor) {
+                waitFor();
+            }
+        }
+    }
 
-	@Override
-	public void waitFor() {
-		try {
-			_waitFor();
-		} catch (InterruptedException e) {
-			ExceptionDialog.showException(null, e, "Error while waiting for process to finish!");
-		}
-	}
+    @Override
+    public void waitFor() {
+        try {
+            _waitFor();
+        } catch (InterruptedException e) {
+            ExceptionDialog.showException(null, e, "Error while waiting for process to finish!");
+        }
+    }
 
-	/*
-	 * (non-Javadoc)
-	 *
-	 * @see livefilereader.ProcessObserver#getLines()
-	 */
-	@Override
-	public long getLines() {
-		return captor.getLines();
-	}
+    /*
+     * (non-Javadoc)
+     *
+     * @see livefilereader.ProcessObserver#getLines()
+     */
+    @Override
+    public long getLines() {
+        return captor.getLines();
+    }
 
-	/*
-	 * (non-Javadoc)
-	 *
-	 * @see livefilereader.ProcessObserver#isRunning()
-	 */
-	@Override
-	public boolean isRunning() {
-		return running;
-	}
+    /*
+     * (non-Javadoc)
+     *
+     * @see livefilereader.ProcessObserver#isRunning()
+     */
+    @Override
+    public boolean isRunning() {
+        return running;
+    }
 
-	@Override
-	public void startProcess() {
-		if (running) {
-			throw new IllegalStateException("Process is already started.");
-		} else {
-			start();
-		}
-	}
+    @Override
+    public void startProcess() {
+        if (running) {
+            throw new IllegalStateException("Process is already started.");
+        } else {
+            start();
+        }
+    }
 
-	@Override
-	public File getFile() {
-		return outputFile;
-	}
+    @Override
+    public File getFile() {
+        return outputFile;
+    }
 
-	@Override
-	public int getStartOffset(int lineNumber) {
-		return captor.getStartOffset(lineNumber);
-	}
+    @Override
+    public int getStartOffset(int lineNumber) {
+        return captor.getStartOffset(lineNumber);
+    }
 
-	@Override
-	public int getEndOffset(int lineNumber) {
-		return captor.getEndOffset(lineNumber);
-	}
+    @Override
+    public int getEndOffset(int lineNumber) {
+        return captor.getEndOffset(lineNumber);
+    }
 
-	@Override
-	public void viewFrameChanged(int viewFrameLines) {
-		if (nonNull(captor)) {
-			captor.setViewFrame(viewFrameLines);
-		}
-	}
+    @Override
+    public void viewFrameChanged(int viewFrameLines) {
+        if (nonNull(captor)) {
+            captor.setViewFrame(viewFrameLines);
+        }
+    }
 
-	public void clearConsole() {
-		// Clear the file content or reset the last read line or whatever.
-		if (isRunning()) {
-			captor.setScheduledAction(() -> {
-				clearConsoleAction();
-			});
-		} else {
-			clearConsoleAction();
-		}
-	}
+    public void clearConsole() {
+        // Clear the file content or reset the last read line or whatever.
+        if (isRunning()) {
+            captor.setScheduledAction(() -> {
+                clearConsoleAction();
+            });
+        } else {
+            clearConsoleAction();
+        }
+    }
 
-	private void clearConsoleAction() {
-		try {
-			captor.clearConsole();
-		} catch (FileNotFoundException e) {
-			handleCannotWriteOutput(e);
-		}
-	}
+    private void clearConsoleAction() {
+        try {
+            captor.clearConsole();
+        } catch (FileNotFoundException e) {
+            handleCannotWriteOutput(e);
+        }
+    }
 
-	public void shouldStop() {
-		captor.shouldStop();
-	}
+    public void shouldStop() {
+        captor.shouldStop();
+    }
 
 }

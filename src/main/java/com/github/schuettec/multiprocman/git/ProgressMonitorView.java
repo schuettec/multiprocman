@@ -6,8 +6,8 @@ import org.eclipse.jgit.lib.ProgressMonitor;
 
 public interface ProgressMonitorView extends ProgressMonitor {
 
-	/**
-	 * @return Returns the root {@link Component} used to position other GUI elements relatively to
-	 */
-	public Component getRootComponent();
+    /**
+     * @return Returns the root {@link Component} used to position other GUI elements relatively to
+     */
+    public Component getRootComponent();
 }

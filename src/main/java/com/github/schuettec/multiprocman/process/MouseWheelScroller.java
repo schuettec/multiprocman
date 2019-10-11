@@ -10,21 +10,21 @@ import javax.swing.JScrollBar;
 
 public class MouseWheelScroller implements MouseWheelListener {
 
-	private JScrollBar scrollBar;
+    private JScrollBar scrollBar;
 
-	public MouseWheelScroller(JScrollBar scrollBar) {
-		super();
-		requireNonNull(scrollBar);
-		this.scrollBar = scrollBar;
-	}
+    public MouseWheelScroller(JScrollBar scrollBar) {
+        super();
+        requireNonNull(scrollBar);
+        this.scrollBar = scrollBar;
+    }
 
-	@Override
-	public void mouseWheelMoved(MouseWheelEvent e) {
-		BoundedRangeModel model = scrollBar.getModel();
-		int extent = (int) Math.round(model.getExtent() / 2.0d);
-		int valueSummand = e.getWheelRotation() * extent;
-		int newValue = model.getValue() + valueSummand;
-		model.setValue(newValue);
-	}
+    @Override
+    public void mouseWheelMoved(MouseWheelEvent e) {
+        BoundedRangeModel model = scrollBar.getModel();
+        int extent = (int) Math.round(model.getExtent() / 2.0d);
+        int valueSummand = e.getWheelRotation() * extent;
+        int newValue = model.getValue() + valueSummand;
+        model.setValue(newValue);
+    }
 
 }

@@ -13,36 +13,36 @@ import javax.swing.table.TableCellEditor;
 
 public class ColorChooserCellEditor extends AbstractCellEditor implements TableCellEditor {
 
-	private JButton delegate = new JButton();
+    private JButton delegate = new JButton();
 
-	Color savedColor;
+    Color savedColor;
 
-	public ColorChooserCellEditor() {
-		ActionListener actionListener = new ActionListener() {
-			@Override
-			public void actionPerformed(ActionEvent actionEvent) {
-				Color color = JColorChooser.showDialog(delegate, "Color Chooser", savedColor);
-				ColorChooserCellEditor.this.changeColor(color);
-			}
-		};
-		delegate.addActionListener(actionListener);
-	}
+    public ColorChooserCellEditor() {
+        ActionListener actionListener = new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent actionEvent) {
+                Color color = JColorChooser.showDialog(delegate, "Color Chooser", savedColor);
+                ColorChooserCellEditor.this.changeColor(color);
+            }
+        };
+        delegate.addActionListener(actionListener);
+    }
 
-	@Override
-	public Object getCellEditorValue() {
-		return savedColor;
-	}
+    @Override
+    public Object getCellEditorValue() {
+        return savedColor;
+    }
 
-	private void changeColor(Color color) {
-		if (color != null) {
-			savedColor = color;
-			delegate.setBackground(color);
-		}
-	}
+    private void changeColor(Color color) {
+        if (color != null) {
+            savedColor = color;
+            delegate.setBackground(color);
+        }
+    }
 
-	@Override
-	public Component getTableCellEditorComponent(JTable table, Object value, boolean isSelected, int row, int column) {
-		changeColor((Color) value);
-		return delegate;
-	}
+    @Override
+    public Component getTableCellEditorComponent(JTable table, Object value, boolean isSelected, int row, int column) {
+        changeColor((Color) value);
+        return delegate;
+    }
 }
