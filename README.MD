@@ -1,6 +1,6 @@
 # Multi-Process Manager
 
-# Table of Contents
+# Table of contents
 1. [Long story short](#long-story-short)
 2. [Features](#features)
 3. [Download](#download)
